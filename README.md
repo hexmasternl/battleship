@@ -159,7 +159,8 @@ server-sent events.
 | `storage` / `tables` | Azurite | Users and refresh tokens. |
 
 Open **Traces** and create a player in the app. You'll see one trace go from the gateway into the
-Players API and down to table storage.
+Players API, through the `CreateTokens` use-case span and down to table storage. What else the
+dashboard shows is described under [Observability](#observability).
 
 ---
 
@@ -358,6 +359,83 @@ a local immutable state store and exposes it as read-only signals. The app never
 host or port. It calls `/api/<prefix>/...`, and an interceptor sends that to the gateway URL,
 which `scripts/aspire-start.mjs` writes to `public/config.json` at start-up. Details are in
 [`src/Frontend/README.md`](src/Frontend/README.md).
+
+---
+
+## Observability
+
+Every backend service sends traces, metrics and structured logs through OpenTelemetry
+([ADR 0008](.github/skills/hexmaster-adopt-opentelemetry-for-observability/SKILL.md)).
+`builder.AddServiceDefaults()` wires the pipeline; the exporter is configured only through the
+`OTEL_*` environment variables, which Aspire sets to its dashboard. No vendor SDK is in code.
+
+**Naming.** Each module owns an `Observability/` folder with an `ActivitySource`, a metrics class
+built on `IMeterFactory`, and source-generated `LoggerMessage` definitions. Sources and meters are
+named after the assembly (`HexMaster.Battleship.Players`, `HexMaster.Battleship.Events`, ...), so
+ServiceDefaults registers them all with one `HexMaster.Battleship.*` wildcard. Metrics are named
+`module.thing` with a unit and a description; custom attributes carry a domain prefix
+(`player.id`, `game.code`, `event.type`).
+
+**Use-case spans.** Every command and query handler is registered with `AddCommandHandler` or
+`AddQueryHandler`, which wraps it in a decorator. The decorator opens an `Internal` span named
+after the use case (`CreateTokensCommand` becomes `CreateTokens`), ends it `Ok`, or `Error` with
+the exception recorded before it is rethrown, and records `battleship.use_case.duration`.
+Handlers only add attributes to `Activity.Current`.
+
+**The event path in one trace.** Publishing opens a `Producer` span
+(`publish integration-events`). The Dapr gRPC call is instrumented, and the sidecars export their
+own spans to the dashboard through a Dapr configuration the AppHost generates per run (sampling
+rate 1; the endpoint and API key come from the sidecar's `OTEL_*` variables). The Events API
+continues the trace in a `Consumer` span (`process integration-events`) and a `deliver` span per
+fan-out, so one trace runs publisher API → sidecar → RabbitMQ → Events API → SSE delivery.
+
+| Metric | Unit | Tags | Meaning |
+|---|---|---|---|
+| `battleship.use_case.duration` | `s` | `use_case`, `outcome` | Duration of every command and query handler |
+| `players.tokens.issued` | `{token}` | | Token pairs issued to new anonymous users |
+| `players.tokens.refreshed` | `{token}` | | Token pairs issued for a refresh token |
+| `players.tokens.refused` | `{token}` | `reason` | Refused refresh tokens (`unknown_token`, `expired_token`, `token_used_already`, `unknown_user`, `revoked_user`) |
+| `games.created` | `{game}` | | Games created |
+| `integration_events.published` | `{event}` | `event.type` | Events handed to the Dapr sidecar |
+| `integration_events.publish_failed` | `{event}` | `event.type` | Events that could not be published |
+| `events.connections.active` | `{connection}` | | Open server-sent event streams |
+| `events.delivered` | `{event}` | `event.type` | Events written to an open stream |
+| `events.dropped` | `{event}` | `reason` | Events that missed a stream (`invalid_envelope`, `connection_closed`, `channel_full`) |
+| `events.replayed` | `{event}` | | Missed events replayed to a reconnecting stream |
+
+**Where it shows up in the dashboard.**
+
+| Signal | Dashboard page | What to look for |
+|---|---|---|
+| Use-case spans | **Traces** | `CreateTokens`, `RefreshTokens`, `GetCurrentUser`, `CreateGame` under the HTTP server span, with `player.id`, `game.id` or `token.refusal_reason` |
+| Pub/sub hop | **Traces** | `publish integration-events`, the `daprd` spans, `process integration-events` and `deliver` in one trace |
+| Business metrics | **Metrics** | Pick a service, then the `HexMaster.Battleship.*` meter |
+| Structured logs | **Structured logs** | Event ids 1000s (Players), 2000s (Events), 3000s (integration events), 4000s (Games), 5000s (use-case failures); each entry links to its trace |
+
+**Walkthrough.** Start the app and create a player. In **Traces**, open the Players API trace and
+select the `CreateTokens` span: it carries `player.id`. In **Metrics**, select
+`hexmaster-battleship-players-api` and the `HexMaster.Battleship.Players` meter:
+`players.tokens.issued` went up by one. In **Structured logs**, filter on the Players API and find
+`Issued a token pair to new user ...`; its trace link opens the same trace.
+
+Tokens, secrets and display names never appear in a span, metric or log, and user, player and
+game ids are never metric tags (they may appear on spans and in logs for troubleshooting).
+A hygiene test in `HexMaster.Battleship.Players.Tests` guards this.
+
+<details>
+<summary><b>Instrument a new handler or module</b></summary>
+
+1. Register the handler with `services.AddCommandHandler<...>()` or `AddQueryHandler<...>()`. It
+   gets its span and duration metric; do not open another span in the handler.
+2. Add domain attributes to `Activity.Current` with constants from the module's telemetry class.
+3. Count each business outcome, success and failure, in the module's metrics class (`module.thing`,
+   a unit, a description, low-cardinality tags only).
+4. Log through the module's `LoggerMessage` class, in the module's event id range.
+5. A new module gets `Observability/` with a source and meter named `HexMaster.Battleship.<Module>`;
+   the wildcard picks them up without touching ServiceDefaults.
+6. Test the span with an `ActivityListener` and the metrics with `MetricCollector<T>`.
+
+</details>
 
 ---
 

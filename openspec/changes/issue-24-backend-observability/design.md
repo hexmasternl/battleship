@@ -119,6 +119,8 @@ It passes the file through `DaprSidecarOptions.Config`. The endpoint comes from 
 
 If the Community Toolkit already exposes a hook that sets the sidecar's OTLP endpoint by the time this is implemented, use the hook instead. That changes the code, not the behaviour the spec describes.
 
+**As implemented.** The Community Toolkit already gives every `*-dapr-cli` resource the Aspire OTLP environment (`OTEL_EXPORTER_OTLP_ENDPOINT`, `_HEADERS`, `_PROTOCOL`), and `daprd` fills its OTel exporter from those variables, including the dashboard API key header, but only when the configuration has no `endpointAddress`. The generated file therefore sets only `samplingRate: "1"` and `otel.isSecure` (matching the dashboard endpoint's scheme, since `daprd` defaults to secure), and leaves the endpoint, headers and protocol to the environment. The dashboard endpoint setting is still read, to pick `isSecure` and to warn and continue without the file when it is absent. This also settles the protocol open question: the protocol comes from `OTEL_EXPORTER_OTLP_PROTOCOL`.
+
 ### 8. Logging
 
 - ServiceDefaults sets `ParseStateValues = true` (alongside formatted message and scopes) so named values arrive as separate fields.
