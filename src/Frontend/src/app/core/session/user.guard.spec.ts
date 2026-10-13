@@ -6,32 +6,29 @@ import {
   RouterStateSnapshot,
   UrlTree,
 } from '@angular/router';
-import { PlayerSession } from './player-session';
-import { playerGuard } from './player.guard';
+import { UserSession } from './user-session';
+import { userGuard } from './user.guard';
 
-describe('playerGuard', () => {
+describe('userGuard', () => {
   function run(known: boolean): Promise<unknown> {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: PlayerSession, useValue: { ensurePlayer: () => Promise.resolve(known) } },
+        { provide: UserSession, useValue: { ensureUser: () => Promise.resolve(known) } },
       ],
     });
     return runInInjectionContext(TestBed.inject(EnvironmentInjector), () =>
       Promise.resolve(
-        playerGuard(
-          {} as ActivatedRouteSnapshot,
-          { url: '/games/K7Q2M9XA' } as RouterStateSnapshot,
-        ),
+        userGuard({} as ActivatedRouteSnapshot, { url: '/games/K7Q2M9XA' } as RouterStateSnapshot),
       ),
     );
   }
 
-  it('lets a known player through', async () => {
+  it('lets a known user through', async () => {
     expect(await run(true)).toBe(true);
   });
 
-  it('sends a visitor without a player to the landing page', async () => {
+  it('sends a visitor who is not a known user to the landing page', async () => {
     const result = await run(false);
     expect(result).toBeInstanceOf(UrlTree);
     expect((result as UrlTree).toString()).toBe('/');

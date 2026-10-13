@@ -20,7 +20,7 @@
 
 ## 5. Frontend
 
-- [ ] 5.1 With the `angular-frontend` agent: rename `PlayerSession` → `UserSession`, `PlayersApi` → `UsersApi`, `shared/player-name` → `shared/display-name` (`DisplayName`, `DisplayNameStore`, `DisplayNameDialog`, `openDisplayNameDialog`, `requireUser`), `EventsService.connect(userId)` with `?userId=`, and `REALTIME_EVENT_TYPES` `user.created.v1`/`user.updated.v1`, updating the interceptor, hero and welcome page (design D5); keep all visible copy; verify `npm test` passes with the same or higher test count, a spec still asserts the "Player name" label, and `npm run build` succeeds
+- [x] 5.1 With the `angular-frontend` agent: rename `PlayerSession` → `UserSession`, `PlayersApi` → `UsersApi`, `shared/player-name` → `shared/display-name` (`DisplayName`, `DisplayNameStore`, `DisplayNameDialog`, `openDisplayNameDialog`, `requireUser`), `EventsService.connect(userId)` with `?userId=`, and `REALTIME_EVENT_TYPES` `user.created.v1`/`user.updated.v1`, updating the interceptor, hero and welcome page (design D5); keep all visible copy; verify `npm test` passes with the same or higher test count, a spec still asserts the "Player name" label, and `npm run build` succeeds
 
 ## 6. Documentation, agent configuration and open proposals
 

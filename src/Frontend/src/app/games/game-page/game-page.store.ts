@@ -701,7 +701,10 @@ export class GamePageStore {
     }
   }
 
-  /** Opens the event stream for the caller. Idempotent: an open stream for them is kept. */
+  /**
+   * Opens the event stream for the caller. A player id is the user id, so the stream is addressed by
+   * it. Idempotent: an open stream for them is kept.
+   */
   #connectEvents(game: GameView): void {
     this.#events.connect(game.me.playerId);
   }

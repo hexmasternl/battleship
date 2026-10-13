@@ -2,7 +2,7 @@ import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { PlayersApi } from './players-api';
+import { UsersApi } from './users-api';
 import { TokenPair } from './token-storage';
 
 const PAIR: TokenPair = {
@@ -12,15 +12,15 @@ const PAIR: TokenPair = {
   refreshTokenExpiresAt: '2027-01-11T10:00:00Z',
 };
 
-describe('PlayersApi', () => {
-  let api: PlayersApi;
+describe('UsersApi', () => {
+  let api: UsersApi;
   let backend: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    api = TestBed.inject(PlayersApi);
+    api = TestBed.inject(UsersApi);
     backend = TestBed.inject(HttpTestingController);
   });
 

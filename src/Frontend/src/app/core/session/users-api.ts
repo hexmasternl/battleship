@@ -7,14 +7,14 @@ export const CREATE_TOKENS_URL = '/api/users/tokens';
 export const REFRESH_TOKENS_URL = '/api/users/tokens/refresh';
 
 /**
- * The anonymous token endpoints of the Players service. Both answer with a token pair; refreshing
+ * The anonymous token endpoints of the Users service. Both answer with a token pair; refreshing
  * answers `401` when the refresh token is refused. The gateway interceptor routes `/api/...`.
  */
 @Service()
-export class PlayersApi {
+export class UsersApi {
   readonly #http = inject(HttpClient);
 
-  /** `POST /api/users/tokens`: creates a player with the given display name. */
+  /** `POST /api/users/tokens`: creates a user with the given display name. */
   createTokens(displayName: string): Observable<TokenPair> {
     return this.#http.post<TokenPair>(CREATE_TOKENS_URL, { displayName });
   }

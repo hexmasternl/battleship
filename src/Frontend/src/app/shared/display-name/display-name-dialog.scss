@@ -1,12 +1,12 @@
 // The dialog container itself is themed globally (styles.scss, `mat.dialog-overrides`).
-.player-name-dialog__title {
+.display-name-dialog__title {
   font-family: var(--bs-font-heading);
   text-transform: uppercase;
   letter-spacing: var(--bs-tracking-heading);
   color: var(--bs-color-text-strong);
 }
 
-.player-name-dialog__intro {
+.display-name-dialog__intro {
   margin: 0 0 var(--bs-space-4);
   color: var(--bs-color-text);
 }

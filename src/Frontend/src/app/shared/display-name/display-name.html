@@ -1,4 +1,4 @@
-<form class="player-name" novalidate (submit)="submit($event)">
+<form class="display-name" novalidate (submit)="submit($event)">
   <div class="bs-field">
     <label class="bs-field__label" [for]="inputId">Player name</label>
     <input
@@ -6,7 +6,7 @@
       type="text"
       autocomplete="nickname"
       [id]="inputId"
-      [formField]="store.form.playerName"
+      [formField]="store.form.displayName"
       [attr.aria-invalid]="store.nameError() !== null"
       [attr.aria-describedby]="store.nameError() !== null ? errorId : null"
     />

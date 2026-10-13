@@ -5,8 +5,8 @@ import { Title } from '@angular/platform-browser';
 import { provideRouter, Route, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from './app.routes';
-import { PlayerSession } from './core/session/player-session';
-import { playerGuard } from './core/session/player.guard';
+import { UserSession } from './core/session/user-session';
+import { userGuard } from './core/session/user.guard';
 import { EVENT_SOURCE_FACTORY, EVENTS_API_URL } from './events/events.tokens';
 import { CONSOLE_MESSAGE_POOL, REDUCED_MOTION } from './welcome/console-scheduler';
 
@@ -23,10 +23,10 @@ describe('routes', () => {
     expect(typeof root.loadComponent).toBe('function');
   });
 
-  it('lazy loads the game page behind the player guard for a game code', () => {
+  it('lazy loads the game page behind the user guard for a game code', () => {
     const game = route('games/:gameCode');
     expect(typeof game.loadComponent).toBe('function');
-    expect(game.canActivate).toEqual([playerGuard]);
+    expect(game.canActivate).toEqual([userGuard]);
   });
 
   it.each(['games/new', 'games/join'])('no longer declares %s', (path) => {
@@ -74,15 +74,15 @@ describe('routes (navigation)', () => {
     expect(element.querySelector('battle-info-section')).not.toBeNull();
   });
 
-  it('renders the game page for a known player at /games/K7Q2M9XA', async () => {
-    vi.spyOn(TestBed.inject(PlayerSession), 'ensurePlayer').mockResolvedValue(true);
+  it('renders the game page for a known user at /games/K7Q2M9XA', async () => {
+    vi.spyOn(TestBed.inject(UserSession), 'ensureUser').mockResolvedValue(true);
     const harness = await RouterTestingHarness.create('/games/K7Q2M9XA');
     const element = harness.routeNativeElement as HTMLElement;
     expect(element.tagName.toLowerCase()).toBe('battle-game-page');
     expect(TestBed.inject(Title).getTitle()).toBe('Game K7Q2M9XA | Battleship');
   });
 
-  it('sends a visitor without a player to the landing page without requesting the game', async () => {
+  it('sends a visitor who is not a known user to the landing page without requesting the game', async () => {
     const harness = await RouterTestingHarness.create('/games/K7Q2M9XA');
     const element = harness.routeNativeElement as HTMLElement;
     expect(element.querySelector('h1')?.textContent?.trim()).toBe('Welcome aboard, Captain');

@@ -3,19 +3,19 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { axe } from 'vitest-axe';
 import { MemoryStorage } from '../../../testing/memory-storage';
-import { PlayerSession } from '../../core/session/player-session';
+import { UserSession } from '../../core/session/user-session';
 import {
   ACCESS_TOKEN_KEY,
   PERSISTENT_STORAGE,
   REFRESH_TOKEN_KEY,
   SESSION_STORAGE,
 } from '../../core/session/token-storage';
-import { PlayerName } from './player-name';
+import { DisplayName } from './display-name';
 import {
-  PLAYER_NAME_CREATE_FAILED_MESSAGE,
-  PLAYER_NAME_REQUIRED_MESSAGE,
-  PLAYER_NAME_TOO_LONG_MESSAGE,
-} from './player-name.store';
+  DISPLAY_NAME_CREATE_FAILED_MESSAGE,
+  DISPLAY_NAME_REQUIRED_MESSAGE,
+  DISPLAY_NAME_TOO_LONG_MESSAGE,
+} from './display-name.store';
 
 const CREATE_URL = '/api/users/tokens';
 const PAIR = {
@@ -25,8 +25,8 @@ const PAIR = {
   refreshTokenExpiresAt: '2999-01-01T00:00:00Z',
 };
 
-describe('PlayerName', () => {
-  let fixture: ComponentFixture<PlayerName>;
+describe('DisplayName', () => {
+  let fixture: ComponentFixture<DisplayName>;
   let host: HTMLElement;
   let backend: HttpTestingController;
   let local: MemoryStorage;
@@ -55,7 +55,7 @@ describe('PlayerName', () => {
     local = new MemoryStorage();
     session = new MemoryStorage();
     await TestBed.configureTestingModule({
-      imports: [PlayerName],
+      imports: [DisplayName],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -64,9 +64,9 @@ describe('PlayerName', () => {
       ],
     }).compileComponents();
     backend = TestBed.inject(HttpTestingController);
-    fixture = TestBed.createComponent(PlayerName);
+    fixture = TestBed.createComponent(DisplayName);
     created = 0;
-    fixture.componentInstance.playerCreated.subscribe(() => created++);
+    fixture.componentInstance.userCreated.subscribe(() => created++);
     host = fixture.nativeElement as HTMLElement;
     await fixture.whenStable();
   });
@@ -82,9 +82,9 @@ describe('PlayerName', () => {
   });
 
   it.each([
-    ['an empty name', '', PLAYER_NAME_REQUIRED_MESSAGE],
-    ['a name of only spaces', '    ', PLAYER_NAME_REQUIRED_MESSAGE],
-    ['a name longer than 40 characters', 'x'.repeat(41), PLAYER_NAME_TOO_LONG_MESSAGE],
+    ['an empty name', '', DISPLAY_NAME_REQUIRED_MESSAGE],
+    ['a name of only spaces', '    ', DISPLAY_NAME_REQUIRED_MESSAGE],
+    ['a name longer than 40 characters', 'x'.repeat(41), DISPLAY_NAME_TOO_LONG_MESSAGE],
   ])('shows a linked validation message and sends nothing for %s', async (_, value, message) => {
     await type(value);
     await submit();
@@ -97,7 +97,7 @@ describe('PlayerName', () => {
     expect(created).toBe(0);
   });
 
-  it('creates the player with the typed name, stores the tokens and signals its host', async () => {
+  it('creates the user with the typed name, stores the tokens and signals its host', async () => {
     await type('Admiral Nelson');
     await submit();
 
@@ -111,7 +111,7 @@ describe('PlayerName', () => {
     expect(created).toBe(1);
     expect(local.getItem(REFRESH_TOKEN_KEY)).toBe('refresh-1');
     expect(session.getItem(ACCESS_TOKEN_KEY)).toBe('access-1');
-    expect(TestBed.inject(PlayerSession).isKnown()).toBe(true);
+    expect(TestBed.inject(UserSession).isKnown()).toBe(true);
   });
 
   it('disables the submit button while the request is pending and sends no second request', async () => {
@@ -136,7 +136,7 @@ describe('PlayerName', () => {
     await settle();
 
     const alert = host.querySelector('[role=alert]') as HTMLElement;
-    expect(alert.textContent?.trim()).toBe(PLAYER_NAME_CREATE_FAILED_MESSAGE);
+    expect(alert.textContent?.trim()).toBe(DISPLAY_NAME_CREATE_FAILED_MESSAGE);
     expect(input().value).toBe('Admiral Nelson');
     expect(button().disabled).toBe(false);
     expect(local.keys()).toEqual([]);

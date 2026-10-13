@@ -1,20 +1,20 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { InjectionToken, Service, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { PlayersApi } from './players-api';
+import { UsersApi } from './users-api';
 import { StoredToken, TokenStorage } from './token-storage';
 
 /**
  * `unknown`: no tokens obtained in this page load. `restoring`: a refresh is in flight.
- * `known`: tokens came from a successful refresh or from creating a player.
+ * `known`: tokens came from a successful refresh or from creating a user.
  */
-export type PlayerStatus = 'unknown' | 'restoring' | 'known';
+export type UserStatus = 'unknown' | 'restoring' | 'known';
 
-export interface PlayerSessionState {
-  readonly status: PlayerStatus;
+export interface UserSessionState {
+  readonly status: UserStatus;
 }
 
-const initialState: PlayerSessionState = { status: 'unknown' };
+const initialState: UserSessionState = { status: 'unknown' };
 
 /** The current time in epoch milliseconds; replaceable in tests. */
 export const SESSION_CLOCK = new InjectionToken<() => number>('SESSION_CLOCK', {
@@ -33,17 +33,17 @@ export function isExpired(token: StoredToken, now: number, marginMs = 0): boolea
 /**
  * The visitor's identity for this page load, shared by the whole application.
  *
- * `restore()` exchanges a stored refresh token for a new pair; `createPlayer()` creates a player;
- * `ensurePlayer()` answers whether the visitor is a known player, waiting for or retrying a
+ * `restore()` exchanges a stored refresh token for a new pair; `createUser()` creates a user;
+ * `ensureUser()` answers whether the visitor is a known user, waiting for or retrying a
  * restore first. The tokens themselves live in `TokenStorage`.
  */
 @Service()
-export class PlayerSession {
-  readonly #api = inject(PlayersApi);
+export class UserSession {
+  readonly #api = inject(UsersApi);
   readonly #storage = inject(TokenStorage);
   readonly #now = inject(SESSION_CLOCK);
 
-  readonly #state = signal<PlayerSessionState>(initialState);
+  readonly #state = signal<UserSessionState>(initialState);
   /** The restore in flight, shared by concurrent callers. Not state: nothing renders it. */
   #restoring: Promise<void> | null = null;
 
@@ -78,7 +78,7 @@ export class PlayerSession {
   /**
    * Renews the token pair because the access token expired or was refused. Shares a refresh in
    * flight with every other caller, exactly like `restore()`, and follows the same rules when the
-   * refresh is refused. Never rejects; resolves whether the visitor is a known player afterwards.
+   * refresh is refused. Never rejects; resolves whether the visitor is a known user afterwards.
    */
   async renew(): Promise<boolean> {
     await this.restore();
@@ -86,20 +86,20 @@ export class PlayerSession {
   }
 
   /**
-   * Creates a player with the given display name and stores the returned pair. Rejects with the
+   * Creates a user with the given display name and stores the returned pair. Rejects with the
    * HTTP error when creation fails; the state is then unchanged and no tokens are stored.
    */
-  async createPlayer(displayName: string): Promise<void> {
+  async createUser(displayName: string): Promise<void> {
     const pair = await firstValueFrom(this.#api.createTokens(displayName));
     this.#storage.store(pair);
     this.#setStatus('known');
   }
 
   /**
-   * Whether the visitor is a known player, after waiting for a restore in flight and, when the
+   * Whether the visitor is a known user, after waiting for a restore in flight and, when the
    * visitor is still unknown but a refresh token is stored, after one more restore attempt.
    */
-  async ensurePlayer(): Promise<boolean> {
+  async ensureUser(): Promise<boolean> {
     if (this.#restoring) await this.#restoring;
     if (!this.isKnown() && this.#storage.read().refreshToken !== null) await this.restore();
     return this.isKnown();
@@ -127,7 +127,7 @@ export class PlayerSession {
     }
   }
 
-  #setStatus(status: PlayerStatus): void {
+  #setStatus(status: UserStatus): void {
     this.#state.update((s) => (s.status === status ? s : { ...s, status }));
   }
 }

@@ -11,13 +11,13 @@ import {
 } from './events.tokens';
 
 interface Connection {
-  readonly playerId: string;
+  readonly userId: string;
   readonly source: EventSourceLike;
 }
 
-/** Builds the stream URL for a player: `<base>/events?playerId=<id>`. */
-export function eventsUrl(baseUrl: string, playerId: string): string {
-  return `${baseUrl.replace(/\/+$/, '')}/events?playerId=${encodeURIComponent(playerId)}`;
+/** Builds the stream URL for a user: `<base>/events?userId=<id>`. */
+export function eventsUrl(baseUrl: string, userId: string): string {
+  return `${baseUrl.replace(/\/+$/, '')}/events?userId=${encodeURIComponent(userId)}`;
 }
 
 /**
@@ -49,16 +49,16 @@ export class EventsService {
   }
 
   /**
-   * Opens the stream for a player. Does nothing while a stream for the same player is open or
-   * reconnecting; a different player id closes the current stream first.
+   * Opens the stream for a user. Does nothing while a stream for the same user is open or
+   * reconnecting; a different user id closes the current stream first.
    */
-  connect(playerId: string): void {
+  connect(userId: string): void {
     const current = this.#connection;
-    if (current?.playerId === playerId && current.source.readyState !== EVENT_SOURCE_CLOSED) return;
+    if (current?.userId === userId && current.source.readyState !== EVENT_SOURCE_CLOSED) return;
     this.disconnect();
 
-    const source = this.#createSource(eventsUrl(this.#baseUrl, playerId));
-    this.#connection = { playerId, source };
+    const source = this.#createSource(eventsUrl(this.#baseUrl, userId));
+    this.#connection = { userId, source };
     this.#state.set('connecting');
 
     const isCurrent = () => this.#connection?.source === source;

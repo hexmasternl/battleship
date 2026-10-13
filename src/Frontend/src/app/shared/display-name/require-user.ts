@@ -1,21 +1,21 @@
 import { DestroyRef, Directive, ElementRef, Renderer2, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router, RouterLink } from '@angular/router';
-import { PlayerSession } from '../../core/session/player-session';
-import { openPlayerNameDialog } from './player-name-dialog';
+import { UserSession } from '../../core/session/user-session';
+import { openDisplayNameDialog } from './display-name-dialog';
 
 /**
- * Gates a `routerLink` on the visitor being a known player. A known player's click is left to
+ * Gates a `routerLink` on the visitor being a known user. A known user's click is left to
  * `RouterLink`, which navigates at once. For anyone else the navigation is held back: a pending
- * restore is awaited, and when the visitor is still unknown the player-name dialog opens; the link
- * then navigates only once the dialog reports the player created. Modified clicks (new tab, new
+ * restore is awaited, and when the visitor is still unknown the display-name dialog opens; the link
+ * then navigates only once the dialog reports the user created. Modified clicks (new tab, new
  * window) are left to the browser. The link keeps its `href`, role and keyboard behaviour.
  */
 @Directive({
-  selector: 'a[routerLink][battleRequirePlayer]',
+  selector: 'a[routerLink][battleRequireUser]',
 })
-export class RequirePlayer {
-  readonly #session = inject(PlayerSession);
+export class RequireUser {
+  readonly #session = inject(UserSession);
   readonly #dialog = inject(MatDialog);
   readonly #router = inject(Router);
   readonly #link = inject(RouterLink, { self: true });
@@ -48,8 +48,8 @@ export class RequirePlayer {
     this.#busy.set(true);
     try {
       const allowed =
-        (await this.#session.ensurePlayer()) ||
-        (await openPlayerNameDialog(this.#dialog, this.#host));
+        (await this.#session.ensureUser()) ||
+        (await openDisplayNameDialog(this.#dialog, this.#host));
       const target = this.#link.urlTree;
       if (allowed && target) await this.#router.navigateByUrl(target);
     } finally {

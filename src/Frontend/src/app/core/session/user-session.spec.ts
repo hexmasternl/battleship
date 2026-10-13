@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { MemoryStorage } from '../../../testing/memory-storage';
-import { PlayerSession, SESSION_CLOCK, isExpired } from './player-session';
+import { UserSession, SESSION_CLOCK, isExpired } from './user-session';
 import {
   ACCESS_TOKEN_KEY,
   PERSISTENT_STORAGE,
@@ -28,10 +28,10 @@ function pair(n: number): TokenPair {
 /** Lets awaited promise chains inside the store settle before the next assertion. */
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-describe('PlayerSession', () => {
+describe('UserSession', () => {
   let local: MemoryStorage;
   let session: MemoryStorage;
-  let store: PlayerSession;
+  let store: UserSession;
   let backend: HttpTestingController;
 
   function storeRefreshToken(value: string, expiresAt = '2027-01-11T10:00:00Z'): void {
@@ -51,7 +51,7 @@ describe('PlayerSession', () => {
         { provide: SESSION_CLOCK, useValue: () => NOW },
       ],
     });
-    store = TestBed.inject(PlayerSession);
+    store = TestBed.inject(UserSession);
     backend = TestBed.inject(HttpTestingController);
   });
 
@@ -201,9 +201,9 @@ describe('PlayerSession', () => {
     });
   });
 
-  describe('createPlayer', () => {
+  describe('createUser', () => {
     it('posts the display name, stores the pair and becomes known', async () => {
-      const done = store.createPlayer('Admiral Nelson');
+      const done = store.createUser('Admiral Nelson');
 
       const req = backend.expectOne(CREATE_URL);
       expect(req.request.method).toBe('POST');
@@ -218,7 +218,7 @@ describe('PlayerSession', () => {
     });
 
     it('rejects, stores nothing and stays unknown when creation fails', async () => {
-      const done = store.createPlayer('Admiral Nelson');
+      const done = store.createUser('Admiral Nelson');
       backend.expectOne(CREATE_URL).flush(null, { status: 500, statusText: 'Server Error' });
 
       await expect(done).rejects.toBeTruthy();
@@ -228,18 +228,18 @@ describe('PlayerSession', () => {
     });
   });
 
-  describe('ensurePlayer', () => {
+  describe('ensureUser', () => {
     it('reports false without a request when nothing is stored', async () => {
-      expect(await store.ensurePlayer()).toBe(false);
+      expect(await store.ensureUser()).toBe(false);
       backend.expectNone(REFRESH_URL);
     });
 
-    it('reports true without a request once the player is known', async () => {
-      const created = store.createPlayer('Admiral Nelson');
+    it('reports true without a request once the user is known', async () => {
+      const created = store.createUser('Admiral Nelson');
       backend.expectOne(CREATE_URL).flush(pair(1));
       await created;
 
-      expect(await store.ensurePlayer()).toBe(true);
+      expect(await store.ensureUser()).toBe(true);
       backend.expectNone(REFRESH_URL);
     });
 
@@ -247,7 +247,7 @@ describe('PlayerSession', () => {
       storeRefreshToken('refresh-0');
       void store.restore();
 
-      const answer = store.ensurePlayer();
+      const answer = store.ensureUser();
       backend.expectOne(REFRESH_URL).flush(pair(1));
 
       expect(await answer).toBe(true);
@@ -259,7 +259,7 @@ describe('PlayerSession', () => {
       backend.expectOne(REFRESH_URL).error(new ProgressEvent('error'));
       await first;
 
-      const answer = store.ensurePlayer();
+      const answer = store.ensureUser();
       backend.expectOne(REFRESH_URL).flush(pair(1));
 
       expect(await answer).toBe(true);

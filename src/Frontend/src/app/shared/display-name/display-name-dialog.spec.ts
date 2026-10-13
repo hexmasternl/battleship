@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { axe } from 'vitest-axe';
 import { MemoryStorage } from '../../../testing/memory-storage';
 import { PERSISTENT_STORAGE, SESSION_STORAGE } from '../../core/session/token-storage';
-import { openPlayerNameDialog } from './player-name-dialog';
+import { openDisplayNameDialog } from './display-name-dialog';
 
 const PAIR = {
   accessToken: 'access-1',
@@ -18,7 +18,7 @@ const PAIR = {
   refreshTokenExpiresAt: '2999-01-01T00:00:00Z',
 };
 
-describe('PlayerNameDialog', () => {
+describe('DisplayNameDialog', () => {
   let dialog: MatDialog;
   let backend: HttpTestingController;
   let local: MemoryStorage;
@@ -52,8 +52,8 @@ describe('PlayerNameDialog', () => {
     backend.verify();
   });
 
-  it('opens a modal dialog with a heading, the player-name form and a cancel action', async () => {
-    void openPlayerNameDialog(dialog, opener);
+  it('opens a modal dialog with a heading, the display-name form and a cancel action', async () => {
+    void openDisplayNameDialog(dialog, opener);
     await firstValueFrom(dialog.openDialogs[0].afterOpened());
     await settle();
 
@@ -61,15 +61,15 @@ describe('PlayerNameDialog', () => {
     const harness = await loader.getHarness(MatDialogHarness);
     expect(await harness.getTitleText()).toBe('Choose your player name');
     expect(await harness.getRole()).toBe('dialog');
-    expect(dialogElement()?.querySelector('battle-player-name')).not.toBeNull();
+    expect(dialogElement()?.querySelector('battle-display-name')).not.toBeNull();
     expect(dialogElement()?.querySelector('mat-dialog-actions button')?.textContent?.trim()).toBe(
       'Cancel',
     );
     expect(dialogElement()?.contains(document.activeElement)).toBe(true);
   });
 
-  it('resolves true once the player is created', async () => {
-    const result = openPlayerNameDialog(dialog, opener);
+  it('resolves true once the user is created', async () => {
+    const result = openDisplayNameDialog(dialog, opener);
     await settle();
 
     const input = dialogElement()?.querySelector('input') as HTMLInputElement;
@@ -83,7 +83,7 @@ describe('PlayerNameDialog', () => {
   });
 
   it('resolves false from the cancel action and returns focus to the opener', async () => {
-    const result = openPlayerNameDialog(dialog, opener);
+    const result = openDisplayNameDialog(dialog, opener);
     await settle();
 
     (dialogElement()?.querySelector('mat-dialog-actions button') as HTMLButtonElement).click();
@@ -95,7 +95,7 @@ describe('PlayerNameDialog', () => {
   });
 
   it('resolves false when closed with Escape', async () => {
-    const result = openPlayerNameDialog(dialog, opener);
+    const result = openDisplayNameDialog(dialog, opener);
     await settle();
 
     const loader = TestbedHarnessEnvironment.documentRootLoader(TestBed.createComponent(Holder));
@@ -105,7 +105,7 @@ describe('PlayerNameDialog', () => {
   });
 
   it('has no accessibility violations', async () => {
-    void openPlayerNameDialog(dialog, opener);
+    void openDisplayNameDialog(dialog, opener);
     await settle();
 
     const results = await axe(dialogElement() as HTMLElement);
