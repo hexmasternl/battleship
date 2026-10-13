@@ -2,6 +2,7 @@
   <Folder Name="/Aspire/">
     <Project Path="Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost/HexMaster.Battleship.Aspire.AppHost.csproj" Id="57d53e65-35fb-419f-80f8-4807fec8c616" />
     <Project Path="Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.ServiceDefaults/HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
+    <Project Path="Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests/HexMaster.Battleship.Aspire.Tests.csproj" />
   </Folder>
   <Folder Name="/Games/">
     <Project Path="Games/HexMaster.Battleship.Games.Abstractions/HexMaster.Battleship.Games.Abstractions.csproj" Id="28949574-8e96-40fd-b77c-9202ee8795b8" />
