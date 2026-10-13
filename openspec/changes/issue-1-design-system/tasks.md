@@ -2,7 +2,7 @@
 
 ## 1. Tokens
 
-- [ ] 1.1 Generate the colour scales (primary, secondary, danger, text at steps 50 to 900; surface-0 to surface-4) from the six base colours in OKLCH with a throwaway script in the scratchpad, and verify each scale is monotonic in lightness and contains its base colour exactly
+- [x] 1.1 Generate the colour scales (primary, secondary, danger, text at steps 50 to 900; surface-0 to surface-4) from the six base colours in OKLCH with a throwaway script in the scratchpad, and verify each scale is monotonic in lightness and contains its base colour exactly
 - [ ] 1.2 Write the full token block (colour bases, scales, semantic roles, fonts, type scale, leading, spacing, radius, shadows, glows, durations, easings, breakpoints) as `--bs-*` custom properties on `:root`, and verify every semantic role uses `var()` and no literal hex
 - [ ] 1.3 Compute WCAG contrast ratios for text and text-dim on bg, surface-1 to surface-4, and for text-on-accent and text-on-danger with a throwaway Node script, and verify every pair meets 4.5:1 (body) or 3:1 (large) before adjusting any step
 
