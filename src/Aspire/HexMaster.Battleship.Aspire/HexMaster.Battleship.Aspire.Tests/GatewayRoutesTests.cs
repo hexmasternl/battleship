@@ -12,7 +12,7 @@ public sealed class GatewayRoutesTests
     }
 
     [Theory]
-    [InlineData("players", GatewayRoutes.PlayersApi)]
+    [InlineData("users", GatewayRoutes.PlayersApi)]
     [InlineData("games", GatewayRoutes.GamesApi)]
     public void Modules_RoutesPrefixToItsApi(string prefix, string apiResourceName)
     {
@@ -26,7 +26,7 @@ public sealed class GatewayRoutesTests
     {
         var prefixes = GatewayRoutes.Modules.SelectMany(m => m.Prefixes).Order().ToArray();
 
-        Assert.Equal(["games", "players"], prefixes);
+        Assert.Equal(["games", "users"], prefixes);
     }
 
     [Fact]

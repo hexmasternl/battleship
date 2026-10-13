@@ -8,8 +8,8 @@ Nothing in the solution identifies a player: the Players API still serves the te
 
 ## What Changes
 
-- Add anonymous token issuance to the Players service: `POST /tokens` creates a user with a unique id and a display name (optional, defaulting to a generated nautical call sign), stores it in Azure Table Storage and returns a signed access token, an opaque refresh token and both expiry instants.
-- Add refresh with rotation: `POST /tokens/refresh` exchanges a valid refresh token for a new access token and a new refresh token, invalidates the old refresh token and records the user's last-seen time; unknown, expired, revoked or already-rotated refresh tokens are rejected with `401` and a problem-details body.
+- Add anonymous token issuance to the Players service: `POST /users/tokens` creates a user with a unique id and a display name (optional, defaulting to a generated nautical call sign), stores it in Azure Table Storage and returns a signed access token, an opaque refresh token and both expiry instants.
+- Add refresh with rotation: `POST /users/tokens/refresh` exchanges a valid refresh token for a new access token and a new refresh token, invalidates the old refresh token and records the user's last-seen time; unknown, expired, revoked or already-rotated refresh tokens are rejected with `401` and a problem-details body.
 - Add `GET /users/me`, the first endpoint that requires a bearer token, returning the caller's id and display name.
 - Define the token formats: access tokens are HS256-signed JWTs with the user id as `sub` and the display name as a claim, valid for a configurable short lifetime (default 15 minutes); refresh tokens are 256-bit random values that are stored only as a SHA-256 hash and expire 90 days after issue.
 - Store users and refresh tokens in two Azure Table Storage tables behind a repository abstraction, so handlers are unit-testable without storage and the integration tests run against Azurite.
@@ -17,8 +17,8 @@ Nothing in the solution identifies a player: the Players API still serves the te
 - Add a reusable bearer-authentication registration to ServiceDefaults (`AddBattleshipAuthentication`) that validates the same tokens from the same configuration, so the Games API and the future Events API can protect endpoints without re-implementing validation.
 - Read the signing key and lifetimes from configuration (`Players:Tokens:*`, user secrets locally) and fail fast at startup when the signing key is missing or too short.
 - Add a frontend player session: the refresh token and its expiry live in `localStorage` so the identity survives browser restarts, the access token and its expiry live in `sessionStorage` so they are gone when the browser session ends.
-- When the landing page opens and a refresh token is stored, the frontend calls `POST /tokens/refresh` (through the gateway as `/api/tokens/refresh`) and stores the rotated pair; a refused refresh clears the stored tokens so the visitor becomes unknown.
-- Add a new shared player-name component that asks for a player name, calls the anonymous `POST /tokens` endpoint with it and stores the returned access and refresh tokens.
+- When the landing page opens and a refresh token is stored, the frontend calls `POST /users/tokens/refresh` (through the gateway as `/api/users/tokens/refresh`) and stores the rotated pair; a refused refresh clears the stored tokens so the visitor becomes unknown.
+- Add a new shared player-name component that asks for a player name, calls the anonymous `POST /users/tokens` endpoint with it and stores the returned access and refresh tokens.
 - "Create a new game" and "Join an existing game" open a modal dialog with the player-name component when the player is unknown, and navigate to their route once the player is known; a known player navigates straight away.
 - Introduce the shared `HexMaster.Battleship.Core` project (command and query handler interfaces, domain model base classes) that the house standards expect every module to build on, since this is the first real feature in the solution.
 
@@ -32,6 +32,7 @@ Nothing in the solution identifies a player: the Players API still serves the te
 
 ### Modified Capabilities
 - `welcome-page`: the two calls to action ask an unknown player for a player name in a modal dialog before navigating to the game routes.
+- `local-gateway`: the Players API is routed under the `users` prefix only, so the routing example moves from `/players/...` to `/users/...`.
 
 ## Impact
 
@@ -45,5 +46,5 @@ Nothing in the solution identifies a player: the Players API still serves the te
 - New `src/Core/HexMaster.Battleship.Core/`: `ICommandHandler`, `IQueryHandler`, `DomainModel<TId>`, `DomainModelState`, `DomainException`. Added to `src/Battleship.slnx` together with the Data project.
 - `README.md`: gains a section on running with Azurite and setting the signing key with `dotnet user-secrets`.
 - `src/Frontend/src/app/`: a new `core/session/` folder (token storage over `localStorage` and `sessionStorage`, the Players API client, the root `PlayerSession` store), a new `shared/player-name/` folder (the player-name component with its store, and the dialog that hosts it), the welcome page triggering the session restore, and the hero calls to action gated on a known player. Angular Material's dialog is used for the modal.
-- Depends on `issue-11-yarp-local-gateway` for `provideHttpClient`, the runtime gateway URL and the `/api/` rewrite; that change is applied first. Because the gateway routes by first path segment, its route table lists `tokens` and `users` as Players prefixes (through the `yarp-gateway-routes` skill), so the Players endpoints keep the paths defined here.
+- Depends on `issue-11-yarp-local-gateway` for `provideHttpClient`, the runtime gateway URL and the `/api/` rewrite; that change is applied first. Because the gateway routes by first path segment, every Players endpoint lives under `/users` (`/users/tokens`, `/users/tokens/refresh`, `/users/me`) and the route table lists `users` as the only Players prefix, replacing the unused `players` prefix (through the `yarp-gateway-routes` skill).
 - The Games API is untouched apart from the authentication helper becoming available to it; no Games endpoint requires authorization yet.

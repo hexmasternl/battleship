@@ -17,9 +17,9 @@ public class OpenApiDocumentTests : IClassFixture<OpenApiDocumentTests.Factory>
     public OpenApiDocumentTests(Factory factory) => _factory = factory;
 
     [Theory]
-    [InlineData("/tokens", "post", "201")]
-    [InlineData("/tokens/refresh", "post", "200")]
-    [InlineData("/tokens/refresh", "post", "401")]
+    [InlineData("/users/tokens", "post", "201")]
+    [InlineData("/users/tokens/refresh", "post", "200")]
+    [InlineData("/users/tokens/refresh", "post", "401")]
     [InlineData("/users/me", "get", "200")]
     public async Task Document_ListsThePlayersEndpoints(string path, string method, string status)
     {

@@ -1,20 +1,20 @@
 @HexMaster.Battleship.Players.Api_HostAddress = http://localhost:5112
 
-POST {{HexMaster.Battleship.Players.Api_HostAddress}}/tokens
+POST {{HexMaster.Battleship.Players.Api_HostAddress}}/users/tokens
 Content-Type: application/json
 
 { "displayName": "Admiral Nelson" }
 
 ###
 
-POST {{HexMaster.Battleship.Players.Api_HostAddress}}/tokens/refresh
+POST {{HexMaster.Battleship.Players.Api_HostAddress}}/users/tokens/refresh
 Content-Type: application/json
 
-{ "refreshToken": "<refresh token from POST /tokens>" }
+{ "refreshToken": "<refresh token from POST /users/tokens>" }
 
 ###
 
 GET {{HexMaster.Battleship.Players.Api_HostAddress}}/users/me
-Authorization: Bearer <access token from POST /tokens>
+Authorization: Bearer <access token from POST /users/tokens>
 
 ###

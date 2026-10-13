@@ -13,12 +13,12 @@ using Microsoft.Extensions.Logging;
 
 namespace HexMaster.Battleship.Players.Endpoints;
 
-// /tokens: anonymous token issuance and refresh with rotation.
+// /users/tokens: anonymous token issuance and refresh with rotation.
 public static class TokenEndpoints
 {
     public static IEndpointRouteBuilder MapTokenEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/tokens").WithTags("Tokens").AllowAnonymous();
+        var group = app.MapGroup("/users/tokens").WithTags("Tokens").AllowAnonymous();
 
         group.MapPost("", CreateTokens)
             .WithName("CreateTokens")
@@ -71,7 +71,7 @@ public static class TokenEndpoints
             return TypedResults.Problem(
                 statusCode: StatusCodes.Status401Unauthorized,
                 title: "The refresh token was refused.",
-                detail: "Request new tokens with POST /tokens.");
+                detail: "Request new tokens with POST /users/tokens.");
         }
     }
 }

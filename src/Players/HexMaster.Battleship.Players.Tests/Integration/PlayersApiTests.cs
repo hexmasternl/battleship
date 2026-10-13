@@ -24,7 +24,7 @@ public class PlayersApiTests : IClassFixture<PlayersApiFactory>
     {
         using var client = _factory.CreateClient();
 
-        var response = await client.PostAsJsonAsync("/tokens", new CreateTokensRequest("Admiral Nelson"));
+        var response = await client.PostAsJsonAsync("/users/tokens", new CreateTokensRequest("Admiral Nelson"));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var tokens = await response.Content.ReadFromJsonAsync<TokenPairResponse>();
@@ -44,7 +44,7 @@ public class PlayersApiTests : IClassFixture<PlayersApiFactory>
     {
         using var client = _factory.CreateClient();
 
-        var response = await client.PostAsync("/tokens", content: null);
+        var response = await client.PostAsync("/users/tokens", content: null);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var tokens = await response.Content.ReadFromJsonAsync<TokenPairResponse>();
@@ -58,14 +58,14 @@ public class PlayersApiTests : IClassFixture<PlayersApiFactory>
         using var client = _factory.CreateClient();
         var created = await CreateTokensAsync(client);
 
-        var refreshed = await client.PostAsJsonAsync("/tokens/refresh", new RefreshTokensRequest(created.RefreshToken));
+        var refreshed = await client.PostAsJsonAsync("/users/tokens/refresh", new RefreshTokensRequest(created.RefreshToken));
 
         Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
         var tokens = await refreshed.Content.ReadFromJsonAsync<TokenPairResponse>();
         Assert.NotEqual(created.RefreshToken, tokens!.RefreshToken);
         Assert.Equal(SubjectOf(created.AccessToken), SubjectOf(tokens.AccessToken));
 
-        var reused = await client.PostAsJsonAsync("/tokens/refresh", new RefreshTokensRequest(created.RefreshToken));
+        var reused = await client.PostAsJsonAsync("/users/tokens/refresh", new RefreshTokensRequest(created.RefreshToken));
         Assert.Equal(HttpStatusCode.Unauthorized, reused.StatusCode);
     }
 
@@ -74,7 +74,7 @@ public class PlayersApiTests : IClassFixture<PlayersApiFactory>
     {
         using var client = _factory.CreateClient();
 
-        var response = await client.PostAsJsonAsync("/tokens/refresh", new RefreshTokensRequest("never-issued"));
+        var response = await client.PostAsJsonAsync("/users/tokens/refresh", new RefreshTokensRequest("never-issued"));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
@@ -130,7 +130,7 @@ public class PlayersApiTests : IClassFixture<PlayersApiFactory>
 
     private static async Task<TokenPairResponse> CreateTokensAsync(HttpClient client, string? displayName = null)
     {
-        var response = await client.PostAsJsonAsync("/tokens", new CreateTokensRequest(displayName));
+        var response = await client.PostAsJsonAsync("/users/tokens", new CreateTokensRequest(displayName));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<TokenPairResponse>())!;
     }
