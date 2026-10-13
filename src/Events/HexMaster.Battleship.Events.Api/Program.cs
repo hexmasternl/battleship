@@ -6,8 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// The OpenAPI document and the Scalar API reference, both mapped in Development only.
+builder.AddApiReference();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddEventsCore();
@@ -21,10 +21,7 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapApiReference();
 
 // Unwraps CloudEvents envelopes delivered by the Dapr sidecar before routing.
 // No HTTPS redirection: the sidecar talks to this API over plain HTTP on the loopback

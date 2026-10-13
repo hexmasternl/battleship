@@ -162,6 +162,10 @@ Open **Traces** and create a player in the app. You'll see one trace go from the
 Players API, through the `CreateTokens` use-case span and down to table storage. What else the
 dashboard shows is described under [Observability](#observability).
 
+Each API resource also has an **API reference** link. It opens a [Scalar](https://scalar.com)
+page on that API's own endpoint, built from its OpenAPI document, where you can read and call
+every endpoint. The reference is served only in Development and never through the gateway.
+
 ---
 
 ## Repository layout
@@ -210,7 +214,12 @@ access token and an opaque refresh token. Every endpoint is under `/users`:
 | `GET /users/me` | bearer access token | `200` with the caller's `id` and `displayName` |
 
 [`HexMaster.Battleship.Players.Api.http`](src/Players/HexMaster.Battleship.Players.Api/HexMaster.Battleship.Players.Api.http)
-has ready-made requests. The frontend keeps the refresh token in `localStorage`, so a returning
+has ready-made requests. You can also try the endpoints from the Players API's **API reference**
+link on the dashboard: open **Test Request** on `POST /users/tokens` and send it, copy the
+`accessToken` from the response, paste it into **Bearer Token** in the **Authentication** box at
+the top of the page, and **Test Request** on `GET /users/me` returns your user.
+
+The frontend keeps the refresh token in `localStorage`, so a returning
 visitor is recognised, and the access token in `sessionStorage`, so it ends with the browser
 session.
 

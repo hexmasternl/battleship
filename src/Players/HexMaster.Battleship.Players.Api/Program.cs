@@ -8,8 +8,8 @@ builder.AddGatewayCors();
 // Validates the access tokens this service issues; endpoints opt in with RequireAuthorization().
 builder.AddBattleshipAuthentication();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// The OpenAPI document and the Scalar API reference, both mapped in Development only.
+builder.AddApiReference();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddPlayersModule();
@@ -22,11 +22,7 @@ app.UseGatewayCors();
 
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapApiReference();
 
 // Unwraps CloudEvents envelopes delivered by the Dapr sidecar before routing.
 // No HTTPS redirection: the sidecar talks to this API over plain HTTP on the loopback

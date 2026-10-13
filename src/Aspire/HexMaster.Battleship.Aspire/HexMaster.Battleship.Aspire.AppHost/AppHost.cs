@@ -78,6 +78,7 @@ var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(Gatew
         .WithReference(pubsub))
     .WithReference(tables)
     .WithEnvironment("Players__Tokens__SigningKey", signingKey)
+    .WithApiReferenceUrl()
     .WaitFor(messaging)
     .WaitFor(tables);
 
@@ -87,6 +88,7 @@ var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(G
         .WithReference(pubsub))
     .WithReference(tables)
     .WithEnvironment("Players__Tokens__SigningKey", signingKey)
+    .WithApiReferenceUrl()
     .WaitFor(messaging)
     .WaitFor(tables);
 
@@ -96,6 +98,7 @@ var eventsApi = builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("he
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "events-api", Config = daprConfig })
         .WithReference(pubsub))
+    .WithApiReferenceUrl()
     .WaitFor(messaging);
 
 // The gateway is the single backend endpoint for the frontend. It routes each declared module

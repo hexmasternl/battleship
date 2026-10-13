@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Aspire\HexMaster.Battleship.Aspire\HexMaster.Battleship.Aspire.ServiceDefaults\HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HexMaster.Battleship.Players\HexMaster.Battleship.Players.csproj" />
     <ProjectReference Include="..\HexMaster.Battleship.Players.Data.TableStorage\HexMaster.Battleship.Players.Data.TableStorage.csproj" />
