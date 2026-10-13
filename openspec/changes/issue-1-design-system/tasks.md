@@ -14,11 +14,11 @@
 
 ## 3. Showcase page
 
-- [ ] 3.1 Create `docs/design-system.html` with the embedded token block from 1.2, the Google Fonts link for Quantico, Courier Prime and Bitcount Single (weight 200 only), base styles, the sticky anchor bar, and the Colour and Typography sections, and verify it opens from disk with no console errors, renders all scales as swatches with their names, and shows headings in Quantico, body in Courier Prime and the intro panel in Bitcount Single 200
-- [ ] 3.2 Add the Spacing and radius, Effects and Motion sections and the Components section with every element in every documented state including a visible 2px offset focus ring, and verify each state renders by tabbing through the page and hovering each control
-- [ ] 3.3 Add the Game elements section: the 12x12 grid with A to L and 1 to 12 coordinates, the five ships horizontal and vertical at their lengths, placing states and the four cell states, and verify the grid shows 144 playable cells and each ship spans its documented cell count
-- [ ] 3.4 Add the Instruments section with the radar sweep, sonar ping, compass and RPM gauge as inline SVG and CSS animations using only role tokens, and verify they animate with JavaScript disabled and freeze under `prefers-reduced-motion: reduce` (emulate it in browser devtools)
-- [ ] 3.5 Make the page mobile first: base layout for 360px and enhancements at the sm, md, lg and xl breakpoints, and verify in devtools at 360, 480, 768, 1024, 1280 and 1920px that `document.documentElement.scrollWidth` equals the viewport width
+- [x] 3.1 Create `docs/design-system.html` with the embedded token block from 1.2, the Google Fonts link for Quantico, Courier Prime and Bitcount Single (weight 200 only), base styles, the sticky anchor bar, and the Colour and Typography sections, and verify it opens from disk with no console errors, renders all scales as swatches with their names, and shows headings in Quantico, body in Courier Prime and the intro panel in Bitcount Single 200
+- [x] 3.2 Add the Spacing and radius, Effects and Motion sections and the Components section with every element in every documented state including a visible 2px offset focus ring, and verify each state renders by tabbing through the page and hovering each control
+- [x] 3.3 Add the Game elements section: the 12x12 grid with A to L and 1 to 12 coordinates, the five ships horizontal and vertical at their lengths, placing states and the four cell states, and verify the grid shows 144 playable cells and each ship spans its documented cell count
+- [x] 3.4 Add the Instruments section with the radar sweep, sonar ping, compass and RPM gauge as inline SVG and CSS animations using only role tokens, and verify they animate with JavaScript disabled and freeze under `prefers-reduced-motion: reduce` (emulate it in browser devtools)
+- [x] 3.5 Make the page mobile first: base layout for 360px and enhancements at the sm, md, lg and xl breakpoints, and verify in devtools at 360, 480, 768, 1024, 1280 and 1920px that `document.documentElement.scrollWidth` equals the viewport width
 
 ## 4. Agreement and final checks
 
