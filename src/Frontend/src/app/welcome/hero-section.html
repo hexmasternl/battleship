@@ -1,0 +1,41 @@
+<!-- Decorative radar in the corner: no meaning, hidden from assistive technology, static under
+     reduced motion. -->
+<svg class="hero__radar" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="hero-sweep-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" class="hero__radar-sweep-start" />
+      <stop offset="1" class="hero__radar-sweep-end" />
+    </linearGradient>
+  </defs>
+  <circle class="hero__radar-ring" cx="100" cy="100" r="96" />
+  <circle class="hero__radar-ring" cx="100" cy="100" r="64" />
+  <circle class="hero__radar-ring" cx="100" cy="100" r="32" />
+  <line class="hero__radar-line" x1="100" y1="4" x2="100" y2="196" />
+  <line class="hero__radar-line" x1="4" y1="100" x2="196" y2="100" />
+  <g class="hero__radar-sweep">
+    <path d="M100 100 L196 100 A96 96 0 0 0 148 16.9 Z" fill="url(#hero-sweep-grad)" />
+    <line class="hero__radar-beam" x1="100" y1="100" x2="196" y2="100" />
+  </g>
+  <circle class="hero__radar-blip" cx="62" cy="70" r="3.5" />
+  <circle class="hero__radar-blip" cx="138" cy="128" r="3.5" />
+  <circle class="hero__radar-centre" cx="100" cy="100" r="3" />
+</svg>
+
+<div class="hero__inner">
+  <div class="hero__jumbotron">
+    <div class="bs-panel hero__welcome">
+      <p class="hero__eyebrow">Battleship</p>
+      <h1 class="hero__title">Welcome aboard, Captain</h1>
+      <p class="hero__intro">
+        Take command of a fleet of five, hide it on a twelve by twelve grid and hunt your opponent's
+        ships one salvo at a time. Open a new game and share the code with a friend, or join a game
+        that is waiting for its second captain.
+      </p>
+      <div class="hero__actions">
+        <a class="bs-btn bs-btn--primary" routerLink="/games/new">Create a new game</a>
+        <a class="bs-btn bs-btn--secondary" routerLink="/games/join">Join an existing game</a>
+      </div>
+    </div>
+    <battle-bridge-console />
+  </div>
+</div>

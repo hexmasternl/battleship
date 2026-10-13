@@ -1,0 +1,64 @@
+<div class="info__inner">
+  <h2 id="info-title" class="info__title">How the battle is fought</h2>
+  <p class="info__lead">
+    Two captains, two hidden fleets, one grid each. The first to sink every enemy ship wins.
+  </p>
+
+  <div class="info__grid">
+    <article class="bs-card info__card">
+      <h3>How a game works</h3>
+      <p>
+        One captain creates a game and shares its code; the other joins with it. Both place their
+        fleets in secret, then take turns calling a coordinate on the enemy grid until one fleet is
+        at the bottom of the sea.
+      </p>
+    </article>
+
+    <article class="bs-card info__card">
+      <h3>The fleet</h3>
+      <p>Five ships, each one cell wide, placed in a straight line without overlapping.</p>
+      <ul class="fleet">
+        @for (ship of fleet; track ship.name) {
+          <li class="fleet__ship">
+            <span class="fleet__name">{{ ship.name }}</span>
+            <span
+              class="fleet__bar"
+              [style.--ship-length]="ship.length"
+              [style.--fleet-longest]="longestShip"
+              aria-hidden="true"
+            ></span>
+            <span class="fleet__length">{{ ship.length }} cells</span>
+          </li>
+        }
+      </ul>
+    </article>
+
+    <article class="bs-card info__card">
+      <h3>The grid</h3>
+      <p>
+        Each fleet sails on a 12 by 12 grid: columns A to L across the top, rows 1 to 12 down the
+        side. A shot is called by its column and row, such as D7, and every cell can be fired on
+        once.
+      </p>
+    </article>
+
+    <article class="bs-card info__card">
+      <h3>Turns and hits</h3>
+      <p>Captains alternate. Every shot is answered with one of three results.</p>
+      <ul class="legend">
+        <li class="legend__row">
+          <span class="legend__cell legend__cell--miss" aria-hidden="true"></span>
+          <span><strong>Miss.</strong> Open water; the turn passes.</span>
+        </li>
+        <li class="legend__row">
+          <span class="legend__cell legend__cell--hit" aria-hidden="true"></span>
+          <span><strong>Hit.</strong> Part of a ship took the shot.</span>
+        </li>
+        <li class="legend__row">
+          <span class="legend__cell legend__cell--sunk" aria-hidden="true"></span>
+          <span><strong>Sunk.</strong> Every cell of that ship has been hit.</span>
+        </li>
+      </ul>
+    </article>
+  </div>
+</div>

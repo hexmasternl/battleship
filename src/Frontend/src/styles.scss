@@ -8,6 +8,8 @@
 
 // Battleship design system tokens (`--bs-*` custom properties on `:root`).
 @use './styles/tokens';
+// Design system button, card and panel recipes (`.bs-btn`, `.bs-card`, `.bs-panel`).
+@use './styles/components';
 // Material 3 tonal palettes built from the design system colour scales.
 @use './styles/palettes';
 
