@@ -1,0 +1,7 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Create a new game
+affected_areas:
+  - games
+  - frontend
+  - aspire
