@@ -15,7 +15,7 @@
 ## 3. Dapr client and subscriptions in the services
 
 - [x] 3.1 Add `Dapr.AspNetCore` to ServiceDefaults, add an `AddDaprMessaging()` extension that registers the Dapr client and call it from `AddServiceDefaults()`, and verify with a unit test in the Games test project that a host built with `AddServiceDefaults()` resolves `DaprClient`
-- [ ] 3.2 Add `UseCloudEvents()` and `MapSubscribeHandler()` to both API pipelines, add the development-only smoke endpoints (`POST /smoke/publish` on the Players API publishing to topic `smoke` on `pubsub`; `POST /smoke/received` with `[Topic("pubsub", "smoke")]` and `GET /smoke/received/{id}` on the Games API), and verify with the AppHost running that `GET /dapr/subscribe` on the Games API lists the `smoke` topic on `pubsub` with its route
+- [x] 3.2 Add `UseCloudEvents()` and `MapSubscribeHandler()` to both API pipelines, add the development-only smoke endpoints (`POST /smoke/publish` on the Players API publishing to topic `smoke` on `pubsub`; `POST /smoke/received` with `[Topic("pubsub", "smoke")]` and `GET /smoke/received/{id}` on the Games API), and verify with the AppHost running that `GET /dapr/subscribe` on the Games API lists the `smoke` topic on `pubsub` with its route
 - [ ] 3.3 Verify manually with the AppHost running that posting to the Players smoke endpoint makes the id retrievable from the Games received endpoint, and that a handler that throws is redelivered by the sidecar (temporarily throw on first delivery and observe the second delivery in the sidecar log)
 
 ## 4. End-to-end verification
