@@ -1,5 +1,6 @@
 using HexMaster.Battleship.DevBot.Client;
 using HexMaster.Battleship.DevBot.Identity;
+using HexMaster.Battleship.DevBot.Sessions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,11 @@ builder.Services.AddHttpClient<IUsersClient, UsersClient>(client => client.BaseA
 builder.Services.AddHttpClient<IGamesClient, GamesClient>(client => client.BaseAddress = gateway)
     .AddHttpMessageHandler<BearerTokenHandler>();
 builder.Services.AddHostedService<IdentityStartupService>();
+
+var options = builder.Configuration.GetSection(DevBotOptions.ConfigurationSection).Get<DevBotOptions>() ?? new DevBotOptions();
+builder.Services.AddSingleton(options);
+builder.Services.AddSingleton<BotSettings>();
+builder.Services.AddSingleton<GameSessions>();
 
 var app = builder.Build();
 
