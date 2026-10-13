@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Introduce YARP as the single backend endpoint for local development
+affected_areas:
+  - aspire
+  - frontend
