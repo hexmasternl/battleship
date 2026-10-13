@@ -177,7 +177,7 @@ battleship/
 │   ├── Shared/                           integration event catalog and sender (+ tests)
 │   ├── Core/                             CQRS and domain building blocks + integration event catalog and sender
 │   │   └── *.Tests/                      Core.Tests and IntegrationEvents.Tests
-│   ├── Players/                          anonymous identity: module, Api, Data, Abstractions, Tests
+│   ├── Players/                          anonymous identity: module, Api, Data.TableStorage, Abstractions, Tests
 │   ├── Games/                            game lifecycle: module, Api, Abstractions, Tests
 │   ├── Events/                           SSE fan-out: module, Api, Abstractions, Tests
 │   └── Frontend/                         Angular 22 + Angular Material, zoneless, signals
