@@ -174,8 +174,9 @@ battleship/
 │   │   ├── *.AppHost/                    AppHost.cs, GatewayRoutes.cs, DaprPrerequisites.cs
 │   │   ├── *.ServiceDefaults/            OpenTelemetry, health, resilience, auth, CORS
 │   │   └── *.Tests/                      tests for the AppHost logic
-│   ├── Core/                             CQRS and domain building blocks + integration event catalog and sender
-│   ├── Players/                          anonymous identity: module, Api, Data.TableStorage, Abstractions, Tests
+│   ├── Core/                             CQRS and domain building blocks
+│   ├── Shared/                           integration event catalog and sender (+ tests)
+│   ├── Players/                          anonymous identity: module, Api, Data, Abstractions, Tests
 │   ├── Games/                            game lifecycle: module, Api, Abstractions, Tests
 │   ├── Events/                           SSE fan-out: module, Api, Abstractions, Tests
 │   └── Frontend/                         Angular 22 + Angular Material, zoneless, signals
@@ -350,7 +351,7 @@ await sender.SendAsync(
 
 Type names are versioned (`game.shot-fired.v1`) and never change incompatibly. The catalog,
 the versioning rules and the frontend sync step are in the
-[integration events README](src/Core/HexMaster.Battleship.IntegrationEvents/README.md).
+[integration events README](src/Shared/HexMaster.Battleship.IntegrationEvents/README.md).
 
 ### Frontend
 
