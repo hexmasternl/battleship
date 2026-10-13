@@ -23,7 +23,12 @@ See proposal.md for motivation. The repository has no frontend code, no `docs/` 
 
 **Semantic roles reference scale tokens, never hex.** This keeps a future light theme or high-contrast mode to a swap of role assignments.
 
-**Typography.** Display: `Rajdhani` (condensed, instrument-panel feel) with fallback `"Segoe UI", system-ui, sans-serif`. Body: `Inter` with the same fallback. Instrument/mono: `JetBrains Mono` with fallback `ui-monospace, Consolas, monospace`. Loaded from Google Fonts with `font-display: swap`; the page must stay correct on fallbacks. Type scale uses a 1.25 ratio from a 16px base, with `clamp()` on the two largest sizes for small screens. Alternative considered: a single typeface, rejected because the brief asks for an instrument look that a mono face delivers for coordinates, RPM and sonar readouts.
+**Typography.** Three typefaces, all prescribed by the issue reporter and loaded from Google Fonts with `font-display: swap`:
+- Heading: `Quantico` (https://fonts.google.com/specimen/Quantico), token `--bs-font-heading`, fallback `"Segoe UI", system-ui, sans-serif`. Used for all headings, the top bar, button labels and the compass rose letters.
+- Default: `Courier Prime` (https://fonts.google.com/specimen/Courier+Prime), token `--bs-font-body`, fallback `"Courier New", Courier, monospace`. Used for body copy, inputs, grid coordinates and instrument readouts; because it is monospaced there is no separate instrument face.
+- Panel: `Bitcount Single` at weight 200 (https://fonts.google.com/specimen/Bitcount+Single), token `--bs-font-panel` with `--bs-font-weight-panel: 200`. Reserved for informational panels that set the stage (intro banner, status strips, mission text), never for body text or controls. Fallback `"Courier New", Courier, monospace`. Only weight 200 is loaded.
+
+The page must stay correct on fallbacks. Type scale uses a 1.25 ratio from a 16px base, with `clamp()` on the two largest sizes for small screens. Line heights are tuned per face: Courier Prime at 1.6 for body, Quantico at 1.15 for headings, Bitcount Single at 1.3.
 
 **Spacing and radius.** Spacing on a 4px base: steps 1 through 12 (4px to 64px, non-linear above 8). Radius: `sm` 4px, `md` 8px, `lg` 16px, `full` 999px. Breakpoints: `sm` 480px, `md` 768px, `lg` 1024px, `xl` 1280px, all `min-width`, written in the document as tokens and in CSS as literal media queries (custom properties cannot be used in media queries; the document states this).
 

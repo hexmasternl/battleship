@@ -47,7 +47,11 @@ Every colour, typography, spacing, radius, shadow, glow, motion and breakpoint v
 - **THEN** the token resolves to its documented value without any other part of the showcase present
 
 ### Requirement: Typography, spacing, radius and breakpoint scales are defined
-The design system SHALL define a display typeface, a body typeface and a monospace instrument typeface each with a system fallback stack, a modular type scale of at least six sizes with line heights, a spacing scale of at least eight steps, a radius scale of at least four steps, and mobile-first breakpoints of at least four widths.
+The design system SHALL define three typefaces, each with a system fallback stack: Quantico for headings, Courier Prime as the default body typeface, and Bitcount Single at weight 200 for informational panels only. It SHALL also define a modular type scale of at least six sizes with line heights, a spacing scale of at least eight steps, a radius scale of at least four steps, and mobile-first breakpoints of at least four widths.
+
+#### Scenario: Typefaces are assigned by role
+- **WHEN** the showcase page renders with web fonts available
+- **THEN** every heading uses Quantico, body text and controls use Courier Prime, and informational panels use Bitcount Single at weight 200 and nothing else does
 
 #### Scenario: Typefaces render with fallbacks
 - **WHEN** the web fonts cannot be loaded

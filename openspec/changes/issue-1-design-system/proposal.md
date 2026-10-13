@@ -9,6 +9,7 @@ Battleship has no visual language: `src/Frontend/` is empty, no framework has be
 ## What Changes
 
 - Add `docs/design-system.md`: the written design system reference covering the six base colours verbatim (background `#011627`, primary `#00c0ff`, secondary `#2f87ff`, text `#b2c2d4`, text dim `#7a8694`, danger `#ff2146`), a tint/shade scale derived from each, semantic colour roles, typography, spacing and radius scales, glow and shadow effects, motion rules, breakpoints, and every game page element.
+- Fix the three typefaces: Quantico for headings, Courier Prime as the default body font, and Bitcount Single at weight 200 for informational panels that set the stage, all from Google Fonts with system fallbacks.
 - Define every colour, scale and effect as a named CSS custom property (design token) so the frontend can adopt the system regardless of the framework chosen later.
 - Add `docs/design-system.html`: a self-contained static showcase page (no build step, no framework) that renders every token and element: palette and tints, typography, buttons, inputs, cards and panels, status and danger states, the 12x12 playing grid, the five ships in both orientations, battle-stage cell states, and the radar sweep, sonar ping, compass and engine RPM gauge motifs.
 - Make the showcase mobile first and responsive (usable at 360px wide without horizontal scrolling), animate the dynamic motifs with CSS only, and honour `prefers-reduced-motion`.
@@ -27,4 +28,5 @@ Battleship has no visual language: `src/Frontend/` is empty, no framework has be
 - New files only: `docs/design-system.md` and `docs/design-system.html` at the repository root.
 - No code under `src/` changes. The Games, Players and Aspire projects are untouched. `src/Frontend/` stays empty; choosing and scaffolding a framework is a later change that consumes these tokens.
 - No new dependencies or build steps. Web fonts are loaded from a public font service with documented system fallbacks, so the page also renders offline.
-- Assumptions recorded from the issue triage: five ships per player (the report once says three but lists five types), a dark-only theme, a plain HTML/CSS showcase, and fonts chosen by the design system since the report does not prescribe any.
+- Confirmed by the reporter after triage: five ships per player (the report once says three, which was a typo), and the three typefaces (Quantico, Courier Prime, Bitcount Single 200).
+- Assumptions still recorded: a dark-only theme and a plain HTML/CSS showcase.
