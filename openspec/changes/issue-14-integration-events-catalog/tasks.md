@@ -21,7 +21,7 @@
 ## 4. Replace the smoke round trip
 
 - [x] 4.1 Delete `SmokeEndpoints.cs` and its `MapSmokeEndpoints()`/`SmokeEventStore` wiring from the Games and Players APIs, and delete `Integration/SmokeMessagingTests.cs`; verify the solution builds and `grep -rni smoke src --include=*.cs` returns nothing
-- [ ] 4.2 Add `Integration/IntegrationEventsDeliveryTests` (`[Trait("Category", "Integration")]`) that starts the AppHost, waits for the Events sidecar to list the `integration-events` subscription, opens `GET /events?playerId=<A>`, sends a `PlayerCreatedEvent` for A through `DaprIntegrationEventSender` with a `DaprClient` pointed at the Players sidecar, and asserts the stream delivers `player.created.v1` with the payload within five seconds (design D6); verify it passes locally with Docker and Dapr running
+- [x] 4.2 Add `Integration/IntegrationEventsDeliveryTests` (`[Trait("Category", "Integration")]`) that starts the AppHost, waits for the Events sidecar to list the `integration-events` subscription, opens `GET /events?playerId=<A>`, sends a `PlayerCreatedEvent` for A through `DaprIntegrationEventSender` with a `DaprClient` pointed at the Players sidecar, and asserts the stream delivers `player.created.v1` with the payload within five seconds (design D6); verify it passes locally with Docker and Dapr running
 
 ## 5. Frontend event names
 
