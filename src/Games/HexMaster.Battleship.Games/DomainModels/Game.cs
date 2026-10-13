@@ -6,8 +6,10 @@ using HexMaster.Battleship.Games.Services;
 namespace HexMaster.Battleship.Games.DomainModels;
 
 // The game aggregate. It owns the turn rule: at most one player has the turn, nobody has it while
-// the game is New, and a switch flips both players in one step. Every mutation takes the current
-// instant and ends by recording activity on the game and, when a player is involved, that player.
+// the game is New or Completed, and a switch flips both players in one step. It also owns the end
+// rule: the shot that hits the opponent's last unhit ship cell completes the game with the shooter as
+// winner. Every mutation takes the current instant and ends by recording activity on the game and,
+// when a player is involved, that player.
 public sealed class Game : DomainModel<Guid>, IGame
 {
     private readonly Player _playerOne;
@@ -20,6 +22,7 @@ public sealed class Game : DomainModel<Guid>, IGame
         Player playerOne,
         Player? playerTwo,
         DateTimeOffset lastActivityOn,
+        Guid? winnerId,
         DomainModelState state)
         : base(id, state)
     {
@@ -34,8 +37,10 @@ public sealed class Game : DomainModel<Guid>, IGame
         Code = gameCode;
         GameState = gameState;
         LastActivityOn = lastActivityOn;
+        WinnerId = winnerId;
 
         EnsureTurnRule();
+        EnsureWinnerRule();
     }
 
     public GameCode Code { get; }
@@ -50,19 +55,22 @@ public sealed class Game : DomainModel<Guid>, IGame
 
     public DateTimeOffset LastActivityOn { get; private set; }
 
+    public Guid? WinnerId { get; private set; }
+
     // A new game waiting for a second player, created by player one.
     public static Game Create(Guid playerId, string playerName, GameCode gameCode, DateTimeOffset now) =>
-        new(Guid.NewGuid(), gameCode, GameState.New, Player.Create(playerId, playerName, now), null, now, DomainModelState.New);
+        new(Guid.NewGuid(), gameCode, GameState.New, Player.Create(playerId, playerName, now), null, now, null, DomainModelState.New);
 
-    // Restores a stored game. A stored state that breaks the turn rule is refused.
+    // Restores a stored game. A stored state that breaks the turn or winner rule is refused.
     public static Game Reconcile(
         Guid id,
         GameCode gameCode,
         GameState gameState,
         Player playerOne,
         Player? playerTwo,
-        DateTimeOffset lastActivityOn) =>
-        new(id, gameCode, gameState, playerOne, playerTwo, lastActivityOn, DomainModelState.Pristine);
+        DateTimeOffset lastActivityOn,
+        Guid? winnerId = null) =>
+        new(id, gameCode, gameState, playerOne, playerTwo, lastActivityOn, winnerId, DomainModelState.Pristine);
 
     // Seats the caller as player two of a new game. A player of the game always gets back in, in any
     // state, without a change; anyone else is refused once the game started or the seat is taken.
@@ -168,8 +176,9 @@ public sealed class Game : DomainModel<Guid>, IGame
     }
 
     // Fires the player's shot at the opponent's board. Refused, without any change, when the game is
-    // not started, the player does not have the turn or already fired at that cell. A recorded shot,
-    // hit or miss, always passes the turn to the opponent.
+    // not started (a completed game included), the player does not have the turn or already fired at
+    // that cell. A recorded shot passes the turn to the opponent, unless it hit the opponent's last
+    // unhit ship cell: then the game completes with the shooter as winner and nobody has the turn.
     public ShotOutcome FireShot(Guid playerId, Coordinate at, DateTimeOffset now)
     {
         var shooter = PlayerWithId(playerId);
@@ -203,10 +212,38 @@ public sealed class Game : DomainModel<Guid>, IGame
 
         IReadOnlyList<Shot> shots = [.. shooter.Shots, new Shot(at.Column, at.Row, hit)];
         Change(shooter.Shots, shots, v => shooter.Shots = v);
-        SwitchTurn(now);
-        Touch(now, shooter);
 
-        return new ShotOutcome(at, hit);
+        var completed = hit && IsFleetSunk(opponent, shooter);
+        if (completed)
+        {
+            Complete(shooter, now);
+        }
+        else
+        {
+            SwitchTurn(now);
+            Touch(now, shooter);
+        }
+
+        return new ShotOutcome(at, hit, completed);
+    }
+
+    // Every cell of every ship of the opponent has been hit by the shooter. Derived from the
+    // placements, so it holds for any fleet composition.
+    private static bool IsFleetSunk(Player opponent, Player shooter) =>
+        opponent.Ships.SelectMany(s => s.Cells)
+            .All(cell => shooter.Shots.Any(shot => shot.Hit && shot.Column == cell.Column && shot.Row == cell.Row));
+
+    // Ends the game with the winner. Both turn flags clear inside one assignment, as in SwitchTurn.
+    private void Complete(Player winner, DateTimeOffset now)
+    {
+        Change(GameState, GameState.Completed, v => GameState = v);
+        Change(WinnerId, winner.PlayerId, v => WinnerId = v);
+        Change(winner.HasTurn, false, _ =>
+        {
+            _playerOne.HasTurn = false;
+            _playerTwo!.HasTurn = false;
+        });
+        Touch(now, winner);
     }
 
     private void Start(IFirstTurnPicker picker, DateTimeOffset now)
@@ -284,6 +321,29 @@ public sealed class Game : DomainModel<Guid>, IGame
         if (GameState == GameState.New && (_playerOne.HasTurn || _playerTwo is { HasTurn: true }))
         {
             throw new DomainException("Nobody has the turn in a new game.");
+        }
+
+        if (GameState == GameState.Completed && (_playerOne.HasTurn || _playerTwo is { HasTurn: true }))
+        {
+            throw new DomainException("Nobody has the turn in a completed game.");
+        }
+    }
+
+    private void EnsureWinnerRule()
+    {
+        if (WinnerId is not { } winnerId)
+        {
+            return;
+        }
+
+        if (GameState != GameState.Completed)
+        {
+            throw new DomainException("Only a completed game has a winner.");
+        }
+
+        if (!IsPlayer(winnerId))
+        {
+            throw new DomainException($"The winner {winnerId} does not play in game {GameCode}.");
         }
     }
 }

@@ -242,6 +242,55 @@ public class GameTests
         Assert.Equal(ships, game.PlayerOne.Ships);
         Assert.Equal(shots, game.PlayerOne.Shots);
         Assert.Equal(Now, game.PlayerOne.LastActivityOn);
+        Assert.Null(game.WinnerId);
+    }
+
+    [Fact]
+    public void Reconcile_RestoresACompletedGameWithItsWinner()
+    {
+        var playerOne = GameFactory.Player();
+        var playerTwo = GameFactory.Player();
+
+        var game = GameFactory.Stored(GameState.Completed, playerOne, playerTwo, winnerId: playerTwo.PlayerId);
+
+        Assert.Equal(DomainModelState.Pristine, game.State);
+        Assert.Equal(GameState.Completed, game.GameState);
+        Assert.Equal(playerTwo.PlayerId, game.WinnerId);
+        Assert.False(game.PlayerOne.HasTurn);
+        Assert.False(game.PlayerTwo!.HasTurn);
+    }
+
+    [Theory]
+    [InlineData(GameState.New)]
+    [InlineData(GameState.Started)]
+    public void RunningGames_HaveNoWinner(GameState gameState)
+    {
+        Assert.Null(GameFactory.Stored(gameState).WinnerId);
+        Assert.Null(Game.Create(Guid.NewGuid(), GameFactory.PlayerName(), GameFactory.Code(), Now).WinnerId);
+    }
+
+    [Theory]
+    [InlineData(GameState.New)]
+    [InlineData(GameState.Started)]
+    public void Reconcile_RefusesAWinnerOfARunningGame(GameState gameState)
+    {
+        var playerOne = GameFactory.Player();
+
+        Assert.Throws<DomainException>(() => GameFactory.Stored(gameState, playerOne, winnerId: playerOne.PlayerId));
+    }
+
+    [Fact]
+    public void Reconcile_RefusesAWinnerWhoDoesNotPlay()
+    {
+        Assert.Throws<DomainException>(() => GameFactory.Stored(GameState.Completed, winnerId: Guid.NewGuid()));
+    }
+
+    [Fact]
+    public void Reconcile_RefusesACompletedGameWithATurn()
+    {
+        var playerOne = GameFactory.Player(hasTurn: true);
+
+        Assert.Throws<DomainException>(() => GameFactory.Stored(GameState.Completed, playerOne, winnerId: playerOne.PlayerId));
     }
 
     [Fact]

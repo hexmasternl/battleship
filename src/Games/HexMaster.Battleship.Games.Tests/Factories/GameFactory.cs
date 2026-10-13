@@ -46,12 +46,14 @@ public static class GameFactory
         Player? playerOne = null,
         Player? playerTwo = null,
         bool withoutPlayerTwo = false,
-        DateTimeOffset? lastActivityOn = null) =>
+        DateTimeOffset? lastActivityOn = null,
+        Guid? winnerId = null) =>
         Game.Reconcile(
             Guid.NewGuid(),
             Code(),
             gameState,
             playerOne ?? Player(),
             withoutPlayerTwo ? null : playerTwo ?? Player(),
-            lastActivityOn ?? Faker.Date.PastOffset());
+            lastActivityOn ?? Faker.Date.PastOffset(),
+            winnerId);
 }

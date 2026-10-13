@@ -23,6 +23,27 @@ public class GameFireShotTests
             GameFactory.Player(isReady: true, ships: GameFactory.FullFleet(), lastActivityOn: Now),
             lastActivityOn: Now);
 
+    // The last cell of the patrol boat, the final ship of the full fleet.
+    private static readonly Coordinate LastCell = GameFactory.FullFleet()[^1].Cells[^1];
+
+    // A hit on every cell of the full fleet except the given one.
+    private static IEnumerable<Shot> AllFleetHitsExcept(Coordinate except) =>
+        GameFactory.FullFleet().SelectMany(s => s.Cells).Where(c => c != except).Select(c => new Shot(c.Column, c.Row, true));
+
+    // A game player one won by hitting the whole fleet of player two.
+    private static Game Completed()
+    {
+        var winner = GameFactory.Player(
+            isReady: true, ships: GameFactory.FullFleet(), shots: AllFleetHitsExcept(new Coordinate(-1, -1)), lastActivityOn: Now);
+
+        return GameFactory.Stored(
+            GameState.Completed,
+            winner,
+            GameFactory.Player(isReady: true, ships: GameFactory.FullFleet(), lastActivityOn: Now),
+            lastActivityOn: Now,
+            winnerId: winner.PlayerId);
+    }
+
     private static ShotRefusedReason Refusal(Action act) => Assert.Throws<ShotRefusedException>(act).Reason;
 
     [Fact]
@@ -95,19 +116,95 @@ public class GameFireShotTests
         Assert.True(game.PlayerOne.HasTurn);
     }
 
-    [Theory]
-    [InlineData(GameState.New)]
-    [InlineData(GameState.Completed)]
-    public void FireShot_WhenNotStarted_IsRefusedWithoutChange(GameState gameState)
+    [Fact]
+    public void FireShot_WhenNew_IsRefusedWithoutChange()
     {
         var game = GameFactory.Stored(
-            gameState,
-            GameFactory.Player(hasTurn: gameState != GameState.New, ships: GameFactory.FullFleet(), lastActivityOn: Now),
+            GameState.New,
+            GameFactory.Player(ships: GameFactory.FullFleet(), lastActivityOn: Now),
             GameFactory.Player(ships: GameFactory.FullFleet(), lastActivityOn: Now),
             lastActivityOn: Now);
 
         Assert.Equal(ShotRefusedReason.GameNotStarted, Refusal(() => game.FireShot(game.PlayerOne.PlayerId, Water, Later)));
         AssertUnchanged(game);
+    }
+
+    [Fact]
+    public void FireShot_OnTheLastUnhitShipCell_CompletesTheGameWithTheShooterAsWinner()
+    {
+        var game = Started(playerOneShots: AllFleetHitsExcept(LastCell));
+
+        var outcome = game.FireShot(game.PlayerOne.PlayerId, LastCell, Later);
+
+        Assert.Equal(new ShotOutcome(LastCell, true, true), outcome);
+        Assert.Equal(GameState.Completed, game.GameState);
+        Assert.Equal(game.PlayerOne.PlayerId, game.WinnerId);
+        Assert.False(game.PlayerOne.HasTurn);
+        Assert.False(game.PlayerTwo!.HasTurn);
+        Assert.Contains(new Shot(LastCell.Column, LastCell.Row, true), game.PlayerOne.Shots);
+        Assert.Equal(Later, game.LastActivityOn);
+        Assert.Equal(Later, game.PlayerOne.LastActivityOn);
+        Assert.Equal(Now, game.PlayerTwo.LastActivityOn);
+        Assert.Equal(DomainModelState.Modified, game.State);
+    }
+
+    [Fact]
+    public void FireShot_HitWhileAnotherShipCellIsUnhit_KeepsPlayingAndPassesTheTurn()
+    {
+        // Two cells left: the carrier cell and the last cell; hitting the carrier cell leaves one.
+        var remaining = AllFleetHitsExcept(LastCell).Where(s => s != new Shot(CarrierCell.Column, CarrierCell.Row, true));
+        var game = Started(playerOneShots: remaining);
+
+        var outcome = game.FireShot(game.PlayerOne.PlayerId, CarrierCell, Later);
+
+        Assert.True(outcome.Hit);
+        Assert.False(outcome.GameCompleted);
+        Assert.Equal(GameState.Started, game.GameState);
+        Assert.Null(game.WinnerId);
+        Assert.True(game.PlayerTwo!.HasTurn);
+    }
+
+    [Fact]
+    public void FireShot_MissWithOneShipCellLeft_NeverEndsTheGame()
+    {
+        var game = Started(playerOneShots: AllFleetHitsExcept(LastCell));
+
+        var outcome = game.FireShot(game.PlayerOne.PlayerId, Water, Later);
+
+        Assert.False(outcome.GameCompleted);
+        Assert.Equal(GameState.Started, game.GameState);
+        Assert.Null(game.WinnerId);
+        Assert.True(game.PlayerTwo!.HasTurn);
+    }
+
+    [Fact]
+    public void FireShot_MissesDoNotCountAsHitsOfAShipCell()
+    {
+        // The last cell was shot before but recorded as a miss; it still has to be hit.
+        var shots = AllFleetHitsExcept(LastCell).Append(new Shot(LastCell.Column, LastCell.Row, false));
+        var game = Started(playerOneShots: shots);
+
+        var outcome = game.FireShot(game.PlayerOne.PlayerId, Water, Later);
+
+        Assert.False(outcome.GameCompleted);
+        Assert.Equal(GameState.Started, game.GameState);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FireShot_OnACompletedGame_IsRefusedForWinnerAndLoserWithoutChange(bool winnerFires)
+    {
+        var game = Completed();
+        var shooter = winnerFires ? game.PlayerOne.PlayerId : game.PlayerTwo!.PlayerId;
+
+        Assert.Equal(ShotRefusedReason.GameNotStarted, Refusal(() => game.FireShot(shooter, Water, Later)));
+        AssertUnchanged(game);
+        Assert.Equal(GameState.Completed, game.GameState);
+        Assert.Equal(game.PlayerOne.PlayerId, game.WinnerId);
+        Assert.False(game.PlayerOne.HasTurn);
+        Assert.False(game.PlayerTwo!.HasTurn);
+        Assert.Equal(17, game.PlayerOne.Shots.Count);
     }
 
     [Fact]

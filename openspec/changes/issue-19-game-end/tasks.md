@@ -2,14 +2,14 @@
 
 ## 1. Preconditions
 
-- [ ] 1.1 Confirm `issue-13-create-new-game`, `issue-16-join-game`, `issue-17-placement-phase` and `issue-18-game-play-page` are archived (`openspec/changes/archive/`) and merged into `development`; stop and report if any is missing
-- [ ] 1.2 Read the archived #17/#18 specs and the Games and frontend code they produced, and write down the actual names this design refers to (`Game.FireShot` return type, fire-shot handler, shot response DTO, game view DTO, `GameDocument`, `GamePage` store, `GamePlayPhase`); verify by listing the mapping in the first implementation commit message body
+- [x] 1.1 Confirm `issue-13-create-new-game`, `issue-16-join-game`, `issue-17-placement-phase` and `issue-18-game-play-page` are archived (`openspec/changes/archive/`) and merged into `development`; stop and report if any is missing
+- [x] 1.2 Read the archived #17/#18 specs and the Games and frontend code they produced, and write down the actual names this design refers to (`Game.FireShot` return type, fire-shot handler, shot response DTO, game view DTO, `GameDocument`, `GamePage` store, `GamePlayPhase`); verify by listing the mapping in the first implementation commit message body
 
 ## 2. Domain: end detection and winner
 
-- [ ] 2.1 Add `WinnerId` (`Guid?`) to `IGame` and `Game`, restored by `Reconcile`; verify a `Reconcile` round-trip unit test with and without a winner passes
-- [ ] 2.2 Extend `Game.FireShot` with the fleet-sunk check and a private `Complete(winnerId, now)` that sets `Completed`, the winner, clears both turns and touches the shooter; return a `ShotOutcome` (or #18's type) with `GameCompleted`; verify unit tests: last cell completes the game (state, winner, no turn, activity), a non-final hit and a miss switch the turn, `New`/`Started` games have no winner
-- [ ] 2.3 Pin the refusal of a shot on a `Completed` game (for winner and loser) with a unit test asserting the `DomainException` and an unchanged game
+- [x] 2.1 Add `WinnerId` (`Guid?`) to `IGame` and `Game`, restored by `Reconcile`; verify a `Reconcile` round-trip unit test with and without a winner passes
+- [x] 2.2 Extend `Game.FireShot` with the fleet-sunk check and a private `Complete(winnerId, now)` that sets `Completed`, the winner, clears both turns and touches the shooter; return a `ShotOutcome` (or #18's type) with `GameCompleted`; verify unit tests: last cell completes the game (state, winner, no turn, activity), a non-final hit and a miss switch the turn, `New`/`Started` games have no winner
+- [x] 2.3 Pin the refusal of a shot on a `Completed` game (for winner and loser) with a unit test asserting the `DomainException` and an unchanged game
 
 ## 3. Persistence
 
