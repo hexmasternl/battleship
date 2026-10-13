@@ -15,4 +15,8 @@
     <ProjectReference Include="..\HexMaster.Battleship.Events\HexMaster.Battleship.Events.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\Aspire\HexMaster.Battleship.Aspire\HexMaster.Battleship.Aspire.ServiceDefaults\AspireConstants.cs" Link="AspireConstants.cs" />
+  </ItemGroup>
+
 </Project>
