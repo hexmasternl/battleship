@@ -2,13 +2,13 @@
 
 ## 1. Shared API reference in ServiceDefaults
 
-- [x] 1.1 Add `Scalar.AspNetCore` (exact current version) to ServiceDefaults. Add a reference path constant to `AspireConstants`. Add the `AddApiReference()` and `MapApiReference()` extensions, which map the OpenAPI document and the Scalar UI only in Development (design D1). Verify `WebApplicationFactory` tests on the Players API: the reference path and `/openapi/v1.json` answer 200 in Development and 404 in Production.
-- [x] 1.2 Add `BearerSecuritySchemeTransformer` and register it in `AddApiReference()`. Configure Scalar to prefer the `Bearer` scheme (design D2). Verify a test on the generated Players document: the `bearer` security scheme exists, `GET /users/me` carries the requirement, and `POST /users/tokens` and `POST /users/tokens/refresh` do not.
+- [x] 1.1 Add `Scalar.AspNetCore` (exact current version) to ServiceDefaults. Add a reference path constant to `AspireConstants`. Add the `AddApiReference()` and `MapApiReference()` extensions, which map the OpenAPI document and the Scalar UI only in Development (design D1). Verify `WebApplicationFactory` tests on the Users API: the reference path and `/openapi/v1.json` answer 200 in Development and 404 in Production.
+- [x] 1.2 Add `BearerSecuritySchemeTransformer` and register it in `AddApiReference()`. Configure Scalar to prefer the `Bearer` scheme (design D2). Verify a test on the generated Users document: the `bearer` security scheme exists, `GET /users/me` carries the requirement, and `POST /users/tokens` and `POST /users/tokens/refresh` do not.
 
 ## 2. Wire every API
 
-- [x] 2.1 Replace `AddOpenApi()` / `MapOpenApi()` with `AddApiReference()` / `MapApiReference()` in the Players, Games and Events `Program.cs`. Verify the solution builds and the existing API tests pass.
-- [x] 2.2 Exclude `/integration-events` and the Dapr subscribe route from the Events and Players documents (design D3). Verify a test on the Events document: it contains `GET /events` and no `/integration-events` or `/dapr/subscribe` paths.
+- [x] 2.1 Replace `AddOpenApi()` / `MapOpenApi()` with `AddApiReference()` / `MapApiReference()` in the Users, Games and Events `Program.cs`. Verify the solution builds and the existing API tests pass.
+- [x] 2.2 Exclude `/integration-events` and the Dapr subscribe route from the Events and Users documents (design D3). Verify a test on the Events document: it contains `GET /events` and no `/integration-events` or `/dapr/subscribe` paths.
 
 ## 3. AppHost and gateway
 
@@ -17,8 +17,8 @@
 
 ## 4. Documentation
 
-- [x] 4.1 Mention the API reference link in the README's "Your first tour of the dashboard" section and in the Players section (try the endpoints from the reference with a pasted access token). Verify the steps work as written during a local run.
+- [x] 4.1 Mention the API reference link in the README's "Your first tour of the dashboard" section and in the Users section (try the endpoints from the reference with a pasted access token). Verify the steps work as written during a local run.
 
 ## 5. Integration check
 
-- [x] 5.1 Run `dotnet test src/Battleship.slnx`, then `aspire run`. From the Players reference, create a token pair, authorize with the access token and call `GET /users/me` successfully. Confirm the Events reference hides the delivery endpoint and that `<gateway>/scalar` returns 404. Verify all pass and note the Scalar version used in the pull request.
+- [x] 5.1 Run `dotnet test src/Battleship.slnx`, then `aspire run`. From the Users reference, create a token pair, authorize with the access token and call `GET /users/me` successfully. Confirm the Events reference hides the delivery endpoint and that `<gateway>/scalar` returns 404. Verify all pass and note the Scalar version used in the pull request.

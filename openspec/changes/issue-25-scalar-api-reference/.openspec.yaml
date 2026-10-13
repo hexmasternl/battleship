@@ -2,7 +2,7 @@ schema: spec-driven
 created: 2026-10-13
 goal: Add Scalar API reference UI to every API (Minimal APIs ADR)
 affected_areas:
-  - players
+  - users
   - games
   - events
   - aspire

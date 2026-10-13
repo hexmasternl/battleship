@@ -36,6 +36,6 @@ Games are never removed today, so the `games` table grows without limit and keep
   - `GatewayRoutes.cs` reserves `maintenance`, with a test in `Aspire.Tests`. This is owned by the `yarp-gateway-routes` skill and approved there.
 - **Out of scope**:
   - Notifying players or publishing integration events for removed games.
-  - Cleaning up Players data.
+  - Cleaning up Users data.
   - Cloud or production scheduling infrastructure.
   - A secondary activity index. At the current scale a cross-partition server-side filter is accepted.

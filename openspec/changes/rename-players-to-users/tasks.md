@@ -25,7 +25,7 @@
 ## 6. Documentation, agent configuration and open proposals
 
 - [x] 6.1 Update README (Users section, `Users:Tokens:*` table, resources, layout, curl examples, one-time reset and old-secret cleanup note), `docs/assets/architecture.svg`, `src/Frontend/README.md`, CLAUDE.md, the `hexmaster-*` skills, the `openspec-github-issues` label catalog and the git flow commit scopes (design D8); mirror `.claude/` to `.github/` with the `sync-agent-config` skill; verify its check reports both sides in sync
-- [ ] 6.2 Update identity references in every unarchived change listed in 1.1 that is committed on `development` (design D9), leaving game-domain "player" untouched; verify `openspec validate --all` reports no new errors
+- [x] 6.2 Update identity references in every unarchived change listed in 1.1 that is committed on `development` (design D9), leaving game-domain "player" untouched; verify `openspec validate --all` reports no new errors
 - [ ] 6.3 Rename the GitHub label `players` to `users` (`gh label edit`), after confirming with the user that the outward-facing rename may proceed
 
 ## 7. Verification

@@ -9,13 +9,13 @@ Defines the interactive API reference every backend API serves during local deve
 ### Requirement: Every API serves an interactive reference in Development
 Each backend API SHALL serve an interactive API reference, built from its OpenAPI document, on its own endpoint when it runs in the Development environment. The reference SHALL list every public endpoint with its name, summary, parameters, request body and response types.
 
-#### Scenario: Players reference lists the token endpoints
-- **WHEN** a developer opens the Players API reference during a local run
+#### Scenario: Users reference lists the token endpoints
+- **WHEN** a developer opens the Users API reference during a local run
 - **THEN** it lists `POST /users/tokens`, `POST /users/tokens/refresh` and `GET /users/me`, each with its request and response shapes
 
 #### Scenario: Every API has one
 - **WHEN** the AppHost is running
-- **THEN** the Players, Games and Events APIs each serve a reference page
+- **THEN** the Users, Games and Events APIs each serve a reference page
 
 ### Requirement: The reference is unavailable outside Development
 An API running in any environment other than Development SHALL serve neither the OpenAPI document nor the reference UI.

@@ -7,7 +7,7 @@ Endpoints meant only for the platform, for diagnostics or for scheduled maintena
 
 #### Scenario: Smoke endpoint is not reachable through the gateway
 - **WHEN** a client sends `POST <gateway>/smoke/publish`
-- **THEN** the gateway answers `404 Not Found` and the Players API does not receive the request
+- **THEN** the gateway answers `404 Not Found` and the Users API does not receive the request
 
 #### Scenario: Maintenance endpoint is not reachable through the gateway
 - **WHEN** a client sends `POST <gateway>/maintenance/game-cleanup`

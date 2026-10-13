@@ -3,8 +3,8 @@
 ## Context
 
 See `proposal.md` and `specs/api-reference/spec.md`. Today each API's `Program.cs` repeats the same two lines:
-- `builder.Services.AddOpenApi()` (Players `Program.cs:12`, Games `:8`, Events `:10`)
-- `app.MapOpenApi()` inside an `IsDevelopment()` block (Players `:28`, Games `:20`, Events `:25`)
+- `builder.Services.AddOpenApi()` (Users `Program.cs:12`, Games `:8`, Events `:10`)
+- `app.MapOpenApi()` inside an `IsDevelopment()` block (Users `:28`, Games `:20`, Events `:25`)
 
 The document serves at `/openapi/v1.json`. Bearer authentication comes from `AddBattleshipAuthentication()` in ServiceDefaults (JWT bearer, scheme name `Bearer`). The Events API maps `POST /integration-events` (the Dapr delivery endpoint) with `WithTopic`. That endpoint and the `MapSubscribeHandler()` route are infrastructure. Health endpoints come from `MapDefaultEndpoints()` and are not in the document. `GatewayRoutes.ReservedPrefixes` already contains `openapi`.
 
@@ -62,7 +62,7 @@ In `AppHost.cs`, each `AddProject<...Api>` gets a dashboard URL pointing at its 
 
 - [The Scalar API surface changes between major versions (the 1.x to 2.x option names)] → Pin an exact current version. Settle the option method names against that version during implementation. The tests assert behaviour (the page answers 200 in Development and 404 otherwise), not option names.
 - [The reference shows the template `/weatherforecast` until #13 lands] → Accepted. It disappears with #13, and the Games reference still proves the wiring.
-- [A document transformer that misreads the authorization metadata would mark operations wrongly] → A unit test runs the transformer on the Players document and asserts `GET /users/me` is secured and `POST /users/tokens` is not.
+- [A document transformer that misreads the authorization metadata would mark operations wrongly] → A unit test runs the transformer on the Users document and asserts `GET /users/me` is secured and `POST /users/tokens` is not.
 
 ## Open Questions
 
