@@ -3,7 +3,7 @@
 ## 1. Events service scaffolding
 
 - [x] 1.1 Create `src/Events/HexMaster.Battleship.Events.Abstractions`, `src/Events/HexMaster.Battleship.Events`, `src/Events/HexMaster.Battleship.Events.Api` (web SDK, referencing ServiceDefaults, with `AddServiceDefaults()` and `MapDefaultEndpoints()` and no weather endpoint) and `src/Events/HexMaster.Battleship.Events.Tests` (xUnit stack matching the Games tests) on `net10.0`, add them to `src/Battleship.slnx` under an `/Events/` folder, and verify `dotnet build src/Battleship.slnx` succeeds
-- [ ] 1.2 Add `IntegrationEventEnvelope` and `EventTarget` to the Abstractions project per design.md, with a validator that rejects a missing id, type or target kind and an empty target list for `player` and `game`, and verify xUnit tests cover an accepted envelope and each rejection
+- [x] 1.2 Add `IntegrationEventEnvelope` and `EventTarget` to the Abstractions project per design.md, with a validator that rejects a missing id, type or target kind and an empty target list for `player` and `game`, and verify xUnit tests cover an accepted envelope and each rejection
 
 ## 2. Routing core
 
