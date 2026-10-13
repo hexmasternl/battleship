@@ -92,6 +92,52 @@ public class GameTableRepositoryTests
     }
 
     [AzuriteFact]
+    public async Task TryUpdate_WithAFreshTokenStoresTheGame()
+    {
+        var repository = new GameTableRepository(Azurite.CreateClient());
+        var game = Game.Create(Guid.NewGuid(), GameFactory.PlayerName(), GameFactory.Code(), Now);
+        await repository.TryAddAsync(game, CancellationToken.None);
+        var read = await repository.GetForUpdateAsync(game.GameCode, CancellationToken.None);
+        var playerTwoId = Guid.NewGuid();
+        ((Game)read!.Game).Join(playerTwoId, "Admiral Tromp", Now.AddMinutes(1));
+
+        Assert.False(string.IsNullOrEmpty(read.ConcurrencyToken));
+        Assert.True(await repository.TryUpdateAsync(read.Game, read.ConcurrencyToken, CancellationToken.None));
+
+        var stored = await repository.GetForUpdateAsync(game.GameCode, CancellationToken.None);
+        Assert.Equal(playerTwoId, stored!.Game.PlayerTwo!.PlayerId);
+        Assert.Equal(Now.AddMinutes(1), stored.Game.LastActivityOn);
+        Assert.NotEqual(read.ConcurrencyToken, stored.ConcurrencyToken);
+    }
+
+    [AzuriteFact]
+    public async Task TryUpdate_WithAStaleTokenReturnsFalseAndKeepsTheStoredGame()
+    {
+        var repository = new GameTableRepository(Azurite.CreateClient());
+        var game = Game.Create(Guid.NewGuid(), GameFactory.PlayerName(), GameFactory.Code(), Now);
+        await repository.TryAddAsync(game, CancellationToken.None);
+        var first = await repository.GetForUpdateAsync(game.GameCode, CancellationToken.None);
+        var second = await repository.GetForUpdateAsync(game.GameCode, CancellationToken.None);
+        var winner = Guid.NewGuid();
+        ((Game)first!.Game).Join(winner, GameFactory.PlayerName(), Now.AddMinutes(1));
+        ((Game)second!.Game).Join(Guid.NewGuid(), GameFactory.PlayerName(), Now.AddMinutes(2));
+
+        Assert.True(await repository.TryUpdateAsync(first.Game, first.ConcurrencyToken, CancellationToken.None));
+        Assert.False(await repository.TryUpdateAsync(second.Game, second.ConcurrencyToken, CancellationToken.None));
+
+        var stored = await repository.GetByCodeAsync(game.GameCode, CancellationToken.None);
+        Assert.Equal(winner, stored!.PlayerTwo!.PlayerId);
+    }
+
+    [AzuriteFact]
+    public async Task GetForUpdate_UnknownCodeReturnsNull()
+    {
+        var repository = new GameTableRepository(Azurite.CreateClient());
+
+        Assert.Null(await repository.GetForUpdateAsync(GameFactory.Code().Value, CancellationToken.None));
+    }
+
+    [AzuriteFact]
     public async Task GetByCode_UnknownCodeReturnsNull()
     {
         var repository = new GameTableRepository(Azurite.CreateClient());

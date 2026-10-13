@@ -29,7 +29,10 @@ public sealed class GameTableRepository(TableServiceClient service)
         }
     }
 
-    public async Task<IGame?> GetByCodeAsync(string gameCode, CancellationToken cancellationToken)
+    public async Task<IGame?> GetByCodeAsync(string gameCode, CancellationToken cancellationToken) =>
+        (await GetForUpdateAsync(gameCode, cancellationToken))?.Game;
+
+    public async Task<GameForUpdate?> GetForUpdateAsync(string gameCode, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
 
@@ -41,7 +44,27 @@ public sealed class GameTableRepository(TableServiceClient service)
             return null;
         }
 
-        return GameDocument.Deserialize(entity.Document, entity.DocumentVersion).ToGame();
+        var game = GameDocument.Deserialize(entity.Document, entity.DocumentVersion).ToGame();
+        return new GameForUpdate(game, entity.ETag.ToString());
+    }
+
+    public async Task<bool> TryUpdateAsync(IGame game, string concurrencyToken, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(game);
+        ArgumentException.ThrowIfNullOrWhiteSpace(concurrencyToken);
+
+        var table = await GetTableAsync(cancellationToken);
+        try
+        {
+            // Replace, not merge: the game is one JSON document, so a write is always the whole game.
+            await table.UpdateEntityAsync(
+                ToEntity(game), new ETag(concurrencyToken), TableUpdateMode.Replace, cancellationToken);
+            return true;
+        }
+        catch (RequestFailedException exception) when (exception.Status == 412)
+        {
+            return false;
+        }
     }
 
     private static GameEntity ToEntity(IGame game) => new()

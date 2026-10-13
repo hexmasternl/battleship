@@ -13,4 +13,13 @@ internal static partial class GamesLog
 
     [LoggerMessage(EventId = 4002, Level = LogLevel.Error, Message = "Publishing {EventType} for game {GameCode} failed; the game was created")]
     public static partial void GameCreatedAnnouncementFailed(ILogger logger, Exception exception, string eventType, string gameCode);
+
+    [LoggerMessage(EventId = 4003, Level = LogLevel.Warning, Message = "Game {GameCode} was changed by another request (attempt {Attempt} of {MaxAttempts})")]
+    public static partial void GameUpdateConflicted(ILogger logger, string gameCode, int attempt, int maxAttempts);
+
+    [LoggerMessage(EventId = 4004, Level = LogLevel.Information, Message = "Player {PlayerId} joined game {GameId} with code {GameCode}")]
+    public static partial void GameJoined(ILogger logger, Guid gameId, string gameCode, Guid playerId);
+
+    [LoggerMessage(EventId = 4005, Level = LogLevel.Error, Message = "Publishing {EventType} for game {GameCode} failed; the player joined")]
+    public static partial void GameJoinedAnnouncementFailed(ILogger logger, Exception exception, string eventType, string gameCode);
 }
