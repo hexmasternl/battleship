@@ -2,7 +2,7 @@
 
 ## 1. Prerequisites
 
-- [ ] 1.1 Confirm `issue-13-create-new-game` is merged into `development` and archived (its `authenticated-requests` and `game-creation` specs exist under `openspec/specs/`); stop and report if not; verify `dotnet build src/Battleship.slnx` and `npm test` in `src/Frontend` pass on the branch before any change, and list every unarchived change under `openspec/changes/` for task 6.2
+- [x] 1.1 Confirm `issue-13-create-new-game` is merged into `development` and archived (its `authenticated-requests` and `game-creation` specs exist under `openspec/specs/`); stop and report if not; verify `dotnet build src/Battleship.slnx` and `npm test` in `src/Frontend` pass on the branch before any change, and list every unarchived change under `openspec/changes/` for task 6.2
 
 ## 2. Users module
 
