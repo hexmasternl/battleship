@@ -47,6 +47,28 @@ See proposal.md for motivation. Observed state:
 - [RabbitMQ container pull slows the first run and the smoke test] -> the smoke test waits for the resource health states with a generous timeout and is marked as an integration test (trait `Integration`) so unit runs can filter it out.
 - [Two sidecars plus the broker increase local resource usage] -> acceptable for a two-service solution; the management plugin can be dropped later if memory becomes a problem.
 
+## Resolved during apply
+
+**Package versions (task 1.1, 2026-10-13).**
+
+| Package | Version | Note |
+|---|---|---|
+| `Aspire.Hosting.RabbitMQ` | 13.6.1 | matches `Aspire.AppHost.Sdk/13.6.1` |
+| `CommunityToolkit.Aspire.Hosting.Dapr` | 13.6.0-preview.1.261001-0243 | the toolkit's tagged preview for Aspire 13.6 (depends on `Aspire.Hosting` 13.6.0). The latest stable toolkit release is 13.0.0, which pins `Aspire.Hosting` 13.0.0 and does not fit the 13.6.1 SDK. The `13.6.1-beta.*` builds are unreleased CI output and were not chosen. |
+| `Dapr.AspNetCore` | 1.18.10 | latest stable; the machine runs Dapr CLI 1.18.2 / runtime 1.17.4 |
+| `Aspire.Hosting.Testing` | 13.6.1 | matches the SDK |
+
+**Verified toolkit API (13.6.0-preview.1).** The public surface, taken from the package's XML documentation:
+
+- `builder.AddDapr(Action<DaprOptions>? configure = null)` registers the lifecycle hook that starts the sidecars. `DaprOptions` has `DaprPath`, `EnableTelemetry` and `PublishingConfigurationAction`.
+- `builder.AddDaprComponent(name, type, DaprComponentOptions? options = null)` adds a component with a concrete Dapr type (for example `pubsub.rabbitmq`). `AddDaprPubSub(name)` and `AddDaprStateStore(name)` add the *generic* `pubsub` / `state` building blocks, which at run time resolve to `<AppHost>/.dapr/components/<name>.yaml`, then `~/.dapr/components/<name>.yaml` (the Redis one that `dapr init` writes), then an in-memory component. That is why this change uses `AddDaprComponent` with the concrete type and not `AddDaprPubSub`.
+- `component.WithMetadata(name, string)` adds static metadata; `component.WithMetadata(name, IValueProvider)` adds metadata resolved at run time (an `EndpointReference`, `ReferenceExpression` or connection-string expression); `component.WithMetadata(name, ParameterResource)` adds a parameter (secret parameters become a `secretKeyRef`).
+- `resource.WithDaprSidecar()`, `WithDaprSidecar(string appId)`, `WithDaprSidecar(DaprSidecarOptions)` and `WithDaprSidecar(Action<IResourceBuilder<IDaprSidecarResource>>)` attach a sidecar; `resource.WithReference(component)` and `sidecar.WithReference(component)` make the sidecar load the component.
+- There is **no** overload that takes a RabbitMQ resource, so the fallback path from the Decisions section is the one taken: the `pubsub` component gets its `connectionString` metadata from the `messaging` resource's `ConnectionStringExpression` (`amqp://<user>:<password>@<host>:<port>`). The toolkit writes that value to an environment variable of the sidecar process (`PUBSUB_CONNECTIONSTRING`) and emits a `secretKeyRef` into the generated component manifest backed by an auto-generated `secretstores.local.env` component named `secretstore`, so neither the manifest nor any repository file contains the host, port or password.
+- The lifecycle hook writes the generated manifests to a temporary directory (`aspire-dapr.*`), runs each sidecar as a `dapr run` executable resource named `<sidecar>-cli` with `--resources-path` pointing there, and sets `DAPR_HTTP_PORT`, `DAPR_GRPC_PORT`, `DAPR_HTTP_ENDPOINT` and `DAPR_GRPC_ENDPOINT` on the application resource. It locates the Dapr CLI at `<SystemDrive>\dapr\dapr.exe` (Windows) or `~/dapr/dapr`, `/usr/local/bin/dapr`, `/usr/bin/dapr` (other), then on `PATH`, and throws `Unable to locate the Dapr CLI.` only when a sidecar is about to start. It does not check that `dapr init` has been run, hence the AppHost's own startup check (task 2.3).
+
+**Verified `Aspire.Hosting.RabbitMQ` API (13.6.1).** `AddRabbitMQ(name, IResourceBuilder<ParameterResource>? userName = null, IResourceBuilder<ParameterResource>? password = null, int? port = null)`, `WithManagementPlugin(int? port = null)`, and on the resource `PrimaryEndpoint`, `ManagementEndpoint`, `UserNameParameter`, `PasswordParameter`, `ConnectionStringExpression`.
+
 ## Open Questions
 
-- Which exact Community Toolkit Dapr version is current when the change is applied. It changes method names at most, not the specs or the task breakdown; task 1.1 records the version in the commit.
+- ~~Which exact Community Toolkit Dapr version is current when the change is applied.~~ Resolved above.
