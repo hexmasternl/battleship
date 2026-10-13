@@ -337,8 +337,8 @@ single instance. A second instance would only reach the browsers connected to it
 
 ### Integration events
 
-Backend services publish typed events through `IIntegrationEventSender`, which
-`AddServiceDefaults()` registers, and always state who receives each one:
+Backend services publish typed events through `IIntegrationEventSender`, which a publishing API
+registers with `builder.AddIntegrationEvents()`, and always state who receives each one:
 
 ```csharp
 await sender.SendAsync(

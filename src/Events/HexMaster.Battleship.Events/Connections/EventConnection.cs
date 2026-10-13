@@ -1,6 +1,7 @@
 using System.Net.ServerSentEvents;
 using System.Text.Json;
 using System.Threading.Channels;
+using HexMaster.Battleship.Events.Observability;
 using Microsoft.Extensions.Logging;
 
 namespace HexMaster.Battleship.Events.Connections;
@@ -11,9 +12,12 @@ namespace HexMaster.Battleship.Events.Connections;
 public sealed class EventConnection
 {
     private readonly Channel<SseItem<JsonElement>> _channel;
+    private int _closed;
 
-    public EventConnection(string playerId, int capacity, ILogger logger)
+    public EventConnection(string playerId, int capacity, ILogger logger, EventsMetrics metrics)
     {
+        ArgumentNullException.ThrowIfNull(metrics);
+
         Id = Guid.NewGuid();
         PlayerId = playerId;
 
@@ -23,9 +27,11 @@ public sealed class EventConnection
                 FullMode = BoundedChannelFullMode.DropOldest,
                 SingleReader = true
             },
-            dropped => logger.LogWarning(
-                "Event stream {ConnectionId} of player {PlayerId} is full; dropped event {EventId} of type {EventType}",
-                Id, PlayerId, dropped.EventId, dropped.EventType));
+            dropped =>
+            {
+                metrics.Dropped(DropReasons.ChannelFull);
+                EventsLog.ChannelFullDropped(logger, Id, PlayerId, dropped.EventId, dropped.EventType);
+            });
     }
 
     public Guid Id { get; }
@@ -38,4 +44,7 @@ public sealed class EventConnection
     public bool TryWrite(SseItem<JsonElement> item) => _channel.Writer.TryWrite(item);
 
     public void Complete() => _channel.Writer.TryComplete();
+
+    // True only the first time, so a connection leaves the active-connections gauge once.
+    internal bool TryMarkClosed() => Interlocked.Exchange(ref _closed, 1) == 0;
 }

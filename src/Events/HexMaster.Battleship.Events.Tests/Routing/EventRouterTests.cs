@@ -22,6 +22,7 @@ public class EventRouterTests
             _registry,
             _replayBuffer,
             Options.Create(new StreamOptions()),
+            EventsMetricsFactory.Create(),
             NullLogger<EventRouter>.Instance);
     }
 

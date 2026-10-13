@@ -1,7 +1,14 @@
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using Dapr.Client;
 using HexMaster.Battleship.Events.Abstractions;
 using HexMaster.Battleship.Events.Abstractions.DataTransferObjects;
+using HexMaster.Battleship.IntegrationEvents.Observability;
 using HexMaster.Battleship.IntegrationEvents.Tests.Factories;
+using HexMaster.Battleship.IntegrationEvents.Tests.Observability;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.Metrics.Testing;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 
@@ -12,6 +19,8 @@ public class DaprIntegrationEventSenderTests
     private readonly Mock<DaprClient> _daprClient = new();
     private readonly FakeTimeProvider _timeProvider = new(new DateTimeOffset(2026, 10, 13, 9, 30, 0, TimeSpan.Zero));
     private readonly List<IntegrationEventEnvelope> _published = [];
+    private readonly IMeterFactory _meterFactory =
+        new ServiceCollection().AddMetrics().BuildServiceProvider().GetRequiredService<IMeterFactory>();
 
     public DaprIntegrationEventSenderTests()
     {
@@ -22,7 +31,11 @@ public class DaprIntegrationEventSenderTests
             .Returns(Task.CompletedTask);
     }
 
-    private DaprIntegrationEventSender CreateSender() => new(_daprClient.Object, _timeProvider);
+    private DaprIntegrationEventSender CreateSender() => new(
+        _daprClient.Object,
+        _timeProvider,
+        new IntegrationEventsMetrics(_meterFactory),
+        NullLogger<DaprIntegrationEventSender>.Instance);
 
     [Fact]
     public async Task SendAsync_PublishesTheEnvelopeToIntegrationEventsOnPubSub()
@@ -130,4 +143,64 @@ public class DaprIntegrationEventSenderTests
         _daprClient.Verify(c => c.PublishEventAsync(
             "pubsub", "integration-events", It.IsAny<IntegrationEventEnvelope>(), cancellation.Token));
     }
+
+    [Fact]
+    public async Task SendAsync_PublishesInAProducerSpanWithTheMessagingAttributes()
+    {
+        using var activities = new ActivityCollector();
+
+        await CreateSender().SendAsync(IntegrationEventFactory.GameStarted(), EventAudience.Everyone);
+
+        var span = activities.Single("publish integration-events");
+        var envelope = Assert.Single(_published);
+        Assert.Equal(ActivityKind.Producer, span.Kind);
+        Assert.Equal(ActivityStatusCode.Ok, span.Status);
+        Assert.Equal("dapr", span.GetTagItem(IntegrationEventsTelemetry.MessagingSystemAttribute));
+        Assert.Equal("integration-events", span.GetTagItem(IntegrationEventsTelemetry.DestinationNameAttribute));
+        Assert.Equal("publish", span.GetTagItem(IntegrationEventsTelemetry.OperationTypeAttribute));
+        Assert.Equal(envelope.Id, span.GetTagItem(IntegrationEventsTelemetry.MessageIdAttribute));
+        Assert.Equal("game.started.v1", span.GetTagItem(IntegrationEventsTelemetry.EventTypeAttribute));
+    }
+
+    [Fact]
+    public async Task SendAsync_CountsThePublishedEventByType()
+    {
+        using var published = Collect(IntegrationEventsMetrics.PublishedName);
+        using var failed = Collect(IntegrationEventsMetrics.PublishFailedName);
+
+        await CreateSender().SendAsync(IntegrationEventFactory.GameStarted(), EventAudience.Everyone);
+
+        var measurement = Assert.Single(published.GetMeasurementSnapshot());
+        Assert.Equal(1, measurement.Value);
+        Assert.Equal("game.started.v1", measurement.Tags[IntegrationEventsTelemetry.EventTypeAttribute]);
+        Assert.Empty(failed.GetMeasurementSnapshot());
+    }
+
+    [Fact]
+    public async Task SendAsync_SidecarFailure_EndsTheSpanInErrorCountsItAndRethrows()
+    {
+        using var activities = new ActivityCollector();
+        using var published = Collect(IntegrationEventsMetrics.PublishedName);
+        using var failed = Collect(IntegrationEventsMetrics.PublishFailedName);
+        var failure = new InvalidOperationException("The sidecar is down.");
+        _daprClient
+            .Setup(c => c.PublishEventAsync(
+                "pubsub", "integration-events", It.IsAny<IntegrationEventEnvelope>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(failure);
+
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => CreateSender().SendAsync(IntegrationEventFactory.GameStarted(), EventAudience.Everyone));
+
+        Assert.Same(failure, thrown);
+        var span = activities.Single("publish integration-events");
+        Assert.Equal(ActivityStatusCode.Error, span.Status);
+        Assert.Equal(failure.Message, span.StatusDescription);
+        Assert.Contains(span.Events, e => e.Name == "exception");
+        var measurement = Assert.Single(failed.GetMeasurementSnapshot());
+        Assert.Equal("game.started.v1", measurement.Tags[IntegrationEventsTelemetry.EventTypeAttribute]);
+        Assert.Empty(published.GetMeasurementSnapshot());
+    }
+
+    private MetricCollector<long> Collect(string instrumentName) =>
+        new(_meterFactory, IntegrationEventsTelemetry.Name, instrumentName);
 }

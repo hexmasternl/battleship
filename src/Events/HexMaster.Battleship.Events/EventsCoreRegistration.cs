@@ -1,4 +1,5 @@
 using HexMaster.Battleship.Events.Connections;
+using HexMaster.Battleship.Events.Observability;
 using HexMaster.Battleship.Events.Replay;
 using HexMaster.Battleship.Events.Routing;
 using HexMaster.Battleship.Events.Streaming;
@@ -16,6 +17,8 @@ public static class EventsCoreRegistration
         services.AddOptions<StreamOptions>().BindConfiguration(StreamOptions.ConfigurationSection);
 
         services.TryAddSingleton(TimeProvider.System);
+        services.AddMetrics();
+        services.TryAddSingleton<EventsMetrics>();
         services.AddSingleton<IConnectionRegistry, ConnectionRegistry>();
         services.AddSingleton<IReplayBuffer, ReplayBuffer>();
         services.AddSingleton<IEventRouter, EventRouter>();

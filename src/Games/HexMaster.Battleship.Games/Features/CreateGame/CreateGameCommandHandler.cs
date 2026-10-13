@@ -3,6 +3,7 @@ using HexMaster.Battleship.Core.Cqrs;
 using HexMaster.Battleship.Games.Abstractions.DataTransferObjects;
 using HexMaster.Battleship.Games.Abstractions.Repositories;
 using HexMaster.Battleship.Games.DomainModels;
+using HexMaster.Battleship.Games.Observability;
 using HexMaster.Battleship.Games.Services;
 using HexMaster.Battleship.IntegrationEvents;
 using HexMaster.Battleship.IntegrationEvents.Games;
@@ -14,7 +15,7 @@ public sealed class CreateGameCommandHandler(
     IGameRepository games,
     IGameCodeGenerator codes,
     IIntegrationEventSender events,
-    GamesTelemetry telemetry,
+    GamesMetrics metrics,
     TimeProvider time,
     ILogger<CreateGameCommandHandler> logger) : ICommandHandler<CreateGameCommand, CreateGameResponse>
 {
@@ -24,27 +25,31 @@ public sealed class CreateGameCommandHandler(
     public async Task<CreateGameResponse> Handle(CreateGameCommand command, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
-        using var activity = GamesTelemetry.ActivitySource.StartActivity("games.create");
+
+        // The use-case span comes from the handler decorator; this handler only adds attributes.
+        var activity = Activity.Current;
+        activity?.SetTag(GamesTelemetry.PlayerIdAttribute, command.PlayerId.ToString());
 
         var now = time.GetUtcNow();
         for (var attempt = 1; attempt <= MaxCodeAttempts; attempt++)
         {
             var game = Game.Create(command.PlayerId, command.PlayerName, codes.Generate(), now);
+            activity?.SetTag(GamesTelemetry.CodeAttemptsAttribute, attempt);
             if (!await games.TryAddAsync(game, cancellationToken))
             {
-                logger.LogWarning("Game code {GameCode} is already in use (attempt {Attempt} of {MaxAttempts}).",
-                    game.GameCode, attempt, MaxCodeAttempts);
+                GamesLog.GameCodeInUse(logger, game.GameCode, attempt, MaxCodeAttempts);
                 continue;
             }
 
-            activity?.SetTag("game.code", game.GameCode);
-            telemetry.GameCreated();
+            activity?.SetTag(GamesTelemetry.GameIdAttribute, game.Id.ToString());
+            activity?.SetTag(GamesTelemetry.GameCodeAttribute, game.GameCode);
+            metrics.GameCreated();
+            GamesLog.GameCreated(logger, game.Id, game.GameCode, command.PlayerId);
             await AnnounceAsync(game, cancellationToken);
 
             return new CreateGameResponse(game.Id, game.GameCode);
         }
 
-        activity?.SetStatus(ActivityStatusCode.Error, "No free game code.");
         throw new InvalidOperationException($"No free game code was found in {MaxCodeAttempts} attempts.");
     }
 
@@ -61,8 +66,7 @@ public sealed class CreateGameCommandHandler(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            logger.LogError(exception, "Publishing {EventType} for game {GameCode} failed; the game was created.",
-                GameCreatedEvent.EventType, game.GameCode);
+            GamesLog.GameCreatedAnnouncementFailed(logger, exception, GameCreatedEvent.EventType, game.GameCode);
         }
     }
 }

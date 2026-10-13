@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 
 namespace HexMaster.Battleship.Players.Endpoints;
 
@@ -56,18 +55,16 @@ public static class TokenEndpoints
     private static async Task<Results<Ok<TokenPairResponse>, ValidationProblem, ProblemHttpResult>> RefreshTokens(
         RefreshTokensRequest request,
         ICommandHandler<RefreshTokensCommand, TokenPairResponse> handler,
-        ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
         try
         {
             return TypedResults.Ok(await handler.Handle(new RefreshTokensCommand(request.RefreshToken), cancellationToken));
         }
-        catch (TokenRefusedException exception)
+        catch (TokenRefusedException)
         {
-            // The reason is logged, never returned: a client learns only that the token is no good.
-            loggerFactory.CreateLogger(typeof(TokenEndpoints)).LogInformation("Refused a refresh token: {Reason}", exception.Reason);
-
+            // The handler logs and counts the reason; it is never returned, so a client learns only
+            // that the token is no good.
             return TypedResults.Problem(
                 statusCode: StatusCodes.Status401Unauthorized,
                 title: "The refresh token was refused.",

@@ -1,8 +1,12 @@
+using System.Diagnostics.Metrics;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Dapr.Client;
+using HexMaster.Battleship.IntegrationEvents.Observability;
 using HexMaster.Battleship.IntegrationEvents.Players;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HexMaster.Battleship.IntegrationEvents.Tests.Integration;
 
@@ -77,7 +81,11 @@ public class IntegrationEventsDeliveryTests
             .UseGrpcEndpoint(app.GetEndpoint(PlayersSidecar, "grpc").ToString())
             .Build();
 
-        var sender = new DaprIntegrationEventSender(daprClient, TimeProvider.System);
+        var sender = new DaprIntegrationEventSender(
+            daprClient,
+            TimeProvider.System,
+            new IntegrationEventsMetrics(new ServiceCollection().AddMetrics().BuildServiceProvider().GetRequiredService<IMeterFactory>()),
+            NullLogger<DaprIntegrationEventSender>.Instance);
         var created = new PlayerCreatedEvent(playerId, "Captain Nemo");
 
         await sender.SendAsync(created, EventAudience.Players(playerId), cancellationToken);

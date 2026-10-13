@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Dapr;
 using HexMaster.Battleship.Events.Abstractions.DataTransferObjects;
+using HexMaster.Battleship.Events.Observability;
 using HexMaster.Battleship.Events.Routing;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Http.Json;
@@ -32,10 +34,21 @@ public static class IntegrationEventEndpoints
     private static async Task<Results<Ok, Ok<TopicResponse>>> Receive(
         HttpRequest request,
         IEventRouter router,
+        EventsMetrics metrics,
+        [Microsoft.AspNetCore.Mvc.FromServices] PubSubOptions pubSub,
         IOptions<JsonOptions> jsonOptions,
         ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger(typeof(IntegrationEventEndpoints));
+
+        // The server span of this request continues the trace context the sidecar propagated
+        // from the publisher; the consumer span beneath it covers the processing of the message.
+        using var activity = EventsTelemetry.ActivitySource.StartActivity(
+            EventsTelemetry.ProcessActivityName(pubSub.Topic), ActivityKind.Consumer);
+        activity?.SetTag(EventsTelemetry.MessagingSystemAttribute, EventsTelemetry.MessagingSystem);
+        activity?.SetTag(EventsTelemetry.DestinationNameAttribute, pubSub.Topic);
+        activity?.SetTag(EventsTelemetry.OperationTypeAttribute, EventsTelemetry.ProcessOperation);
+        activity?.SetTag(EventsTelemetry.OperationNameAttribute, EventsTelemetry.ProcessOperation);
 
         IntegrationEventEnvelope? envelope;
         try
@@ -45,24 +58,32 @@ public static class IntegrationEventEndpoints
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
-            logger.LogWarning(exception, "Dropped an integration event that is not a valid envelope");
+            activity?.SetStatus(ActivityStatusCode.Error, "The message is not a valid envelope.");
+            activity?.AddException(exception);
+            metrics.Dropped(DropReasons.InvalidEnvelope);
+            EventsLog.UnreadableEnvelopeDropped(logger, exception);
             return TypedResults.Ok(Drop);
         }
 
         var errors = IntegrationEventEnvelopeValidator.Validate(envelope);
         if (errors.Count > 0)
         {
-            logger.LogWarning(
-                "Dropped invalid integration event {EventId} of type {EventType}: {Errors}",
-                envelope?.Id, envelope?.Type, string.Join(" ", errors.Values.SelectMany(e => e)));
+            var reasons = string.Join(" ", errors.Values.SelectMany(e => e));
+
+            // The type of an invalid envelope is untrusted, so it is logged but never used as a tag.
+            activity?.SetStatus(ActivityStatusCode.Error, $"Invalid envelope: {reasons}");
+            metrics.Dropped(DropReasons.InvalidEnvelope);
+            EventsLog.InvalidEnvelopeDropped(logger, envelope?.Id, envelope?.Type, reasons);
             return TypedResults.Ok(Drop);
         }
 
-        var result = router.Route(envelope!);
+        activity?.SetTag(EventsTelemetry.MessageIdAttribute, envelope!.Id);
+        activity?.SetTag(EventsTelemetry.EventTypeAttribute, envelope.Type);
 
-        logger.LogInformation(
-            "Routed integration event {EventId} of type {EventType} as {Sequence} to {ConnectionCount} connections",
-            envelope!.Id, envelope.Type, result.Sequence, result.DeliveredTo);
+        var result = router.Route(envelope);
+
+        activity?.SetStatus(ActivityStatusCode.Ok);
+        EventsLog.EventRouted(logger, envelope.Id, envelope.Type, result.Sequence, result.DeliveredTo);
 
         return TypedResults.Ok();
     }

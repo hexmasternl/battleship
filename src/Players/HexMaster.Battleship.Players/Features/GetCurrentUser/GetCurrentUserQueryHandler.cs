@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using HexMaster.Battleship.Core.Cqrs;
 using HexMaster.Battleship.Players.Abstractions.DataTransferObjects;
 using HexMaster.Battleship.Players.Abstractions.Repositories;
+using HexMaster.Battleship.Players.Observability;
 
 namespace HexMaster.Battleship.Players.Features.GetCurrentUser;
 
@@ -9,6 +11,8 @@ public sealed class GetCurrentUserQueryHandler(IUserRepository users) : IQueryHa
 {
     public async Task<CurrentUserResponse?> Handle(GetCurrentUserQuery query, CancellationToken cancellationToken)
     {
+        Activity.Current?.SetTag(PlayersTelemetry.PlayerIdAttribute, query.UserId.ToString());
+
         var user = await users.GetAsync(query.UserId, cancellationToken);
 
         return user is null || user.IsRevoked ? null : new CurrentUserResponse(user.Id, user.DisplayName);

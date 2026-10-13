@@ -15,6 +15,7 @@ builder.Services.AddSingleton<IConnectionIdentityResolver, QueryStringIdentityRe
 builder.Services.AddEventStreamCors(builder.Configuration);
 
 var pubSub = builder.Configuration.GetSection(PubSubOptions.ConfigurationSection).Get<PubSubOptions>() ?? new PubSubOptions();
+builder.Services.AddSingleton(pubSub);
 
 var app = builder.Build();
 

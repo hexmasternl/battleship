@@ -15,6 +15,10 @@ namespace Microsoft.Extensions.Hosting;
 // To learn more about using this project, see https://aka.ms/aspire/service-defaults
 public static class Extensions
 {
+    // Every module names its ActivitySource and Meter after its assembly (ADR 0008), so one
+    // wildcard registers them all without ServiceDefaults referencing a module.
+    public const string BattleshipTelemetryNames = "HexMaster.Battleship.*";
+
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
 
@@ -23,8 +27,6 @@ public static class Extensions
         builder.ConfigureOpenTelemetry();
 
         builder.AddDefaultHealthChecks();
-
-        builder.AddIntegrationEvents();
 
         builder.Services.AddServiceDiscovery();
 
@@ -52,26 +54,29 @@ public static class Extensions
         {
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
+            logging.ParseStateValues = true;
         });
 
         builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
-                metrics.AddAspNetCoreInstrumentation()
+                metrics.AddMeter(BattleshipTelemetryNames)
+                    .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation();
             })
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
+                    .AddSource(BattleshipTelemetryNames)
                     .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
                         tracing.Filter = context =>
                             !context.Request.Path.StartsWithSegments(HealthEndpointPath)
                             && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
                     )
-                    // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
-                    //.AddGrpcClientInstrumentation()
+                    // The Dapr client publishes over gRPC; this span carries the trace context to the sidecar.
+                    .AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
             });
 
