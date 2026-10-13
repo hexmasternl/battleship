@@ -154,6 +154,7 @@ server-sent events.
 | `hexmaster-battleship-users-api` | Project | Anonymous identity and tokens. Its traces show every token call. |
 | `hexmaster-battleship-games-api` | Project | Game lifecycle (in progress). |
 | `hexmaster-battleship-events-api` | Project | Server-sent events stream. |
+| `devbot` | Bot (local runs only) | A bot opponent that joins your game when nobody else does. Its properties show its preset, auto-join and games; its commands change them. See [Play against the dev bot](#play-against-the-dev-bot). |
 | `*-dapr-cli` | Dapr sidecar | Sidecar logs: the `pubsub` component loading and every subscription. |
 | `messaging` | Container | RabbitMQ. Its `management` URL opens the management UI. The user is `rabbitmq-username` (default `guest`) and the password is the generated `rabbitmq-password`; both appear in the resource details. |
 | `storage` / `tables` | Azurite | Users and refresh tokens. |
@@ -165,6 +166,50 @@ dashboard shows is described under [Observability](#observability).
 Each API resource also has an **API reference** link. It opens a [Scalar](https://scalar.com)
 page on that API's own endpoint, built from its OpenAPI document, where you can read and call
 every endpoint. The reference is served only in Development and never through the gateway.
+
+---
+
+## Play against the dev bot
+
+You don't need a second browser to play a whole game. In local runs, the AppHost also starts
+`devbot`, a bot opponent that plays through the gateway as its own user, **Dev Bot**.
+
+1. Create a game in the app and leave it alone.
+2. If nobody joins within **10 seconds**, the bot joins as player two, places a random fleet and
+   gets ready.
+3. Place your ships and get ready. The game starts, and the bot fires one shot about a second
+   after it gets the turn, until the game ends.
+
+The grace period lets two people testing in two browsers still take the seat themselves. The bot
+plays any number of games at once.
+
+**Commands.** Run them from the `devbot` resource on the dashboard, or with the Aspire CLI. Each
+one is available only while the bot is healthy.
+
+| Command | CLI | What it does |
+|---|---|---|
+| *Set intelligence* | `aspire resource devbot set-intelligence --intelligence Random` | Switches the preset. It applies from the bot's next shot in every game. |
+| *Enable auto-join* | `aspire resource devbot enable-auto-join` | Joins new games again after the grace period. It is offered only while auto-join is off. |
+| *Disable auto-join* | `aspire resource devbot disable-auto-join` | Stops joining new games. Games in progress continue. It is offered only while auto-join is on. |
+| *Join game* | `aspire resource devbot join-game --code K7Q2M9XA` | Joins that game now, whatever auto-join says. It fails with a message for an unknown, full or already started game. |
+
+**Presets**, weakest first. They are deterministic shot strategies, not an LLM. The API never says
+when a ship is sunk, so the bot only knows its own hits and misses.
+
+| Preset | How it chooses a shot |
+|---|---|
+| `Random` | Any cell it has not shot at. |
+| `HuntAndTarget` (default) | Random until it hits, then the cells next to its hits, extending a line of hits first. |
+| `HuntWithParity` | Like `HuntAndTarget`, but it hunts only on the checkerboard cells where column + row is even. |
+| `ProbabilityDensity` | The cell where the remaining ships fit in the most ways, given its hits and misses. |
+
+The `devbot` properties `devbot.intelligence`, `devbot.auto-join` and `devbot.games` show the
+current state within a few seconds of a change. The start values are set in `AppHost.cs` with
+`WithIntelligence`, `WithJoinGracePeriod` and `WithShotDelay`.
+
+**After an AppHost restart** the bot starts fresh: it keeps no preset and no games. To let it
+finish a game in progress, run *Join game* with that game's code. The bot reads the game and
+fires when it has the turn.
 
 ---
 
@@ -184,6 +229,7 @@ battleship/
 │   ├── Users/                            anonymous identity: module, Api, Data.TableStorage, Abstractions, Tests
 │   ├── Games/                            game lifecycle: module, Api, Abstractions, Tests
 │   ├── Events/                           SSE fan-out: module, Api, Abstractions, Tests
+│   ├── DevTools/                         the dev bot opponent for local runs (+ tests)
 │   └── Frontend/                         Angular 22 + Angular Material, zoneless, signals
 ├── docs/
 │   ├── design-system.md / .html          the visual contract (tokens, components, instruments)

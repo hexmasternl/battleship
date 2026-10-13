@@ -53,6 +53,14 @@ The `With…` extensions (`WithIntelligence`, `WithJoinGracePeriod`, `WithShotDe
 
 **Fallback:** a plain `BattleshipBotResource : Resource` that owns the commands and properties, with a normal `AddProject` worker as its child (`WithParentRelationship`). The spec does not depend on which one is used.
 
+**Spike outcome (2026-10-13): the derived type is used.**
+- Built as `builder.AddResource(new BattleshipBotResource(name))`, then `.WithAnnotation<IProjectMetadata>(new Projects.HexMaster_Battleship_DevBot())` and `.WithProjectDefaults(new ProjectResourceOptions())`.
+- `aspire describe` showed it as a `Project` resource, `Running` and `Healthy` through the `/health` check, with `rebuild`, `restart` and `stop` commands.
+- The `dev-bot` sidecar ran as its child.
+- A property republished every 2 seconds through `ResourceNotificationService` stayed in the snapshot for more than 30 seconds, next to the `project.*` and `executable.*` properties DCP writes. DCP does not overwrite it.
+- `WithProjectDefaults` is marked experimental in 13.6.1 (`ASPIREPROJECTS001`). The suppression is kept to the one call in `AddBattleshipBot`, so a future API change breaks one line.
+- The CLI does not output icons, so the icon is checked in the dashboard only.
+
 ### D3. Commands call internal admin endpoints on the worker
 The AppHost commands are registered with `WithCommand`:
 
@@ -128,7 +136,7 @@ At start, the worker calls `POST /api/users/tokens` with display name `Dev Bot` 
 
 A `DelegatingHandler` adds the bearer token. It refreshes the pair one minute before the access token expires, and once on any `401`. If a refresh fails, it creates a new user (and logs a warning); the games of the old identity are then lost.
 
-The gateway base address comes from service discovery (`WithReference(gateway)`), and requests go to `https+http://gateway/api/...`.
+The gateway base address comes from service discovery (`WithReference(gateway)`). The gateway routes `/users/...` and `/games/...` without a prefix; the frontend's `/api` is stripped by its own interceptor. Requests therefore go to `https+http://gateway/users/...` and `https+http://gateway/games/...`.
 
 ### D10. Location and project shape
 The code goes in `src/DevTools/HexMaster.Battleship.DevBot`, with `HexMaster.Battleship.DevBot.Tests`. It is dev tooling, not a module: it has no `Abstractions` or data project and owns no data.
