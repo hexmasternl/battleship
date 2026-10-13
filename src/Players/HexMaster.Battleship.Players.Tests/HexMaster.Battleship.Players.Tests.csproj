@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,10 +8,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Bogus" Version="35.6.5" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.10.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Moq" Version="4.21.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\HexMaster.Battleship.Core\HexMaster.Battleship.Core.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Players.Abstractions\HexMaster.Battleship.Players.Abstractions.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Players\HexMaster.Battleship.Players.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Players.Data\HexMaster.Battleship.Players.Data.csproj" />
+    <ProjectReference Include="..\..\Aspire\HexMaster.Battleship.Aspire\HexMaster.Battleship.Aspire.ServiceDefaults\HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Players.Api\HexMaster.Battleship.Players.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

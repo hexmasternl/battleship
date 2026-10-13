@@ -32,7 +32,7 @@ internal static class GatewayRoutes
 
     public static IReadOnlyList<ModuleRoute> Modules { get; } =
     [
-        new("players", PlayersApi, ["players"]),
+        new("players", PlayersApi, ["users"]),
         new("games", GamesApi, ["games"]),
     ];
 

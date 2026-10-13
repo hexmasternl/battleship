@@ -5,6 +5,7 @@
     <Project Path="Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests/HexMaster.Battleship.Aspire.Tests.csproj" />
   </Folder>
   <Folder Name="/Core/">
+    <Project Path="Core/HexMaster.Battleship.Core/HexMaster.Battleship.Core.csproj" />
     <Project Path="Core/HexMaster.Battleship.IntegrationEvents.Tests/HexMaster.Battleship.IntegrationEvents.Tests.csproj" />
     <Project Path="Core/HexMaster.Battleship.IntegrationEvents/HexMaster.Battleship.IntegrationEvents.csproj" />
   </Folder>
@@ -23,6 +24,7 @@
   <Folder Name="/Players/">
     <Project Path="Players/HexMaster.Battleship.Players.Abstractions/HexMaster.Battleship.Players.Abstractions.csproj" Id="b8806fa1-7a45-4f65-b6c0-b4f8ded181a4" />
     <Project Path="Players/HexMaster.Battleship.Players.Api/HexMaster.Battleship.Players.Api.csproj" />
+    <Project Path="Players/HexMaster.Battleship.Players.Data/HexMaster.Battleship.Players.Data.csproj" />
     <Project Path="Players/HexMaster.Battleship.Players.Tests/HexMaster.Battleship.Players.Tests.csproj" Id="17539180-ad5f-4817-81bd-b9c9ca795be3" />
     <Project Path="Players/HexMaster.Battleship.Players/HexMaster.Battleship.Players.csproj" Id="1dce1f8c-299d-4918-a9df-a55c2411152e" />
   </Folder>

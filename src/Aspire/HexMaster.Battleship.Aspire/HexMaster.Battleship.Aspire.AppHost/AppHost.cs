@@ -43,6 +43,21 @@ var pubsub = builder.AddDaprComponent(AspireConstants.PubSubName, "pubsub.rabbit
     .WithMetadata("deletedWhenUnused", "false")
     .WithMetadata("requeueInFailure", "true");
 
+// Identity storage for the Players service. Locally this is the Azurite emulator, so no Azure
+// subscription is needed; the persistent lifetime keeps users across AppHost restarts.
+var storage = builder.AddAzureStorage("storage")
+    .RunAsEmulator(emulator => emulator.WithLifetime(ContainerLifetime.Persistent));
+var tables = storage.AddTables("tables");
+
+// The key the Players service signs access tokens with and every API validates them with. Generated
+// on first run and persisted in the AppHost's user secrets (Parameters:players-signing-key), so
+// tokens stay valid across restarts; set that secret to choose a key yourself.
+var signingKey = builder.AddParameter(
+    "players-signing-key",
+    new GenerateParameterDefault { MinLength = 48, Special = false },
+    secret: true,
+    persist: true);
+
 // Each API runs with its own sidecar that loads the pubsub component. The component is
 // referenced from the sidecar (referencing it from the project is obsolete and ignored).
 // The APIs reach the broker only through Dapr, so they wait for it but do not reference it.
@@ -56,7 +71,10 @@ var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(G
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "players-api" })
         .WithReference(pubsub))
-    .WaitFor(messaging);
+    .WithReference(tables)
+    .WithEnvironment("Players__Tokens__SigningKey", signingKey)
+    .WaitFor(messaging)
+    .WaitFor(tables);
 
 // Pushes integration events to browsers over server-sent events. Routing state lives in the
 // process, so the service runs as a single instance.
