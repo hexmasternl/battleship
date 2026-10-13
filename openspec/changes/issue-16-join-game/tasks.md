@@ -2,11 +2,11 @@
 
 ## 1. Prerequisites
 
-- [ ] 1.1 Confirm `issue-13-create-new-game` is merged into `development` (`Game`, `GameCode`, `IGameRepository`, `GameTableRepository`, `GamesEndpoints`, `GamesApi.createGame`, `CreateGameDialog`, the `games/:gameCode` placeholder route); stop and report if it is missing; verify `dotnet build src/Battleship.slnx` and the frontend tests pass on the branch before any change
+- [x] 1.1 Confirm `issue-13-create-new-game` is merged into `development` (`Game`, `GameCode`, `IGameRepository`, `GameTableRepository`, `GamesEndpoints`, `GamesApi.createGame`, `CreateGameDialog`, the `games/:gameCode` placeholder route); stop and report if it is missing; verify `dotnet build src/Battleship.slnx` and the frontend tests pass on the branch before any change
 
 ## 2. Join in the domain
 
-- [ ] 2.1 Add `Game.Join(playerId, playerName, now)` returning `JoinOutcome` (`Joined`, `AlreadyPlayer`), `Game.IsPlayer(playerId)`, and `GameJoinRefusedException : DomainException` with a `Reason` (`NotJoinable`, `GameFull`), checked in the order of design D2; verify unit tests for success, `AlreadyPlayer` for player one and player two (also when `Started`), `NotJoinable` for `Started`, `Completed` and `Abandoned`, `GameFull`, and activity touched only on a successful join pass
+- [x] 2.1 Add `Game.Join(playerId, playerName, now)` returning `JoinOutcome` (`Joined`, `AlreadyPlayer`), `Game.IsPlayer(playerId)`, and `GameJoinRefusedException : DomainException` with a `Reason` (`NotJoinable`, `GameFull`), checked in the order of design D2; verify unit tests for success, `AlreadyPlayer` for player one and player two (also when `Started`), `NotJoinable` for `Started`, `Completed` and `Abandoned`, `GameFull`, and activity touched only on a successful join pass
 
 ## 3. Optimistic concurrency
 

@@ -1,5 +1,6 @@
 using HexMaster.Battleship.Core.DomainModels;
 using HexMaster.Battleship.Games.Abstractions.DomainModels;
+using HexMaster.Battleship.Games.Exceptions;
 
 namespace HexMaster.Battleship.Games.DomainModels;
 
@@ -9,7 +10,7 @@ namespace HexMaster.Battleship.Games.DomainModels;
 public sealed class Game : DomainModel<Guid>, IGame
 {
     private readonly Player _playerOne;
-    private readonly Player? _playerTwo;
+    private Player? _playerTwo;
 
     private Game(
         Guid id,
@@ -61,6 +62,35 @@ public sealed class Game : DomainModel<Guid>, IGame
         Player? playerTwo,
         DateTimeOffset lastActivityOn) =>
         new(id, gameCode, gameState, playerOne, playerTwo, lastActivityOn, DomainModelState.Pristine);
+
+    // Seats the caller as player two of a new game. A player of the game always gets back in, in any
+    // state, without a change; anyone else is refused once the game started or the seat is taken.
+    public JoinOutcome Join(Guid playerId, string playerName, DateTimeOffset now)
+    {
+        if (IsPlayer(playerId))
+        {
+            return JoinOutcome.AlreadyPlayer;
+        }
+
+        if (GameState != GameState.New)
+        {
+            throw new GameJoinRefusedException(GameCode, GameJoinRefusedReason.NotJoinable);
+        }
+
+        if (_playerTwo is not null)
+        {
+            throw new GameJoinRefusedException(GameCode, GameJoinRefusedReason.GameFull);
+        }
+
+        var player = Player.Create(playerId, playerName, now);
+        Change(_playerTwo, player, v => _playerTwo = v);
+        Touch(now, player);
+
+        return JoinOutcome.Joined;
+    }
+
+    public bool IsPlayer(Guid playerId) =>
+        _playerOne.PlayerId == playerId || _playerTwo?.PlayerId == playerId;
 
     public void GiveFirstTurnTo(Guid playerId, DateTimeOffset now)
     {
