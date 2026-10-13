@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HexMaster.Battleship.Games.Tests" />
-    <InternalsVisibleTo Include="HexMaster.Battleship.Games.Data" />
   </ItemGroup>
 
 </Project>
