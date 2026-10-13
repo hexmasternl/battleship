@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Daily cleanup of games inactive for more than 90 days
+affected_areas:
+  - games
+  - aspire
