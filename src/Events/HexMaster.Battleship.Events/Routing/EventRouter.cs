@@ -1,12 +1,16 @@
 using HexMaster.Battleship.Events.Abstractions;
 using HexMaster.Battleship.Events.Abstractions.DataTransferObjects;
 using HexMaster.Battleship.Events.Connections;
+using HexMaster.Battleship.Events.Replay;
 using HexMaster.Battleship.Events.Streaming;
 using Microsoft.Extensions.Logging;
 
 namespace HexMaster.Battleship.Events.Routing;
 
-public sealed class EventRouter(IConnectionRegistry registry, ILogger<EventRouter> logger) : IEventRouter
+public sealed class EventRouter(
+    IConnectionRegistry registry,
+    IReplayBuffer replayBuffer,
+    ILogger<EventRouter> logger) : IEventRouter
 {
     private long _sequence;
 
@@ -20,6 +24,8 @@ public sealed class EventRouter(IConnectionRegistry registry, ILogger<EventRoute
             var sequence = Interlocked.Increment(ref _sequence);
             var item = SseItems.FromEnvelope(sequence, envelope);
             var delivered = 0;
+
+            replayBuffer.Append(sequence, envelope, item);
 
             foreach (var connection in TargetsOf(envelope))
             {

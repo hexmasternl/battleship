@@ -1,6 +1,7 @@
 using System.Net.ServerSentEvents;
 using System.Text.Json;
 using HexMaster.Battleship.Events.Connections;
+using HexMaster.Battleship.Events.Replay;
 using HexMaster.Battleship.Events.Routing;
 using HexMaster.Battleship.Events.Tests.Factories;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,11 +11,20 @@ namespace HexMaster.Battleship.Events.Tests.Routing;
 public class EventRouterTests
 {
     private readonly ConnectionRegistry _registry = new();
+    private readonly ReplayBuffer _replayBuffer = ReplayBufferFactory.Create();
     private readonly EventRouter _router;
 
     public EventRouterTests()
     {
-        _router = new EventRouter(_registry, NullLogger<EventRouter>.Instance);
+        _router = new EventRouter(_registry, _replayBuffer, NullLogger<EventRouter>.Instance);
+    }
+
+    [Fact]
+    public void Route_AppendsEveryEventToTheReplayBuffer()
+    {
+        var routed = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+
+        Assert.Equal([routed.Sequence.ToString()], _replayBuffer.Since(0, "player-a").Select(i => i.EventId));
     }
 
     [Fact]
