@@ -1,4 +1,6 @@
 using HexMaster.Battleship.DevBot.Client;
+using HexMaster.Battleship.DevBot.Endpoints;
+using HexMaster.Battleship.DevBot.Events;
 using HexMaster.Battleship.DevBot.Identity;
 using HexMaster.Battleship.DevBot.Sessions;
 
@@ -22,10 +24,20 @@ var options = builder.Configuration.GetSection(DevBotOptions.ConfigurationSectio
 builder.Services.AddSingleton(options);
 builder.Services.AddSingleton<BotSettings>();
 builder.Services.AddSingleton<GameSessions>();
+builder.Services.AddSingleton<IntegrationEventHandler>();
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+// Unwraps the CloudEvents envelopes the sidecar delivers. No HTTPS redirection: the sidecar calls
+// over plain HTTP on the loopback interface.
+app.UseCloudEvents();
+
+// Lets the sidecar discover the topic subscription (GET /dapr/subscribe).
+app.MapSubscribeHandler();
+
+app.MapIntegrationEventEndpoints();
 
 app.Run();
 

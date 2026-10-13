@@ -22,7 +22,7 @@
 ## 4. Sessions, discovery and admin API
 
 - [x] 4.1 Add `GameSession` with per-game locking and `ReconcileAsync` (place the missing ships, ready, fire when it has the turn after the shot delay, end on `Completed` or `404`), and the session registry. Verify with tests over mocked client views for each branch, including that a `409` on a shot leads to a reconcile and not a retry.
-- [ ] 4.2 Add the Dapr topic subscription endpoint, filtering by event type, target ids and freshness. A `game.created.v1` from another player schedules a join after the grace period when auto-join is on. Verify with tests for a stale envelope, the bot's own game, a human joining first (`409` full, dropped silently) and auto-join off.
+- [x] 4.2 Add the Dapr topic subscription endpoint, filtering by event type, target ids and freshness. A `game.created.v1` from another player schedules a join after the grace period when auto-join is on. Verify with tests for a stale envelope, the bot's own game, a human joining first (`409` full, dropped silently) and auto-join off.
 - [ ] 4.3 Add the 15-second background reconcile timer. Verify with a fake-clock test that a session whose turn event was lost still fires.
 - [ ] 4.4 Add `Endpoints/AdminEndpoints.cs` with `PUT /admin/intelligence`, `PUT /admin/auto-join`, `POST /admin/games/{code}` and `GET /admin/state`. An unknown preset answers `400` listing the four, and an unknown, full or started game answers with the matching problem detail. Exclude `/admin/state` from tracing. Verify with `WebApplicationFactory` endpoint tests.
 
