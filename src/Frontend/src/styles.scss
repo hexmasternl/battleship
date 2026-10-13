@@ -64,6 +64,19 @@ html {
       outline-variant: var(--bs-color-border),
     )
   );
+
+  // Dialogs sit on the page background fill, where danger text reaches 4.5:1 (design system 1.8),
+  // with the panel radius, the overlay shadow (5.1) and the page gutter on both sides on phones.
+  @include mat.dialog-overrides(
+    (
+      container-color: var(--bs-color-bg),
+      container-shape: var(--bs-radius-lg),
+      container-elevation-shadow: var(--bs-shadow-3),
+      container-small-max-width: calc(100vw - 2 * var(--bs-gutter)),
+      subhead-color: var(--bs-color-text-strong),
+      supporting-text-color: var(--bs-color-text),
+    )
+  );
 }
 
 body {
