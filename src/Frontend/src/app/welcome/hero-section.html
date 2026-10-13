@@ -40,9 +40,14 @@
         >
           Create a new game
         </button>
-        <a class="bs-btn bs-btn--secondary" routerLink="/games/join" battleRequirePlayer>
+        <button
+          #joinButton
+          class="bs-btn bs-btn--secondary"
+          type="button"
+          (click)="joinGame(joinButton)"
+        >
           Join an existing game
-        </a>
+        </button>
       </div>
     </div>
     <battle-bridge-console />

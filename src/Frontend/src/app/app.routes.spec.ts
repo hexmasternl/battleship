@@ -18,19 +18,13 @@ describe('routes', () => {
     expect(typeof root.loadComponent).toBe('function');
   });
 
-  it('lazy loads the coming-soon placeholder for joining a game', () => {
-    const join = route('games/join');
-    expect(typeof join.loadComponent).toBe('function');
-    expect(join.data).toEqual({ feature: 'join' });
-  });
-
   it('lazy loads the game placeholder for a game code', () => {
     const game = route('games/:gameCode');
     expect(typeof game.loadComponent).toBe('function');
   });
 
-  it('no longer declares games/new', () => {
-    expect(routes.some((candidate) => candidate.path === 'games/new')).toBe(false);
+  it.each(['games/new', 'games/join'])('no longer declares %s', (path) => {
+    expect(routes.some((candidate) => candidate.path === path)).toBe(false);
   });
 
   it('redirects unknown paths to the landing page', () => {
@@ -39,13 +33,8 @@ describe('routes', () => {
     expect(wildcard?.redirectTo).toBe('');
   });
 
-  it('declares exactly three feature routes plus the wildcard', () => {
-    expect(routes.map((candidate) => candidate.path)).toEqual([
-      '',
-      'games/join',
-      'games/:gameCode',
-      '**',
-    ]);
+  it('declares exactly two feature routes plus the wildcard', () => {
+    expect(routes.map((candidate) => candidate.path)).toEqual(['', 'games/:gameCode', '**']);
   });
 });
 
@@ -76,7 +65,7 @@ describe('routes (navigation)', () => {
     expect(TestBed.inject(Title).getTitle()).toBe('Game K7Q2M9XA | Battleship');
   });
 
-  it.each(['/games/new', '/games/k7q2m9xa', '/games/K7Q2M9X'])(
+  it.each(['/games/new', '/games/join', '/games/k7q2m9xa', '/games/K7Q2M9X'])(
     'sends %s, which is not a game code, back to the landing page',
     async (url) => {
       const harness = await RouterTestingHarness.create(url);
@@ -84,12 +73,6 @@ describe('routes (navigation)', () => {
       expect(element.querySelector('h1')?.textContent?.trim()).toBe('Welcome aboard, Captain');
     },
   );
-
-  it('renders the join placeholder at /games/join', async () => {
-    const harness = await RouterTestingHarness.create('/games/join');
-    const element = harness.routeNativeElement as HTMLElement;
-    expect(element.querySelector('h1')?.textContent?.trim()).toBe('Join an existing game');
-  });
 
   it('sends unknown paths back to the landing page', async () => {
     const harness = await RouterTestingHarness.create('/no/such/page');

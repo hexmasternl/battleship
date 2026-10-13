@@ -10,16 +10,9 @@ export const routes: Routes = [
     title: 'Battleship',
     loadComponent: () => import('./welcome/welcome-page').then((m) => m.WelcomePage),
   },
-  // Before `games/:gameCode`, so "join" is never read as a game code.
-  {
-    path: 'games/join',
-    title: 'Join an existing game | Battleship',
-    data: { feature: 'join' },
-    loadComponent: () => import('./games/coming-soon').then((m) => m.ComingSoon),
-  },
   {
     path: 'games/:gameCode',
-    // Only a well-formed code matches, so retired links such as /games/new fall to the wildcard.
+    // Only a well-formed code matches, so retired links such as /games/new and /games/join fall to the wildcard.
     canMatch: [(_route, segments) => isGameCode(segments[1]?.path ?? '')],
     title: (route) => `Game ${route.paramMap.get('gameCode')} | Battleship`,
     loadComponent: () => import('./games/game-placeholder').then((m) => m.GamePlaceholder),
