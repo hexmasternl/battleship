@@ -1,0 +1,7 @@
+schema: spec-driven
+created: 2026-10-13
+goal: "Events module: server-sent events for real-time client updates"
+affected_areas:
+  - events
+  - aspire
+  - frontend

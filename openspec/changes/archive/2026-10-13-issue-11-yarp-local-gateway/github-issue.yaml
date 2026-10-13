@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 11
+url: https://github.com/hexmasternl/battleship/issues/11
+title: Introduce YARP as the single backend endpoint for local development
+linked: 2026-10-13

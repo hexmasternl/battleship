@@ -26,10 +26,13 @@ Pick the mode from the user's request. Arguments are an issue reference (`12`, `
 | Mode | Trigger | What happens |
 |---|---|---|
 | **triage** `<issue>` | "triage #12", "pick up issue 12", "work out issue 12" | Read the issue, flesh it out, set labels and type, propose a linked OpenSpec change, link both ways. |
+| **triage all** | "triage" with no issue reference, "triage all", "triage the backlog" | Triage every open issue that has no labels, one after the other, each with its own linked change. Never ask which issue to pick. |
 | **triage-only** `<issue>` | "just triage", "label issue 12", "triage without a proposal" | Same as triage but stop before proposing a change. |
 | **issue** `<change>` | "create an issue for change X", "open a GitHub issue for X" | Create a GitHub issue from an existing change's proposal, then link both ways. |
 | **link** `<change>` `<issue>` | "link change X to issue 12" | Both already exist. Write the link on both sides without rewriting the issue body. |
 | **sync** `<change>` or `<issue>` | "sync issue 12", "update the issue for X", after apply or archive | Refresh the managed section on the issue from the change's current state. Comment on progress. Close when archived. |
+
+When triage is requested without an issue reference, never ask which issue to work on. List the open issues with `gh issue list --state open --json number,title,labels --limit 200`, keep those with no labels at all, and run the full Triage flow for each of them in ascending issue-number order. Skip an issue that already has a linked change (see **Finding links**). An issue that needs more information gets `needs-info` and its questions as usual, and triage continues with the next one. Report all of them together at the end. If no unlabelled open issue exists, say so and stop.
 
 If the request names an issue that already has a linked change (see **Finding links**), triage degrades to sync and says so. If a change already has a linked issue, `issue` mode degrades to sync.
 

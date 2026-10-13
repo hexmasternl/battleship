@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 7
+url: https://github.com/hexmasternl/battleship/issues/7
+title: "User identification: anonymous tokens backed by Azure Table Storage and a frontend player session"
+linked: 2026-10-13

@@ -1,0 +1,26 @@
+<p class="console__header">
+  <span class="console__title">Bridge console</span>
+  <span class="console__status">Live</span>
+</p>
+
+<!-- The typed-out view is decoration: its character-by-character changes are hidden from
+     assistive technology, which hears each complete line once from the live region below. -->
+<div class="console__screen" aria-hidden="true">
+  <ol class="console__lines">
+    @for (row of rows(); track row.id) {
+      <li class="console__line" [class.console__line--typing]="row.typing">
+        <span class="console__timestamp">{{ row.timestamp }}</span
+        ><span class="console__text">{{ row.text }}</span>
+        @if ($last) {
+          <span class="console__caret"></span>
+        }
+      </li>
+    }
+  </ol>
+</div>
+
+<ol class="console__announcer" aria-live="polite" aria-atomic="false" aria-label="Console messages">
+  @for (row of rows(); track row.id) {
+    <li>{{ row.timestamp }}{{ row.fullText }}</li>
+  }
+</ol>

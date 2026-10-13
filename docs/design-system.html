@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Battleship design system</title>
+<meta name="description" content="Showcase of the Battleship design system: tokens, components, game elements and instruments.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&amp;family=Courier+Prime:wght@400;700&amp;family=Bitcount+Single:wght@200&amp;display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   1. Design tokens. This block is the authoritative token set and is
+   reproduced verbatim in docs/design-system.md, section 10.
+   ===================================================================== */
+:root {
+  /* ---- Base colours (verbatim from the brief, never edited) ---- */
+  --bs-color-bg-base: #011627;
+  --bs-color-primary-base: #00c0ff;
+  --bs-color-secondary-base: #2f87ff;
+  --bs-color-text-base: #b2c2d4;
+  --bs-color-text-dim-base: #7a8694;
+  --bs-color-danger-base: #ff2146;
+
+  /* ---- Primary scale (base at 500) ---- */
+  --bs-color-primary-50: #eef9ff;
+  --bs-color-primary-100: #d9f2ff;
+  --bs-color-primary-200: #b9e7ff;
+  --bs-color-primary-300: #92daff;
+  --bs-color-primary-400: #63cdff;
+  --bs-color-primary-500: var(--bs-color-primary-base);
+  --bs-color-primary-600: #0097c9;
+  --bs-color-primary-700: #00739a;
+  --bs-color-primary-800: #00516e;
+  --bs-color-primary-900: #003449;
+
+  /* ---- Secondary scale (base at 500) ---- */
+  --bs-color-secondary-50: #ecf4ff;
+  --bs-color-secondary-100: #d5e6ff;
+  --bs-color-secondary-200: #b2d1ff;
+  --bs-color-secondary-300: #8abaff;
+  --bs-color-secondary-400: #60a1ff;
+  --bs-color-secondary-500: var(--bs-color-secondary-base);
+  --bs-color-secondary-600: #266bcb;
+  --bs-color-secondary-700: #1e539d;
+  --bs-color-secondary-800: #163c72;
+  --bs-color-secondary-900: #0e294e;
+
+  /* ---- Danger scale (base at 500) ---- */
+  --bs-color-danger-50: #ffefee;
+  --bs-color-danger-100: #ffdbd9;
+  --bs-color-danger-200: #ffbcba;
+  --bs-color-danger-300: #ff9796;
+  --bs-color-danger-400: #ff6b70;
+  --bs-color-danger-500: var(--bs-color-danger-base);
+  --bs-color-danger-600: #ca2038;
+  --bs-color-danger-700: #9c1d2c;
+  --bs-color-danger-800: #701820;
+  --bs-color-danger-900: #4b1316;
+
+  /* ---- Text scale (base at 300) ---- */
+  --bs-color-text-50: #e9eef3;
+  --bs-color-text-100: #d6dfe9;
+  --bs-color-text-200: #c4d0de;
+  --bs-color-text-300: var(--bs-color-text-base);
+  --bs-color-text-400: #94a5b8;
+  --bs-color-text-500: #78899c;
+  --bs-color-text-600: #5c6e81;
+  --bs-color-text-700: #425468;
+  --bs-color-text-800: #293b4f;
+  --bs-color-text-900: #15273a;
+
+  /* ---- Surface scale (background at 0, each step lighter) ---- */
+  --bs-color-surface-0: var(--bs-color-bg-base);
+  --bs-color-surface-1: #041e32;
+  --bs-color-surface-2: #09273c;
+  --bs-color-surface-3: #103048;
+  --bs-color-surface-4: #163953;
+
+  /* ---- Derived status hues (rotated from primary and danger) ---- */
+  --bs-color-success-500: #5ecb7b;
+  --bs-color-success-800: #215630;
+  --bs-color-warning-500: #f1ad00;
+  --bs-color-warning-800: #664700;
+
+  /* ---- Semantic roles: always a var(), never a literal ---- */
+  --bs-color-bg: var(--bs-color-surface-0);
+  --bs-color-surface: var(--bs-color-surface-1);
+  --bs-color-surface-raised: var(--bs-color-surface-2);
+  --bs-color-surface-overlay: var(--bs-color-surface-3);
+  --bs-color-border: var(--bs-color-surface-4);
+  --bs-color-border-strong: var(--bs-color-text-700);
+  --bs-color-text: var(--bs-color-text-300);
+  --bs-color-text-strong: var(--bs-color-text-50);
+  --bs-color-text-dim: var(--bs-color-text-dim-base);
+  --bs-color-text-dim-raised: var(--bs-color-text-400);
+  --bs-color-text-on-accent: var(--bs-color-bg-base);
+  --bs-color-text-on-danger: var(--bs-color-text-50);
+  --bs-color-accent: var(--bs-color-primary-500);
+  --bs-color-accent-hover: var(--bs-color-primary-400);
+  --bs-color-accent-active: var(--bs-color-primary-300);
+  --bs-color-accent-subtle: var(--bs-color-primary-900);
+  --bs-color-secondary: var(--bs-color-secondary-500);
+  --bs-color-secondary-hover: var(--bs-color-secondary-400);
+  --bs-color-secondary-active: var(--bs-color-secondary-300);
+  --bs-color-secondary-subtle: var(--bs-color-secondary-900);
+  --bs-color-focus-ring: var(--bs-color-primary-300);
+  --bs-color-danger: var(--bs-color-danger-500);
+  --bs-color-danger-hover: var(--bs-color-danger-400);
+  --bs-color-danger-active: var(--bs-color-danger-700);
+  --bs-color-danger-surface: var(--bs-color-danger-900);
+  --bs-color-success: var(--bs-color-success-500);
+  --bs-color-success-surface: var(--bs-color-success-800);
+  --bs-color-warning: var(--bs-color-warning-500);
+  --bs-color-warning-surface: var(--bs-color-warning-800);
+
+  /* ---- Game roles ---- */
+  --bs-color-ocean: var(--bs-color-surface-1);
+  --bs-color-grid-line: var(--bs-color-primary-900);
+  --bs-color-coordinate: var(--bs-color-text-dim-base);
+  --bs-color-ship: var(--bs-color-secondary-700);
+  --bs-color-ship-edge: var(--bs-color-secondary-500);
+  --bs-color-placement-valid: var(--bs-color-primary-500);
+  --bs-color-placement-invalid: var(--bs-color-danger-500);
+  --bs-color-miss: var(--bs-color-text-dim-base);
+  --bs-color-hit: var(--bs-color-danger-500);
+  --bs-color-sunk: var(--bs-color-danger-700);
+
+  /* ---- Typography ---- */
+  --bs-font-heading: "Quantico", "Segoe UI", system-ui, sans-serif;
+  --bs-font-body: "Courier Prime", "Courier New", Courier, monospace;
+  --bs-font-panel: "Bitcount Single", "Courier New", Courier, monospace;
+  --bs-font-weight-regular: 400;
+  --bs-font-weight-bold: 700;
+  --bs-font-weight-panel: 200;
+  --bs-text-xs: 0.64rem;
+  --bs-text-sm: 0.8rem;
+  --bs-text-md: 1rem;
+  --bs-text-lg: 1.25rem;
+  --bs-text-xl: 1.5625rem;
+  --bs-text-2xl: clamp(1.6rem, 1.2rem + 2vw, 1.953rem);
+  --bs-text-3xl: clamp(1.9rem, 1.3rem + 3vw, 2.441rem);
+  --bs-leading-tight: 1.15;
+  --bs-leading-panel: 1.3;
+  --bs-leading-body: 1.6;
+  --bs-tracking-heading: 0.04em;
+  --bs-tracking-caps: 0.12em;
+
+  /* ---- Spacing (4px base) ---- */
+  --bs-space-1: 4px;
+  --bs-space-2: 8px;
+  --bs-space-3: 12px;
+  --bs-space-4: 16px;
+  --bs-space-5: 20px;
+  --bs-space-6: 24px;
+  --bs-space-7: 28px;
+  --bs-space-8: 32px;
+  --bs-space-9: 40px;
+  --bs-space-10: 48px;
+  --bs-space-11: 56px;
+  --bs-space-12: 64px;
+
+  /* ---- Radius ---- */
+  --bs-radius-sm: 4px;
+  --bs-radius-md: 8px;
+  --bs-radius-lg: 16px;
+  --bs-radius-full: 999px;
+
+  /* ---- Elevation shadows ---- */
+  --bs-shadow-1: 0 1px 2px rgb(0 0 0 / 0.5);
+  --bs-shadow-2: 0 4px 12px rgb(0 0 0 / 0.45), 0 1px 3px rgb(0 0 0 / 0.4);
+  --bs-shadow-3: 0 12px 32px rgb(0 0 0 / 0.55), 0 2px 6px rgb(0 0 0 / 0.4);
+
+  /* ---- Glows (tight inner layer at 500, soft outer layer at 400) ---- */
+  --bs-glow-primary: 0 0 4px color-mix(in srgb, var(--bs-color-primary-500) 60%, transparent), 0 0 18px color-mix(in srgb, var(--bs-color-primary-400) 35%, transparent);
+  --bs-glow-secondary: 0 0 4px color-mix(in srgb, var(--bs-color-secondary-500) 60%, transparent), 0 0 18px color-mix(in srgb, var(--bs-color-secondary-400) 35%, transparent);
+  --bs-glow-danger: 0 0 4px color-mix(in srgb, var(--bs-color-danger-500) 60%, transparent), 0 0 18px color-mix(in srgb, var(--bs-color-danger-400) 35%, transparent);
+  --bs-glow-text-primary: 0 0 6px color-mix(in srgb, var(--bs-color-primary-400) 55%, transparent);
+  --bs-glow-text-danger: 0 0 6px color-mix(in srgb, var(--bs-color-danger-400) 55%, transparent);
+
+  /* ---- Motion ---- */
+  --bs-duration-fast: 120ms;
+  --bs-duration-base: 200ms;
+  --bs-duration-slow: 400ms;
+  --bs-duration-sweep: 4s;
+  --bs-duration-ping: 2.4s;
+  --bs-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --bs-ease-emphasised: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --bs-ease-linear: linear;
+
+  /* ---- Breakpoints (reference values: media queries repeat them literally) ---- */
+  --bs-bp-sm: 480px;
+  --bs-bp-md: 768px;
+  --bs-bp-lg: 1024px;
+  --bs-bp-xl: 1280px;
+
+  /* ---- Layout ---- */
+  --bs-gutter: var(--bs-space-4);
+  --bs-container: 1200px;
+  --bs-focus-width: 2px;
+  --bs-focus-offset: 2px;
+}
+
+/* =====================================================================
+   2. Base styles (mobile first)
+   ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  background: var(--bs-color-bg);
+  color: var(--bs-color-text);
+  font-family: var(--bs-font-body);
+  font-size: 16px;
+  line-height: var(--bs-leading-body);
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+body { margin: 0; min-height: 100vh; background: var(--bs-color-bg); }
+h1, h2, h3, h4 {
+  font-family: var(--bs-font-heading);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  line-height: var(--bs-leading-tight);
+  color: var(--bs-color-text-strong);
+  margin: 0 0 var(--bs-space-3);
+  overflow-wrap: anywhere;
+}
+h1 { font-size: var(--bs-text-3xl); }
+h2 { font-size: var(--bs-text-2xl); color: var(--bs-color-accent); text-shadow: var(--bs-glow-text-primary); }
+h3 { font-size: var(--bs-text-xl); margin-top: var(--bs-space-8); }
+h4 { font-size: var(--bs-text-lg); margin-top: var(--bs-space-6); }
+p { margin: 0 0 var(--bs-space-4); max-width: 72ch; }
+a { color: var(--bs-color-accent); }
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+  outline-offset: var(--bs-focus-offset);
+}
+code {
+  font-family: var(--bs-font-body);
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text-strong);
+  background: var(--bs-color-surface-raised);
+  padding: 0 var(--bs-space-1);
+  border-radius: var(--bs-radius-sm);
+  overflow-wrap: anywhere;
+}
+table { border-collapse: collapse; width: 100%; font-size: var(--bs-text-sm); }
+th, td { text-align: left; padding: var(--bs-space-2) var(--bs-space-3); border-bottom: 1px solid var(--bs-color-border); vertical-align: top; }
+th { font-family: var(--bs-font-heading); text-transform: uppercase; letter-spacing: var(--bs-tracking-caps); font-size: var(--bs-text-xs); color: var(--bs-color-text-dim); }
+.bs-table-wrap { overflow-x: auto; max-width: 100%; }
+.bs-tokens-shown { font-size: var(--bs-text-xs); color: var(--bs-color-text-dim); margin-bottom: var(--bs-space-5); overflow-wrap: anywhere; }
+.bs-tokens-shown code { color: var(--bs-color-text-dim); background: transparent; padding: 0; font-size: inherit; }
+.bs-caption { font-size: var(--bs-text-xs); color: var(--bs-color-text-dim); text-transform: uppercase; letter-spacing: var(--bs-tracking-caps); font-family: var(--bs-font-heading); }
+.bs-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Top bar */
+.bs-topbar {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bs-color-bg) 90%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--bs-color-border);
+  box-shadow: var(--bs-shadow-3);
+}
+.bs-topbar__inner { display: flex; align-items: center; gap: var(--bs-space-4); padding: var(--bs-space-2) var(--bs-gutter); max-width: var(--bs-container); margin: 0 auto; }
+.bs-topbar__brand { font-family: var(--bs-font-heading); font-weight: var(--bs-font-weight-bold); text-transform: uppercase; letter-spacing: var(--bs-tracking-caps); color: var(--bs-color-accent); text-shadow: var(--bs-glow-text-primary); white-space: nowrap; text-decoration: none; }
+.bs-topbar__nav { display: flex; gap: var(--bs-space-4); overflow-x: auto; white-space: nowrap; scrollbar-width: none; min-width: 0; }
+.bs-topbar__nav::-webkit-scrollbar { display: none; }
+.bs-topbar__nav a { font-family: var(--bs-font-heading); font-size: var(--bs-text-sm); text-transform: uppercase; letter-spacing: var(--bs-tracking-caps); color: var(--bs-color-text-dim); text-decoration: none; padding: var(--bs-space-2) 0; transition: color var(--bs-duration-fast) var(--bs-ease-standard); }
+.bs-topbar__nav a:hover { color: var(--bs-color-accent); }
+
+main { max-width: var(--bs-container); margin: 0 auto; padding: 0 var(--bs-gutter) var(--bs-space-12); }
+section { padding-top: var(--bs-space-9); scroll-margin-top: 64px; }
+footer { padding: var(--bs-space-8) var(--bs-gutter); text-align: center; font-size: var(--bs-text-sm); color: var(--bs-color-text-dim); border-top: 1px solid var(--bs-color-border); }
+
+/* Layout helpers */
+.bs-grid { display: grid; gap: var(--bs-space-4); grid-template-columns: 1fr; }
+.bs-row { display: flex; flex-wrap: wrap; gap: var(--bs-space-4); align-items: flex-start; }
+.bs-stack { display: flex; flex-direction: column; gap: var(--bs-space-3); }
+
+/* =====================================================================
+   3. Colour section
+   ===================================================================== */
+.bs-swatches { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--bs-space-3); }
+.bs-swatch { border-radius: var(--bs-radius-md); overflow: hidden; background: var(--bs-color-surface-raised); box-shadow: var(--bs-shadow-1); min-width: 0; }
+.bs-swatch__chip { height: 64px; border-bottom: 1px solid var(--bs-color-border); }
+.bs-swatch__meta { padding: var(--bs-space-2) var(--bs-space-3); font-size: var(--bs-text-xs); line-height: 1.4; overflow-wrap: anywhere; }
+.bs-swatch__meta strong { display: block; color: var(--bs-color-text-strong); font-weight: var(--bs-font-weight-regular); }
+.bs-swatch__meta span { color: var(--bs-color-text-dim-raised); }
+.bs-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--bs-space-1); margin-bottom: var(--bs-space-4); }
+.bs-scale__step { height: 56px; border-radius: var(--bs-radius-sm); display: flex; align-items: flex-end; justify-content: center; padding-bottom: var(--bs-space-1); font-size: var(--bs-text-xs); color: var(--bs-color-text-dim); position: relative; }
+.bs-scale__step.is-base { outline: 2px solid var(--bs-color-text-strong); outline-offset: 2px; }
+.bs-scale__step.is-light { color: var(--bs-color-bg-base); }
+.bs-scale__step.is-dark { color: var(--bs-color-text); }
+.bs-roles { display: grid; grid-template-columns: 1fr; gap: var(--bs-space-2); }
+.bs-role { display: grid; grid-template-columns: 40px 1fr; gap: var(--bs-space-3); align-items: center; padding: var(--bs-space-2); background: var(--bs-color-surface); border-radius: var(--bs-radius-sm); border: 1px solid var(--bs-color-border); font-size: var(--bs-text-xs); overflow-wrap: anywhere; }
+.bs-role__chip { width: 40px; height: 40px; border-radius: var(--bs-radius-sm); border: 1px solid var(--bs-color-border); }
+.bs-role__name { color: var(--bs-color-text-strong); }
+.bs-role__to { color: var(--bs-color-text-dim); }
+
+/* =====================================================================
+   4. Typography section
+   ===================================================================== */
+.bs-specimen { padding: var(--bs-space-5); background: var(--bs-color-surface); border: 1px solid var(--bs-color-border); border-radius: var(--bs-radius-lg); }
+.bs-specimen--heading { font-family: var(--bs-font-heading); }
+.bs-specimen--body { font-family: var(--bs-font-body); }
+.bs-specimen--panel { font-family: var(--bs-font-panel); font-weight: var(--bs-font-weight-panel); line-height: var(--bs-leading-panel); color: var(--bs-color-accent); text-shadow: var(--bs-glow-text-primary); font-size: var(--bs-text-lg); }
+.bs-specimen__sample { font-size: var(--bs-text-2xl); line-height: var(--bs-leading-tight); color: var(--bs-color-text-strong); margin: var(--bs-space-2) 0; overflow-wrap: anywhere; }
+.bs-specimen--heading .bs-specimen__sample { text-transform: uppercase; letter-spacing: var(--bs-tracking-heading); }
+.bs-specimen--panel .bs-specimen__sample { color: var(--bs-color-accent); font-weight: var(--bs-font-weight-panel); }
+.bs-type-scale > div { display: grid; grid-template-columns: 1fr; gap: var(--bs-space-1); padding: var(--bs-space-3) 0; border-bottom: 1px solid var(--bs-color-border); align-items: baseline; }
+.bs-type-scale .bs-caption { font-size: var(--bs-text-xs); }
+.bs-type-scale__sample { font-family: var(--bs-font-heading); text-transform: uppercase; letter-spacing: var(--bs-tracking-heading); line-height: var(--bs-leading-tight); color: var(--bs-color-text-strong); overflow-wrap: anywhere; }
+
+/* =====================================================================
+   5. Spacing, radius, effects, motion
+   ===================================================================== */
+.bs-space-bar { display: flex; align-items: center; gap: var(--bs-space-3); font-size: var(--bs-text-xs); color: var(--bs-color-text-dim); }
+.bs-space-bar i { display: block; height: 12px; background: var(--bs-color-accent); border-radius: 2px; box-shadow: var(--bs-glow-primary); }
+.bs-space-bar code { min-width: 9ch; }
+.bs-radius-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--bs-space-3); }
+.bs-radius-box { height: 72px; background: var(--bs-color-surface-raised); border: 1px solid var(--bs-color-border-strong); display: flex; align-items: center; justify-content: center; font-size: var(--bs-text-xs); color: var(--bs-color-text-dim-raised); }
+.bs-effect-row { display: grid; grid-template-columns: 1fr; gap: var(--bs-space-6); }
+.bs-effect-box { height: 88px; border-radius: var(--bs-radius-md); background: var(--bs-color-surface-raised); display: flex; align-items: center; justify-content: center; font-size: var(--bs-text-xs); color: var(--bs-color-text-dim-raised); border: 1px solid var(--bs-color-border); }
+.bs-effect-box--shadow-1 { box-shadow: var(--bs-shadow-1); }
+.bs-effect-box--shadow-2 { box-shadow: var(--bs-shadow-2); }
+.bs-effect-box--shadow-3 { box-shadow: var(--bs-shadow-3); }
+.bs-effect-box--glow-primary { box-shadow: var(--bs-glow-primary); border-color: var(--bs-color-accent); color: var(--bs-color-accent); }
+.bs-effect-box--glow-secondary { box-shadow: var(--bs-glow-secondary); border-color: var(--bs-color-secondary); color: var(--bs-color-secondary-hover); }
+.bs-effect-box--glow-danger { box-shadow: var(--bs-glow-danger); border-color: var(--bs-color-danger); color: var(--bs-color-danger-hover); }
+.bs-effect-box--text-primary { text-shadow: var(--bs-glow-text-primary); color: var(--bs-color-accent); font-family: var(--bs-font-heading); font-size: var(--bs-text-lg); text-transform: uppercase; }
+.bs-effect-box--text-danger { text-shadow: var(--bs-glow-text-danger); color: var(--bs-color-danger); font-family: var(--bs-font-heading); font-size: var(--bs-text-lg); text-transform: uppercase; }
+.bs-motion-row { display: grid; grid-template-columns: 1fr; gap: var(--bs-space-3); }
+.bs-motion-chip { padding: var(--bs-space-3) var(--bs-space-4); border-radius: var(--bs-radius-md); background: var(--bs-color-surface-raised); border: 1px solid var(--bs-color-border); font-size: var(--bs-text-sm); cursor: default; transition: transform var(--bs-duration-base) var(--bs-ease-standard), box-shadow var(--bs-duration-base) var(--bs-ease-standard), border-color var(--bs-duration-fast) var(--bs-ease-standard); }
+.bs-motion-chip:hover { transform: translateY(-2px); box-shadow: var(--bs-glow-primary); border-color: var(--bs-color-accent); }
+.bs-motion-chip--fast { transition-duration: var(--bs-duration-fast); }
+.bs-motion-chip--slow { transition-duration: var(--bs-duration-slow); }
+.bs-motion-chip--emphasised { transition-timing-function: var(--bs-ease-emphasised); }
+.bs-motion-chip span { display: block; color: var(--bs-color-text-dim-raised); font-size: var(--bs-text-xs); }
+
+/* =====================================================================
+   6. Components
+   ===================================================================== */
+.bs-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--bs-space-2);
+  min-height: 44px; padding: var(--bs-space-3) var(--bs-space-5);
+  font-family: var(--bs-font-heading); font-size: var(--bs-text-md); font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase; letter-spacing: var(--bs-tracking-heading); line-height: 1;
+  border: 1px solid transparent; border-radius: var(--bs-radius-md); cursor: pointer;
+  transition: background-color var(--bs-duration-fast) var(--bs-ease-standard), box-shadow var(--bs-duration-fast) var(--bs-ease-standard), color var(--bs-duration-fast) var(--bs-ease-standard), border-color var(--bs-duration-fast) var(--bs-ease-standard);
+}
+.bs-btn:focus-visible, .bs-btn.is-focus { outline: var(--bs-focus-width) solid var(--bs-color-focus-ring); outline-offset: var(--bs-focus-offset); }
+.bs-btn:disabled, .bs-btn[aria-disabled="true"] { cursor: not-allowed; }
+
+.bs-btn--primary { background: var(--bs-color-accent); color: var(--bs-color-text-on-accent); }
+.bs-btn--primary:hover, .bs-btn--primary.is-hover { background: var(--bs-color-accent-hover); box-shadow: var(--bs-glow-primary); }
+.bs-btn--primary:active, .bs-btn--primary.is-active { background: var(--bs-color-accent-active); box-shadow: var(--bs-glow-primary); }
+.bs-btn--primary:disabled { background: var(--bs-color-surface-overlay); color: var(--bs-color-text-dim-raised); box-shadow: none; }
+
+.bs-btn--secondary { background: var(--bs-color-secondary); color: var(--bs-color-text-on-accent); }
+.bs-btn--secondary:hover, .bs-btn--secondary.is-hover { background: var(--bs-color-secondary-hover); box-shadow: var(--bs-glow-secondary); }
+.bs-btn--secondary:active, .bs-btn--secondary.is-active { background: var(--bs-color-secondary-active); box-shadow: var(--bs-glow-secondary); }
+.bs-btn--secondary:disabled { background: var(--bs-color-surface-overlay); color: var(--bs-color-text-dim-raised); box-shadow: none; }
+
+.bs-btn--ghost { background: transparent; color: var(--bs-color-text); border-color: var(--bs-color-border-strong); }
+.bs-btn--ghost:hover, .bs-btn--ghost.is-hover { color: var(--bs-color-accent); border-color: var(--bs-color-accent); }
+.bs-btn--ghost:active, .bs-btn--ghost.is-active { background: var(--bs-color-accent-subtle); color: var(--bs-color-accent); border-color: var(--bs-color-accent); }
+.bs-btn--ghost:disabled { color: var(--bs-color-text-dim-raised); border-color: var(--bs-color-border); background: transparent; }
+
+.bs-btn--danger { background: var(--bs-color-danger); color: var(--bs-color-text-on-danger); font-size: var(--bs-text-lg); }
+.bs-btn--danger:hover, .bs-btn--danger.is-hover { background: var(--bs-color-danger-hover); box-shadow: var(--bs-glow-danger); }
+.bs-btn--danger:active, .bs-btn--danger.is-active { background: var(--bs-color-danger-active); box-shadow: var(--bs-glow-danger); }
+.bs-btn--danger:disabled { background: var(--bs-color-surface-overlay); color: var(--bs-color-text-dim-raised); box-shadow: none; }
+
+.bs-btn-row { display: flex; flex-direction: column; gap: var(--bs-space-3); }
+.bs-state-grid { display: grid; grid-template-columns: 1fr; gap: var(--bs-space-4); }
+.bs-state-grid > div { display: grid; gap: var(--bs-space-2); }
+.bs-state-grid .bs-btn { width: 100%; }
+
+.bs-field { display: flex; flex-direction: column; gap: var(--bs-space-1); }
+.bs-field label { font-family: var(--bs-font-heading); font-size: var(--bs-text-sm); text-transform: uppercase; letter-spacing: var(--bs-tracking-caps); color: var(--bs-color-text-dim); }
+.bs-input {
+  min-height: 44px; width: 100%; padding: var(--bs-space-3);
+  font-family: var(--bs-font-body); font-size: var(--bs-text-md); color: var(--bs-color-text);
+  background: var(--bs-color-surface-raised); border: 1px solid var(--bs-color-border-strong); border-radius: var(--bs-radius-sm);
+  box-shadow: var(--bs-shadow-1);
+  transition: border-color var(--bs-duration-fast) var(--bs-ease-standard), box-shadow var(--bs-duration-fast) var(--bs-ease-standard);
+}
+.bs-input::placeholder { color: var(--bs-color-text-dim-raised); }
+.bs-input:focus-visible, .bs-input.is-focus { border-color: var(--bs-color-accent); box-shadow: var(--bs-glow-primary); outline: var(--bs-focus-width) solid var(--bs-color-focus-ring); outline-offset: var(--bs-focus-offset); }
+.bs-input[aria-invalid="true"], .bs-input.is-error { border-color: var(--bs-color-danger); box-shadow: var(--bs-glow-danger); }
+.bs-input:disabled { background: var(--bs-color-surface); border-color: var(--bs-color-border); color: var(--bs-color-text-dim); box-shadow: none; cursor: not-allowed; }
+.bs-field__hint { font-size: var(--bs-text-xs); color: var(--bs-color-text-dim); }
+.bs-field.is-error .bs-field__hint, .bs-field__hint.is-error { color: var(--bs-color-danger); }
+.bs-field__hint.is-error::before { content: "\26A0  "; }
+
+.bs-card { background: var(--bs-color-surface-raised); border-radius: var(--bs-radius-md); box-shadow: var(--bs-shadow-2); padding: var(--bs-space-5); transition: background-color var(--bs-duration-base) var(--bs-ease-standard); }
+.bs-card:hover { background: var(--bs-color-surface-overlay); }
+.bs-card h4 { margin-top: 0; }
+.bs-card p { color: var(--bs-color-text-dim-raised); font-size: var(--bs-text-sm); margin: 0; }
+.bs-panel { background: var(--bs-color-surface); border: 1px solid var(--bs-color-border); border-top: 2px solid var(--bs-color-accent); border-radius: var(--bs-radius-lg); padding: var(--bs-space-6); }
+.bs-panel--info { font-family: var(--bs-font-panel); font-weight: var(--bs-font-weight-panel); line-height: var(--bs-leading-panel); font-size: var(--bs-text-lg); color: var(--bs-color-accent); text-shadow: var(--bs-glow-text-primary); }
+.bs-panel--info p { max-width: none; margin: 0; }
+.bs-panel--info p + p { margin-top: var(--bs-space-3); }
+
+.bs-status { display: grid; grid-template-columns: auto 1fr; gap: var(--bs-space-3); align-items: start; padding: var(--bs-space-3) var(--bs-space-4); border-radius: var(--bs-radius-sm); border-left: 3px solid; color: var(--bs-color-text); font-size: var(--bs-text-sm); }
+.bs-status__icon { font-family: var(--bs-font-heading); font-weight: var(--bs-font-weight-bold); width: 20px; height: 20px; border-radius: 50%; border: 2px solid currentColor; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; }
+.bs-status--info { background: var(--bs-color-accent-subtle); border-color: var(--bs-color-accent); }
+.bs-status--info .bs-status__icon { color: var(--bs-color-accent); }
+.bs-status--success { background: var(--bs-color-success-surface); border-color: var(--bs-color-success); }
+.bs-status--success .bs-status__icon { color: var(--bs-color-success); }
+.bs-status--warning { background: var(--bs-color-warning-surface); border-color: var(--bs-color-warning); }
+.bs-status--warning .bs-status__icon { color: var(--bs-color-warning); border-radius: 0; border: none; width: auto; height: auto; font-size: 18px; }
+.bs-status--danger { background: var(--bs-color-danger-surface); border-color: var(--bs-color-danger); }
+.bs-status--danger .bs-status__icon { color: var(--bs-color-danger); }
+
+/* =====================================================================
+   7. Game elements
+   ===================================================================== */
+.bs-board, .bs-board__ships {
+  display: grid;
+  grid-template-columns: 1.4rem repeat(12, minmax(0, 1fr));
+  grid-template-rows: 1.4rem repeat(12, minmax(0, 1fr));
+  gap: 1px;
+  padding: var(--bs-space-1);
+}
+.bs-board {
+  width: 100%; max-width: 520px;
+  background: var(--bs-color-grid-line);
+  border: 1px solid var(--bs-color-border);
+  border-radius: var(--bs-radius-md);
+  position: relative;
+}
+/* Ships live in an overlay grid with the same tracks, so the cells below keep
+   their auto-placed positions and the ships sit exactly on their squares. */
+.bs-board__ships { position: absolute; inset: 0; pointer-events: none; }
+.bs-board__coord { display: flex; align-items: center; justify-content: center; font-family: var(--bs-font-body); font-size: var(--bs-text-xs); color: var(--bs-color-coordinate); text-transform: uppercase; background: var(--bs-color-bg); min-width: 0; overflow: hidden; }
+.bs-board__coord--corner { background: var(--bs-color-bg); }
+.bs-cell { aspect-ratio: 1; background: var(--bs-color-ocean); position: relative; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.bs-cell.is-miss::after { content: ""; width: 36%; height: 36%; border: 2px solid var(--bs-color-miss); border-radius: 50%; }
+.bs-cell.is-hit { background: var(--bs-color-hit); box-shadow: var(--bs-glow-danger); z-index: 2; animation: bs-land var(--bs-duration-base) var(--bs-ease-emphasised) both; }
+.bs-cell.is-hit::after, .bs-cell.is-sunk::after { content: "\2715"; color: var(--bs-color-text-strong); font-family: var(--bs-font-heading); font-weight: var(--bs-font-weight-bold); font-size: clamp(10px, 3vw, 18px); line-height: 1; }
+.bs-cell.is-sunk { background: var(--bs-color-sunk) repeating-linear-gradient(135deg, transparent 0 4px, rgb(0 0 0 / 0.35) 4px 6px); z-index: 2; }
+@keyframes bs-land { from { transform: scale(1.3); } to { transform: scale(1); } }
+
+.bs-ship {
+  position: relative; z-index: 1;
+  background: linear-gradient(180deg, var(--bs-color-secondary-600), var(--bs-color-secondary-800));
+  border: 1px solid var(--bs-color-ship-edge);
+  border-radius: var(--bs-radius-full);
+  min-width: 0; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--bs-font-heading); font-size: var(--bs-text-xs); color: var(--bs-color-text-strong); letter-spacing: var(--bs-tracking-caps);
+  transition: box-shadow var(--bs-duration-slow) var(--bs-ease-standard);
+}
+.bs-ship::after { content: ""; position: absolute; width: 30%; height: 42%; left: 35%; top: 29%; background: var(--bs-color-secondary-500); border-radius: var(--bs-radius-sm); opacity: 0.8; }
+.bs-ship--v { flex-direction: column; }
+.bs-ship--v::after { width: 42%; height: 30%; left: 29%; top: 35%; }
+.bs-ship.is-valid { border-color: var(--bs-color-placement-valid); box-shadow: var(--bs-glow-primary); }
+.bs-ship.is-invalid { border-color: var(--bs-color-placement-invalid); box-shadow: var(--bs-glow-danger); background: var(--bs-color-secondary-800) repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in srgb, var(--bs-color-danger) 45%, transparent) 4px 7px); }
+.bs-ship.is-placed { background: var(--bs-color-ship); box-shadow: var(--bs-glow-secondary); }
+/* Standalone fleet lineups: ships laid out on their own small grids */
+.bs-fleet { display: grid; grid-auto-flow: row; gap: var(--bs-space-3); }
+.bs-fleet__row { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: auto; gap: 1px; width: 100%; max-width: 170px; background: var(--bs-color-grid-line); padding: 1px; border-radius: var(--bs-radius-sm); }
+.bs-fleet__row .bs-cell { background: var(--bs-color-ocean); grid-row: 1; }
+.bs-fleet__row .bs-cell:nth-child(1) { grid-column: 1; } .bs-fleet__row .bs-cell:nth-child(2) { grid-column: 2; } .bs-fleet__row .bs-cell:nth-child(3) { grid-column: 3; } .bs-fleet__row .bs-cell:nth-child(4) { grid-column: 4; } .bs-fleet__row .bs-cell:nth-child(5) { grid-column: 5; }
+.bs-fleet__row .bs-ship { grid-row: 1; }
+.bs-fleet--vertical { grid-auto-flow: column; grid-template-columns: repeat(5, 1fr); align-items: start; max-width: 200px; }
+.bs-fleet__col { display: grid; grid-template-columns: 1fr; gap: 1px; width: 100%; background: var(--bs-color-grid-line); padding: 1px; border-radius: var(--bs-radius-sm); }
+.bs-fleet__col .bs-cell { grid-column: 1; }
+.bs-fleet__col .bs-cell:nth-child(1) { grid-row: 1; } .bs-fleet__col .bs-cell:nth-child(2) { grid-row: 2; } .bs-fleet__col .bs-cell:nth-child(3) { grid-row: 3; } .bs-fleet__col .bs-cell:nth-child(4) { grid-row: 4; } .bs-fleet__col .bs-cell:nth-child(5) { grid-row: 5; }
+.bs-fleet__col .bs-ship { grid-column: 1; }
+.bs-fleet__label { font-size: var(--bs-text-xs); color: var(--bs-color-text-dim); margin-top: var(--bs-space-1); }
+.bs-cell-legend { display: grid; grid-template-columns: 1fr; gap: var(--bs-space-3); }
+.bs-cell-legend > div { display: grid; grid-template-columns: 44px 1fr; gap: var(--bs-space-3); align-items: center; font-size: var(--bs-text-sm); }
+.bs-cell-legend .bs-cell { width: 44px; height: 44px; border: 1px solid var(--bs-color-grid-line); border-radius: var(--bs-radius-sm); font-size: 18px; }
+.bs-cell-legend .bs-cell.is-hit::after, .bs-cell-legend .bs-cell.is-sunk::after { font-size: 18px; }
+
+/* =====================================================================
+   8. Instruments
+   ===================================================================== */
+.bs-instruments { display: grid; grid-template-columns: 1fr; gap: var(--bs-space-4); }
+.bs-instrument { background: var(--bs-color-surface); border: 1px solid var(--bs-color-border); border-radius: var(--bs-radius-lg); padding: var(--bs-space-4); display: flex; flex-direction: column; align-items: center; gap: var(--bs-space-3); }
+.bs-instrument svg { width: 100%; max-width: 220px; height: auto; display: block; overflow: visible; }
+.bs-instrument__readout { font-family: var(--bs-font-body); font-size: var(--bs-text-sm); color: var(--bs-color-accent); text-shadow: var(--bs-glow-text-primary); letter-spacing: var(--bs-tracking-caps); text-transform: uppercase; }
+.bs-instrument__readout b { color: var(--bs-color-text-strong); font-weight: var(--bs-font-weight-regular); }
+.bs-instrument h4 { margin: 0; font-size: var(--bs-text-sm); color: var(--bs-color-text-dim); letter-spacing: var(--bs-tracking-caps); }
+
+.bs-radar { border-radius: 50%; box-shadow: var(--bs-glow-primary); background: var(--bs-color-bg); }
+.bs-radar__ring { fill: none; stroke: var(--bs-color-grid-line); stroke-width: 1; }
+.bs-radar__line { stroke: var(--bs-color-grid-line); stroke-width: 1; }
+.bs-radar__sweep { transform-box: view-box; transform-origin: 100px 100px; animation: bs-spin var(--bs-duration-sweep) var(--bs-ease-linear) infinite; }
+.bs-radar__blip { fill: var(--bs-color-accent); animation: bs-pulse var(--bs-duration-sweep) var(--bs-ease-standard) infinite; }
+.bs-radar__blip:nth-of-type(2) { animation-delay: calc(var(--bs-duration-sweep) / -2); }
+@keyframes bs-spin { to { transform: rotate(360deg); } }
+@keyframes bs-pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+.bs-sonar__ring { fill: none; stroke: var(--bs-color-accent); stroke-width: 2; transform-box: view-box; transform-origin: 100px 100px; opacity: 0.45; animation: bs-ping var(--bs-duration-ping) var(--bs-ease-standard) infinite; }
+.bs-sonar__ring:nth-of-type(1) { transform: scale(0.35); }
+.bs-sonar__ring:nth-of-type(2) { transform: scale(0.65); animation-delay: calc(var(--bs-duration-ping) / -3); }
+.bs-sonar__ring:nth-of-type(3) { transform: scale(0.95); animation-delay: calc(var(--bs-duration-ping) / -1.5); }
+.bs-sonar__dot { fill: var(--bs-color-accent); }
+.bs-sonar__base { fill: none; stroke: var(--bs-color-grid-line); stroke-width: 1; }
+@keyframes bs-ping { 0% { transform: scale(0.05); opacity: 0.9; } 100% { transform: scale(1); opacity: 0; } }
+
+.bs-compass__ring { fill: var(--bs-color-bg); stroke: var(--bs-color-border-strong); stroke-width: 1.5; }
+.bs-compass__tick { stroke: var(--bs-color-grid-line); stroke-width: 1.5; }
+.bs-compass__tick--major { stroke: var(--bs-color-text-dim); stroke-width: 2; }
+.bs-compass__letter { font-family: var(--bs-font-heading); font-weight: var(--bs-font-weight-bold); font-size: 16px; fill: var(--bs-color-text-strong); text-anchor: middle; dominant-baseline: central; }
+.bs-compass__needle-n { fill: var(--bs-color-danger); }
+.bs-compass__needle-s { fill: var(--bs-color-text-dim); }
+.bs-compass__hub { fill: var(--bs-color-text-strong); }
+
+.bs-gauge__arc { fill: none; stroke: var(--bs-color-grid-line); stroke-width: 10; stroke-linecap: butt; }
+.bs-gauge__arc--danger { stroke: var(--bs-color-danger); }
+.bs-gauge__tick { stroke: var(--bs-color-text-dim); stroke-width: 1.5; }
+.bs-gauge__tick--major { stroke: var(--bs-color-text-strong); stroke-width: 2.5; }
+.bs-gauge__needle { fill: var(--bs-color-accent); transform-box: view-box; transform-origin: 100px 110px; animation: bs-rev var(--bs-duration-sweep) var(--bs-ease-standard) infinite; }
+.bs-gauge__hub { fill: var(--bs-color-text-strong); }
+.bs-gauge__label { font-family: var(--bs-font-body); font-size: 10px; fill: var(--bs-color-coordinate); text-anchor: middle; }
+@keyframes bs-rev { 0%, 100% { transform: rotate(-24deg); } 50% { transform: rotate(48deg); } }
+
+/* =====================================================================
+   9. Reduced motion
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .bs-radar__sweep, .bs-radar__blip, .bs-sonar__ring, .bs-gauge__needle, .bs-cell.is-hit { animation: none; }
+  .bs-gauge__needle { transform: rotate(12deg); }
+  .bs-radar__sweep { transform: rotate(40deg); }
+  .bs-radar__blip { opacity: 1; }
+  * { transition-duration: var(--bs-duration-fast) !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* =====================================================================
+   10. Breakpoints: sm 480, md 768, lg 1024, xl 1280 (literal values of
+   --bs-bp-sm, --bs-bp-md, --bs-bp-lg, --bs-bp-xl)
+   ===================================================================== */
+@media (min-width: 480px) {
+  .bs-btn-row { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .bs-swatches { grid-template-columns: repeat(3, 1fr); }
+  .bs-radius-row { grid-template-columns: repeat(4, 1fr); }
+  .bs-type-scale > div { grid-template-columns: 11rem 1fr; }
+  .bs-cell-legend { grid-template-columns: repeat(2, 1fr); }
+  .bs-state-grid { grid-template-columns: repeat(2, 1fr); }
+  .bs-motion-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 768px) {
+  .bs-grid--2 { grid-template-columns: 1fr 1fr; }
+  .bs-instruments { grid-template-columns: repeat(2, 1fr); }
+  .bs-topbar__nav { overflow: visible; white-space: normal; flex-wrap: wrap; }
+  .bs-roles { grid-template-columns: repeat(2, 1fr); }
+  .bs-effect-row { grid-template-columns: repeat(2, 1fr); }
+  .bs-state-grid { grid-template-columns: repeat(4, 1fr); }
+  .bs-motion-row { grid-template-columns: repeat(4, 1fr); }
+  section { scroll-margin-top: 56px; }
+}
+@media (min-width: 1024px) {
+  .bs-swatches { grid-template-columns: repeat(6, 1fr); }
+  .bs-scale { grid-template-columns: repeat(10, 1fr); }
+  .bs-instruments { grid-template-columns: repeat(4, 1fr); }
+  .bs-roles { grid-template-columns: repeat(3, 1fr); }
+  .bs-effect-row { grid-template-columns: repeat(4, 1fr); }
+  .bs-grid--3 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1280px) {
+  main { padding-left: var(--bs-gutter); padding-right: var(--bs-gutter); }
+  .bs-effect-row { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="bs-topbar">
+  <div class="bs-topbar__inner">
+    <a class="bs-topbar__brand" href="#intro">Battleship DS</a>
+    <nav class="bs-topbar__nav" aria-label="Sections">
+      <a href="#colour">Colour</a>
+      <a href="#typography">Type</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#effects">Effects</a>
+      <a href="#motion">Motion</a>
+      <a href="#components">Components</a>
+      <a href="#game">Game</a>
+      <a href="#instruments">Instruments</a>
+      <a href="#responsive">Responsive</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================================================ INTRO -->
+<section id="intro">
+  <h1>Battleship design system</h1>
+  <div class="bs-panel bs-panel--info" role="note">
+    <p>All stations report. Twelve by twelve grid, five hulls, one chance per turn.</p>
+    <p>This page renders every token and element of the Battleship design system. Dark only. Phones first. Built from the colours of the deep and the light of the bridge.</p>
+  </div>
+  <p style="margin-top: var(--bs-space-5)">The written reference lives in <code>docs/design-system.md</code>. Everything here is plain HTML and CSS: no script, no build step. Copy the <code>:root</code> block from the source of this page to adopt the tokens.</p>
+</section>
+
+<!-- ============================================================ COLOUR -->
+<section id="colour">
+  <h2>1. Colour</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-color-bg-base</code> <code>--bs-color-primary-base</code> <code>--bs-color-secondary-base</code> <code>--bs-color-text-base</code> <code>--bs-color-text-dim-base</code> <code>--bs-color-danger-base</code> and the primary, secondary, danger, text, surface, success and warning scales, semantic roles and game roles.</p>
+
+  <h3>Base colours</h3>
+  <div class="bs-swatches">
+    <div class="bs-swatch"><div class="bs-swatch__chip" style="background: var(--bs-color-bg-base); border: 1px solid var(--bs-color-border)"></div><div class="bs-swatch__meta"><strong>--bs-color-bg-base</strong><span>#011627 · background</span></div></div>
+    <div class="bs-swatch"><div class="bs-swatch__chip" style="background: var(--bs-color-primary-base)"></div><div class="bs-swatch__meta"><strong>--bs-color-primary-base</strong><span>#00c0ff · primary</span></div></div>
+    <div class="bs-swatch"><div class="bs-swatch__chip" style="background: var(--bs-color-secondary-base)"></div><div class="bs-swatch__meta"><strong>--bs-color-secondary-base</strong><span>#2f87ff · secondary</span></div></div>
+    <div class="bs-swatch"><div class="bs-swatch__chip" style="background: var(--bs-color-text-base)"></div><div class="bs-swatch__meta"><strong>--bs-color-text-base</strong><span>#b2c2d4 · text</span></div></div>
+    <div class="bs-swatch"><div class="bs-swatch__chip" style="background: var(--bs-color-text-dim-base)"></div><div class="bs-swatch__meta"><strong>--bs-color-text-dim-base</strong><span>#7a8694 · text dim</span></div></div>
+    <div class="bs-swatch"><div class="bs-swatch__chip" style="background: var(--bs-color-danger-base)"></div><div class="bs-swatch__meta"><strong>--bs-color-danger-base</strong><span>#ff2146 · danger</span></div></div>
+  </div>
+
+  <h3>Scales</h3>
+  <p>Tints move toward white, shades toward the background, both in OKLCH with the hue held. The outlined step is the base colour.</p>
+  <p class="bs-caption">Primary · --bs-color-primary-50 to --bs-color-primary-900</p>
+  <div class="bs-scale">
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-primary-50)">50</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-primary-100)">100</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-primary-200)">200</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-primary-300)">300</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-primary-400)">400</div>
+    <div class="bs-scale__step is-light is-base" style="background: var(--bs-color-primary-500)">500</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-primary-600)">600</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-primary-700)">700</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-primary-800)">800</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-primary-900)">900</div>
+  </div>
+  <p class="bs-caption">Secondary · --bs-color-secondary-50 to --bs-color-secondary-900</p>
+  <div class="bs-scale">
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-secondary-50)">50</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-secondary-100)">100</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-secondary-200)">200</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-secondary-300)">300</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-secondary-400)">400</div>
+    <div class="bs-scale__step is-light is-base" style="background: var(--bs-color-secondary-500)">500</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-secondary-600)">600</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-secondary-700)">700</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-secondary-800)">800</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-secondary-900)">900</div>
+  </div>
+  <p class="bs-caption">Danger · --bs-color-danger-50 to --bs-color-danger-900</p>
+  <div class="bs-scale">
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-danger-50)">50</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-danger-100)">100</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-danger-200)">200</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-danger-300)">300</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-danger-400)">400</div>
+    <div class="bs-scale__step is-dark is-base" style="background: var(--bs-color-danger-500)">500</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-danger-600)">600</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-danger-700)">700</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-danger-800)">800</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-danger-900)">900</div>
+  </div>
+  <p class="bs-caption">Text · --bs-color-text-50 to --bs-color-text-900</p>
+  <div class="bs-scale">
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-text-50)">50</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-text-100)">100</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-text-200)">200</div>
+    <div class="bs-scale__step is-light is-base" style="background: var(--bs-color-text-300)">300</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-text-400)">400</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-text-500)">500</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-text-600)">600</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-text-700)">700</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-text-800)">800</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-text-900)">900</div>
+  </div>
+  <p class="bs-caption">Surfaces · --bs-color-surface-0 to --bs-color-surface-4</p>
+  <div class="bs-scale">
+    <div class="bs-scale__step is-dark is-base" style="background: var(--bs-color-surface-0)">0</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-surface-1)">1</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-surface-2)">2</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-surface-3)">3</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-surface-4)">4</div>
+  </div>
+  <p class="bs-caption">Derived status hues · --bs-color-success-500, --bs-color-success-800, --bs-color-warning-500, --bs-color-warning-800</p>
+  <div class="bs-scale">
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-success-500)">S 500</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-success-800)">S 800</div>
+    <div class="bs-scale__step is-light" style="background: var(--bs-color-warning-500)">W 500</div>
+    <div class="bs-scale__step is-dark" style="background: var(--bs-color-warning-800)">W 800</div>
+  </div>
+
+  <h3>Semantic roles</h3>
+  <p>Components use roles, never scale steps. Each role is a <code>var()</code> to a scale token.</p>
+  <div class="bs-roles">
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-bg)"></div><div><div class="bs-role__name">--bs-color-bg</div><div class="bs-role__to">surface-0</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-surface)"></div><div><div class="bs-role__name">--bs-color-surface</div><div class="bs-role__to">surface-1</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-surface-raised)"></div><div><div class="bs-role__name">--bs-color-surface-raised</div><div class="bs-role__to">surface-2</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-surface-overlay)"></div><div><div class="bs-role__name">--bs-color-surface-overlay</div><div class="bs-role__to">surface-3</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-border)"></div><div><div class="bs-role__name">--bs-color-border</div><div class="bs-role__to">surface-4</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-border-strong)"></div><div><div class="bs-role__name">--bs-color-border-strong</div><div class="bs-role__to">text-700</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-text)"></div><div><div class="bs-role__name">--bs-color-text</div><div class="bs-role__to">text-300</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-text-strong)"></div><div><div class="bs-role__name">--bs-color-text-strong</div><div class="bs-role__to">text-50</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-text-dim)"></div><div><div class="bs-role__name">--bs-color-text-dim</div><div class="bs-role__to">text-dim-base · on bg and surface-1 only</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-text-dim-raised)"></div><div><div class="bs-role__name">--bs-color-text-dim-raised</div><div class="bs-role__to">text-400 · on surface-2 and up</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-text-on-accent)"></div><div><div class="bs-role__name">--bs-color-text-on-accent</div><div class="bs-role__to">bg-base</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-text-on-danger)"></div><div><div class="bs-role__name">--bs-color-text-on-danger</div><div class="bs-role__to">text-50</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-accent)"></div><div><div class="bs-role__name">--bs-color-accent</div><div class="bs-role__to">primary-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-accent-hover)"></div><div><div class="bs-role__name">--bs-color-accent-hover</div><div class="bs-role__to">primary-400</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-accent-active)"></div><div><div class="bs-role__name">--bs-color-accent-active</div><div class="bs-role__to">primary-300</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-accent-subtle)"></div><div><div class="bs-role__name">--bs-color-accent-subtle</div><div class="bs-role__to">primary-900</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-secondary)"></div><div><div class="bs-role__name">--bs-color-secondary</div><div class="bs-role__to">secondary-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-secondary-hover)"></div><div><div class="bs-role__name">--bs-color-secondary-hover</div><div class="bs-role__to">secondary-400</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-secondary-active)"></div><div><div class="bs-role__name">--bs-color-secondary-active</div><div class="bs-role__to">secondary-300</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-secondary-subtle)"></div><div><div class="bs-role__name">--bs-color-secondary-subtle</div><div class="bs-role__to">secondary-900</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-focus-ring)"></div><div><div class="bs-role__name">--bs-color-focus-ring</div><div class="bs-role__to">primary-300</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-danger)"></div><div><div class="bs-role__name">--bs-color-danger</div><div class="bs-role__to">danger-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-danger-hover)"></div><div><div class="bs-role__name">--bs-color-danger-hover</div><div class="bs-role__to">danger-400</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-danger-active)"></div><div><div class="bs-role__name">--bs-color-danger-active</div><div class="bs-role__to">danger-700</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-danger-surface)"></div><div><div class="bs-role__name">--bs-color-danger-surface</div><div class="bs-role__to">danger-900</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-success)"></div><div><div class="bs-role__name">--bs-color-success</div><div class="bs-role__to">success-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-success-surface)"></div><div><div class="bs-role__name">--bs-color-success-surface</div><div class="bs-role__to">success-800</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-warning)"></div><div><div class="bs-role__name">--bs-color-warning</div><div class="bs-role__to">warning-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-warning-surface)"></div><div><div class="bs-role__name">--bs-color-warning-surface</div><div class="bs-role__to">warning-800</div></div></div>
+  </div>
+
+  <h3>Game roles</h3>
+  <div class="bs-roles">
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-ocean)"></div><div><div class="bs-role__name">--bs-color-ocean</div><div class="bs-role__to">surface-1</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-grid-line)"></div><div><div class="bs-role__name">--bs-color-grid-line</div><div class="bs-role__to">primary-900</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-coordinate)"></div><div><div class="bs-role__name">--bs-color-coordinate</div><div class="bs-role__to">text-dim-base</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-ship)"></div><div><div class="bs-role__name">--bs-color-ship</div><div class="bs-role__to">secondary-700</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-ship-edge)"></div><div><div class="bs-role__name">--bs-color-ship-edge</div><div class="bs-role__to">secondary-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-placement-valid)"></div><div><div class="bs-role__name">--bs-color-placement-valid</div><div class="bs-role__to">primary-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-placement-invalid)"></div><div><div class="bs-role__name">--bs-color-placement-invalid</div><div class="bs-role__to">danger-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-miss)"></div><div><div class="bs-role__name">--bs-color-miss</div><div class="bs-role__to">text-dim-base</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-hit)"></div><div><div class="bs-role__name">--bs-color-hit</div><div class="bs-role__to">danger-500</div></div></div>
+    <div class="bs-role"><div class="bs-role__chip" style="background: var(--bs-color-sunk)"></div><div><div class="bs-role__name">--bs-color-sunk</div><div class="bs-role__to">danger-700</div></div></div>
+  </div>
+
+  <h3>Contrast</h3>
+  <p>Body text needs 4.5:1, large text 3:1. The full measured table is in the reference document; these are the pairs a screen uses most.</p>
+  <div class="bs-table-wrap">
+    <table>
+      <thead><tr><th>Foreground</th><th>Background</th><th>Ratio</th><th>Needs</th></tr></thead>
+      <tbody>
+        <tr><td><code>--bs-color-text</code></td><td><code>--bs-color-bg</code></td><td>10.09:1</td><td>4.5:1</td></tr>
+        <tr><td><code>--bs-color-text</code></td><td><code>--bs-color-surface-4</code></td><td>6.63:1</td><td>4.5:1</td></tr>
+        <tr><td><code>--bs-color-text-dim</code></td><td><code>--bs-color-bg</code></td><td>4.95:1</td><td>4.5:1</td></tr>
+        <tr><td><code>--bs-color-text-dim-raised</code></td><td><code>--bs-color-surface-4</code></td><td>4.66:1</td><td>4.5:1</td></tr>
+        <tr><td><code>--bs-color-text-on-accent</code></td><td><code>--bs-color-accent</code></td><td>8.72:1</td><td>4.5:1</td></tr>
+        <tr><td><code>--bs-color-text-on-accent</code></td><td><code>--bs-color-secondary</code></td><td>5.27:1</td><td>4.5:1</td></tr>
+        <tr><td><code>--bs-color-text-on-danger</code></td><td><code>--bs-color-danger</code></td><td>3.24:1</td><td>3:1 (large)</td></tr>
+        <tr><td><code>--bs-color-accent</code></td><td><code>--bs-color-bg</code></td><td>8.72:1</td><td>4.5:1</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================ TYPOGRAPHY -->
+<section id="typography">
+  <h2>2. Typography</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-font-heading</code> <code>--bs-font-body</code> <code>--bs-font-panel</code> <code>--bs-font-weight-regular</code> <code>--bs-font-weight-bold</code> <code>--bs-font-weight-panel</code> <code>--bs-text-xs</code> to <code>--bs-text-3xl</code> <code>--bs-leading-tight</code> <code>--bs-leading-panel</code> <code>--bs-leading-body</code> <code>--bs-tracking-heading</code> <code>--bs-tracking-caps</code></p>
+  <div class="bs-grid bs-grid--3">
+    <div class="bs-specimen bs-specimen--heading">
+      <div class="bs-caption">Heading · Quantico · --bs-font-heading</div>
+      <div class="bs-specimen__sample">Fire at C7</div>
+      <p style="font-family: var(--bs-font-body); font-size: var(--bs-text-sm); color: var(--bs-color-text-dim); margin: 0">All headings, the top bar, button labels, compass letters. Uppercase, tracking 0.04em, line height 1.15.</p>
+    </div>
+    <div class="bs-specimen bs-specimen--body">
+      <div class="bs-caption">Default · Courier Prime · --bs-font-body</div>
+      <div class="bs-specimen__sample" style="text-transform: none; letter-spacing: 0; font-family: var(--bs-font-body); font-size: var(--bs-text-xl)">Bearing 047, range 1200.</div>
+      <p style="font-size: var(--bs-text-sm); color: var(--bs-color-text-dim); margin: 0">Body copy, inputs, coordinates and readouts. Monospaced so digits align. Line height 1.6.</p>
+    </div>
+    <div class="bs-specimen bs-specimen--panel">
+      <div class="bs-caption" style="text-shadow: none; color: var(--bs-color-text-dim); font-family: var(--bs-font-heading)">Panel · Bitcount Single 200 · --bs-font-panel</div>
+      <div class="bs-specimen__sample">Enemy fleet sighted. Battle stations.</div>
+      <p style="font-family: var(--bs-font-body); font-size: var(--bs-text-sm); color: var(--bs-color-text-dim); margin: 0; text-shadow: none">Informational panels that set the stage only. Weight 200, line height 1.3. Never body text or controls.</p>
+    </div>
+  </div>
+
+  <h3>Type scale</h3>
+  <div class="bs-type-scale">
+    <div><span class="bs-caption">--bs-text-3xl · clamp(1.9rem, 1.3rem + 3vw, 2.441rem)</span><span class="bs-type-scale__sample" style="font-size: var(--bs-text-3xl)">Battle stations</span></div>
+    <div><span class="bs-caption">--bs-text-2xl · clamp(1.6rem, 1.2rem + 2vw, 1.953rem)</span><span class="bs-type-scale__sample" style="font-size: var(--bs-text-2xl)">Placing stage</span></div>
+    <div><span class="bs-caption">--bs-text-xl · 1.5625rem</span><span class="bs-type-scale__sample" style="font-size: var(--bs-text-xl)">Your fleet</span></div>
+    <div><span class="bs-caption">--bs-text-lg · 1.25rem</span><span class="bs-type-scale__sample" style="font-size: var(--bs-text-lg)">Carrier · 5 cells</span></div>
+    <div><span class="bs-caption">--bs-text-md · 1rem</span><span style="font-size: var(--bs-text-md)">Body text at the base size. The quick brown fox jumps over the lazy dog.</span></div>
+    <div><span class="bs-caption">--bs-text-sm · 0.8rem</span><span style="font-size: var(--bs-text-sm)">Secondary text and table cells. The quick brown fox jumps over the lazy dog.</span></div>
+    <div><span class="bs-caption">--bs-text-xs · 0.64rem</span><span style="font-size: var(--bs-text-xs)">Coordinates, badges, captions. A B C D E F G H I J K L</span></div>
+  </div>
+</section>
+
+<!-- ============================================================ SPACING -->
+<section id="spacing">
+  <h2>3. Spacing and radius</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-space-1</code> to <code>--bs-space-12</code> <code>--bs-radius-sm</code> <code>--bs-radius-md</code> <code>--bs-radius-lg</code> <code>--bs-radius-full</code> <code>--bs-gutter</code> <code>--bs-container</code></p>
+  <div class="bs-stack">
+    <div class="bs-space-bar"><code>--bs-space-1</code><i style="width: var(--bs-space-1)"></i>4px</div>
+    <div class="bs-space-bar"><code>--bs-space-2</code><i style="width: var(--bs-space-2)"></i>8px</div>
+    <div class="bs-space-bar"><code>--bs-space-3</code><i style="width: var(--bs-space-3)"></i>12px</div>
+    <div class="bs-space-bar"><code>--bs-space-4</code><i style="width: var(--bs-space-4)"></i>16px</div>
+    <div class="bs-space-bar"><code>--bs-space-5</code><i style="width: var(--bs-space-5)"></i>20px</div>
+    <div class="bs-space-bar"><code>--bs-space-6</code><i style="width: var(--bs-space-6)"></i>24px</div>
+    <div class="bs-space-bar"><code>--bs-space-7</code><i style="width: var(--bs-space-7)"></i>28px</div>
+    <div class="bs-space-bar"><code>--bs-space-8</code><i style="width: var(--bs-space-8)"></i>32px</div>
+    <div class="bs-space-bar"><code>--bs-space-9</code><i style="width: var(--bs-space-9)"></i>40px</div>
+    <div class="bs-space-bar"><code>--bs-space-10</code><i style="width: var(--bs-space-10)"></i>48px</div>
+    <div class="bs-space-bar"><code>--bs-space-11</code><i style="width: var(--bs-space-11)"></i>56px</div>
+    <div class="bs-space-bar"><code>--bs-space-12</code><i style="width: var(--bs-space-12)"></i>64px</div>
+  </div>
+  <h3>Radius</h3>
+  <div class="bs-radius-row">
+    <div class="bs-radius-box" style="border-radius: var(--bs-radius-sm)">sm · 4px</div>
+    <div class="bs-radius-box" style="border-radius: var(--bs-radius-md)">md · 8px</div>
+    <div class="bs-radius-box" style="border-radius: var(--bs-radius-lg)">lg · 16px</div>
+    <div class="bs-radius-box" style="border-radius: var(--bs-radius-full)">full · 999px</div>
+  </div>
+  <p style="margin-top: var(--bs-space-4); font-size: var(--bs-text-sm); color: var(--bs-color-text-dim)">The side gutter is <code>--bs-gutter</code> (16px) on every width and content is capped at <code>--bs-container</code> (1200px).</p>
+</section>
+
+<!-- ============================================================ EFFECTS -->
+<section id="effects">
+  <h2>4. Effects</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-shadow-1</code> <code>--bs-shadow-2</code> <code>--bs-shadow-3</code> <code>--bs-glow-primary</code> <code>--bs-glow-secondary</code> <code>--bs-glow-danger</code> <code>--bs-glow-text-primary</code> <code>--bs-glow-text-danger</code></p>
+  <h3>Shadows</h3>
+  <div class="bs-effect-row">
+    <div class="bs-effect-box bs-effect-box--shadow-1">--bs-shadow-1</div>
+    <div class="bs-effect-box bs-effect-box--shadow-2">--bs-shadow-2</div>
+    <div class="bs-effect-box bs-effect-box--shadow-3">--bs-shadow-3</div>
+  </div>
+  <h3>Glows</h3>
+  <div class="bs-effect-row">
+    <div class="bs-effect-box bs-effect-box--glow-primary">--bs-glow-primary</div>
+    <div class="bs-effect-box bs-effect-box--glow-secondary">--bs-glow-secondary</div>
+    <div class="bs-effect-box bs-effect-box--glow-danger">--bs-glow-danger</div>
+    <div class="bs-effect-box bs-effect-box--text-primary">Text glow primary</div>
+    <div class="bs-effect-box bs-effect-box--text-danger">Text glow danger</div>
+  </div>
+  <p style="margin-top: var(--bs-space-4)">Glow signals state: hot (hover, focus, pressed), live (radar, sonar) or attention (hit, invalid). Resting elements do not glow.</p>
+</section>
+
+<!-- ============================================================ MOTION -->
+<section id="motion">
+  <h2>5. Motion</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-duration-fast</code> <code>--bs-duration-base</code> <code>--bs-duration-slow</code> <code>--bs-duration-sweep</code> <code>--bs-duration-ping</code> <code>--bs-ease-standard</code> <code>--bs-ease-emphasised</code> <code>--bs-ease-linear</code></p>
+  <p>Hover a chip to feel the duration. Loops (sweep, ping) are shown in the instruments below. Under <code>prefers-reduced-motion: reduce</code> every loop stops and transitions fall to the fast duration.</p>
+  <div class="bs-motion-row">
+    <div class="bs-motion-chip bs-motion-chip--fast" tabindex="0">fast<span>--bs-duration-fast · 120ms · standard</span></div>
+    <div class="bs-motion-chip" tabindex="0">base<span>--bs-duration-base · 200ms · standard</span></div>
+    <div class="bs-motion-chip bs-motion-chip--slow" tabindex="0">slow<span>--bs-duration-slow · 400ms · standard</span></div>
+    <div class="bs-motion-chip bs-motion-chip--emphasised" tabindex="0">emphasised<span>--bs-duration-base · 200ms · emphasised</span></div>
+  </div>
+  <div class="bs-table-wrap" style="margin-top: var(--bs-space-5)">
+    <table>
+      <thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td><code>--bs-duration-sweep</code></td><td>4s</td><td>One radar rotation, one gauge oscillation</td></tr>
+        <tr><td><code>--bs-duration-ping</code></td><td>2.4s</td><td>One sonar ring expanding</td></tr>
+        <tr><td><code>--bs-ease-standard</code></td><td>cubic-bezier(0.2, 0, 0, 1)</td><td>Entering and changing</td></tr>
+        <tr><td><code>--bs-ease-emphasised</code></td><td>cubic-bezier(0.2, 0.8, 0.2, 1)</td><td>A hit landing, a ship snapping into place</td></tr>
+        <tr><td><code>--bs-ease-linear</code></td><td>linear</td><td>Continuous loops</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================ COMPONENTS -->
+<section id="components">
+  <h2>6. Components</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-color-accent</code> <code>--bs-color-accent-hover</code> <code>--bs-color-accent-active</code> <code>--bs-color-accent-subtle</code> <code>--bs-color-secondary</code> <code>--bs-color-secondary-hover</code> <code>--bs-color-secondary-active</code> <code>--bs-color-danger</code> <code>--bs-color-danger-hover</code> <code>--bs-color-danger-active</code> <code>--bs-color-focus-ring</code> <code>--bs-focus-width</code> <code>--bs-focus-offset</code> <code>--bs-color-text-on-accent</code> <code>--bs-color-text-on-danger</code> <code>--bs-color-surface-raised</code> <code>--bs-color-surface-overlay</code> <code>--bs-color-border-strong</code> <code>--bs-color-danger-surface</code> <code>--bs-color-success-surface</code> <code>--bs-color-warning-surface</code> <code>--bs-color-secondary-subtle</code></p>
+
+  <h3>Buttons</h3>
+  <p>Live buttons first: hover, press and tab to them. Below each, the same variant with its states forced so every state is visible at once.</p>
+  <div class="bs-btn-row">
+    <button class="bs-btn bs-btn--primary" type="button">Fire</button>
+    <button class="bs-btn bs-btn--secondary" type="button">Rotate ship</button>
+    <button class="bs-btn bs-btn--ghost" type="button">Back to port</button>
+    <button class="bs-btn bs-btn--danger" type="button">Abandon ship</button>
+  </div>
+  <h4>Every state</h4>
+  <div class="bs-state-grid">
+    <div>
+      <span class="bs-caption">Primary</span>
+      <button class="bs-btn bs-btn--primary" type="button">Default</button>
+      <button class="bs-btn bs-btn--primary is-hover" type="button">Hover</button>
+      <button class="bs-btn bs-btn--primary is-active" type="button">Active</button>
+      <button class="bs-btn bs-btn--primary is-focus" type="button">Focus</button>
+      <button class="bs-btn bs-btn--primary" type="button" disabled>Disabled</button>
+    </div>
+    <div>
+      <span class="bs-caption">Secondary</span>
+      <button class="bs-btn bs-btn--secondary" type="button">Default</button>
+      <button class="bs-btn bs-btn--secondary is-hover" type="button">Hover</button>
+      <button class="bs-btn bs-btn--secondary is-active" type="button">Active</button>
+      <button class="bs-btn bs-btn--secondary is-focus" type="button">Focus</button>
+      <button class="bs-btn bs-btn--secondary" type="button" disabled>Disabled</button>
+    </div>
+    <div>
+      <span class="bs-caption">Ghost</span>
+      <button class="bs-btn bs-btn--ghost" type="button">Default</button>
+      <button class="bs-btn bs-btn--ghost is-hover" type="button">Hover</button>
+      <button class="bs-btn bs-btn--ghost is-active" type="button">Active</button>
+      <button class="bs-btn bs-btn--ghost is-focus" type="button">Focus</button>
+      <button class="bs-btn bs-btn--ghost" type="button" disabled>Disabled</button>
+    </div>
+    <div>
+      <span class="bs-caption">Danger</span>
+      <button class="bs-btn bs-btn--danger" type="button">Default</button>
+      <button class="bs-btn bs-btn--danger is-hover" type="button">Hover</button>
+      <button class="bs-btn bs-btn--danger is-active" type="button">Active</button>
+      <button class="bs-btn bs-btn--danger is-focus" type="button">Focus</button>
+      <button class="bs-btn bs-btn--danger" type="button" disabled>Disabled</button>
+    </div>
+  </div>
+
+  <h3>Inputs</h3>
+  <div class="bs-grid bs-grid--2">
+    <div class="bs-field">
+      <label for="in-default">Call sign</label>
+      <input class="bs-input" id="in-default" type="text" placeholder="e.g. HMS Vigilant">
+      <span class="bs-field__hint">Default. Tab in to see focus.</span>
+    </div>
+    <div class="bs-field">
+      <label for="in-focus">Target square</label>
+      <input class="bs-input is-focus" id="in-focus" type="text" value="C7">
+      <span class="bs-field__hint">Focus state, forced.</span>
+    </div>
+    <div class="bs-field is-error">
+      <label for="in-error">Target square</label>
+      <input class="bs-input" id="in-error" type="text" value="M13" aria-invalid="true" aria-describedby="in-error-hint">
+      <span class="bs-field__hint is-error" id="in-error-hint">Square M13 is off the board.</span>
+    </div>
+    <div class="bs-field">
+      <label for="in-disabled">Opponent</label>
+      <input class="bs-input" id="in-disabled" type="text" value="Waiting for a challenger" disabled>
+      <span class="bs-field__hint">Disabled.</span>
+    </div>
+  </div>
+
+  <h3>Cards and panels</h3>
+  <div class="bs-grid bs-grid--3">
+    <div class="bs-card">
+      <h4>Card</h4>
+      <p>Surface raised, shadow 2, radius md. Hover lifts it to the overlay surface.</p>
+    </div>
+    <div class="bs-panel">
+      <h4 style="margin-top: 0">Panel</h4>
+      <p style="margin: 0; font-size: var(--bs-text-sm); color: var(--bs-color-text-dim)">Surface 1 with a border and a live accent rule along the top. Radius lg.</p>
+    </div>
+    <div class="bs-panel bs-panel--info">
+      <p>Informational panel. Sonar contact bearing 047. Hold fire.</p>
+    </div>
+  </div>
+
+  <h3>Status messages</h3>
+  <div class="bs-stack">
+    <div class="bs-status bs-status--info" role="status"><span class="bs-status__icon" aria-hidden="true">i</span><span>Your opponent is placing ships.</span></div>
+    <div class="bs-status bs-status--success" role="status"><span class="bs-status__icon" aria-hidden="true">&#10003;</span><span>Fleet placed. Ready for battle.</span></div>
+    <div class="bs-status bs-status--warning" role="status"><span class="bs-status__icon" aria-hidden="true">&#9888;</span><span>Connection unstable. Moves may be delayed.</span></div>
+    <div class="bs-status bs-status--danger" role="alert"><span class="bs-status__icon" aria-hidden="true">&#10005;</span><span>Game not found. Return to port.</span></div>
+  </div>
+</section>
+
+<!-- ============================================================ GAME -->
+<section id="game">
+  <h2>7. Game elements</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-color-ocean</code> <code>--bs-color-grid-line</code> <code>--bs-color-coordinate</code> <code>--bs-color-ship</code> <code>--bs-color-ship-edge</code> <code>--bs-color-placement-valid</code> <code>--bs-color-placement-invalid</code> <code>--bs-color-miss</code> <code>--bs-color-hit</code> <code>--bs-color-sunk</code> <code>--bs-color-secondary-600</code> <code>--bs-color-secondary-800</code></p>
+
+  <div class="bs-grid bs-grid--2">
+    <div>
+      <h3 style="margin-top: 0">The board</h3>
+      <p>Twelve by twelve, columns A to L, rows 1 to 12. This board shows the battle stage: a placed fleet, two hits on the carrier, a sunk patrol boat and a few misses.</p>
+      <div class="bs-board" role="img" aria-label="Battleship board showing placed ships, hits, misses and a sunk patrol boat">
+        <div class="bs-board__coord bs-board__coord--corner"></div>
+        <div class="bs-board__coord">A</div><div class="bs-board__coord">B</div><div class="bs-board__coord">C</div><div class="bs-board__coord">D</div><div class="bs-board__coord">E</div><div class="bs-board__coord">F</div><div class="bs-board__coord">G</div><div class="bs-board__coord">H</div><div class="bs-board__coord">I</div><div class="bs-board__coord">J</div><div class="bs-board__coord">K</div><div class="bs-board__coord">L</div>
+        <!-- row 1 -->
+        <div class="bs-board__coord">1</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-miss"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 2: carrier B2-F2, hits on C2 and D2 -->
+        <div class="bs-board__coord">2</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-hit"></div><div class="bs-cell is-hit"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 3 -->
+        <div class="bs-board__coord">3</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-miss"></div><div class="bs-cell"></div>
+        <!-- row 4: battleship J4-J7 vertical -->
+        <div class="bs-board__coord">4</div><div class="bs-cell is-miss"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 5 -->
+        <div class="bs-board__coord">5</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-miss"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 6: submarine G6-G8 vertical -->
+        <div class="bs-board__coord">6</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-miss"></div>
+        <!-- row 7 -->
+        <div class="bs-board__coord">7</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-miss"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 8 -->
+        <div class="bs-board__coord">8</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 9: destroyer C9-E9 -->
+        <div class="bs-board__coord">9</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-miss"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 10 -->
+        <div class="bs-board__coord">10</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 11: patrol boat I11-J11, sunk -->
+        <div class="bs-board__coord">11</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-sunk"></div><div class="bs-cell is-sunk"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- row 12 -->
+        <div class="bs-board__coord">12</div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell is-miss"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div>
+        <!-- ships in an overlay grid with the same tracks: columns are offset by 1 for the row label, rows by 1 for the column labels -->
+        <div class="bs-board__ships" aria-hidden="true">
+          <div class="bs-ship is-placed" style="grid-column: 3 / span 5; grid-row: 3" title="Carrier, 5 cells, horizontal"></div>
+          <div class="bs-ship bs-ship--v is-placed" style="grid-column: 11; grid-row: 5 / span 4" title="Battleship, 4 cells, vertical"></div>
+          <div class="bs-ship bs-ship--v is-placed" style="grid-column: 8; grid-row: 7 / span 3" title="Submarine, 3 cells, vertical"></div>
+          <div class="bs-ship is-placed" style="grid-column: 4 / span 3; grid-row: 10" title="Destroyer, 3 cells, horizontal"></div>
+          <div class="bs-ship is-invalid" style="grid-column: 12 / span 2; grid-row: 13" title="Patrol Boat being placed, invalid placement"></div>
+        </div>
+      </div>
+      <p class="bs-fleet__label">Bottom right: a patrol boat being dragged into place, shown in the invalid placement state (the position overlaps a hit area the rules reject).</p>
+    </div>
+    <div>
+      <h3 style="margin-top: 0">Cell states</h3>
+      <p>Colour plus a shape, so colour alone never carries meaning.</p>
+      <div class="bs-cell-legend">
+        <div><div class="bs-cell is-unknown"></div><span>Unknown · <code>--bs-color-ocean</code></span></div>
+        <div><div class="bs-cell is-miss"></div><span>Miss · ring in <code>--bs-color-miss</code></span></div>
+        <div><div class="bs-cell is-hit"></div><span>Hit · <code>--bs-color-hit</code> and a cross</span></div>
+        <div><div class="bs-cell is-sunk"></div><span>Sunk · <code>--bs-color-sunk</code>, cross and hatch</span></div>
+      </div>
+
+      <h3>Placing states</h3>
+      <div class="bs-fleet">
+        <div class="bs-fleet__row" aria-label="Valid placement"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship is-valid" style="grid-column: 1 / span 3"></div></div>
+        <div class="bs-fleet__label">Valid · outline <code>--bs-color-placement-valid</code>, <code>--bs-glow-primary</code></div>
+        <div class="bs-fleet__row" aria-label="Invalid placement"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship is-invalid" style="grid-column: 2 / span 3"></div></div>
+        <div class="bs-fleet__label">Invalid · outline <code>--bs-color-placement-invalid</code>, <code>--bs-glow-danger</code>, hatch</div>
+        <div class="bs-fleet__row" aria-label="Placed ship"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship is-placed" style="grid-column: 1 / span 3"></div></div>
+        <div class="bs-fleet__label">Placed · fill <code>--bs-color-ship</code>, outline <code>--bs-color-ship-edge</code>, <code>--bs-glow-secondary</code></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>The fleet</h3>
+  <p>Five ships, one cell wide. Each is shown horizontally and vertically at its length.</p>
+  <div class="bs-grid bs-grid--2">
+    <div>
+      <span class="bs-caption">Horizontal</span>
+      <div class="bs-fleet" style="margin-top: var(--bs-space-2)">
+        <div class="bs-fleet__row" aria-label="Carrier, 5 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship" data-ship="carrier" data-length="5" style="grid-column: 1 / span 5"></div></div>
+        <div class="bs-fleet__label">Carrier · 5</div>
+        <div class="bs-fleet__row" aria-label="Battleship, 4 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship" data-ship="battleship" data-length="4" style="grid-column: 1 / span 4"></div></div>
+        <div class="bs-fleet__label">Battleship · 4</div>
+        <div class="bs-fleet__row" aria-label="Destroyer, 3 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship" data-ship="destroyer" data-length="3" style="grid-column: 1 / span 3"></div></div>
+        <div class="bs-fleet__label">Destroyer · 3</div>
+        <div class="bs-fleet__row" aria-label="Submarine, 3 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship" data-ship="submarine" data-length="3" style="grid-column: 1 / span 3"></div></div>
+        <div class="bs-fleet__label">Submarine · 3</div>
+        <div class="bs-fleet__row" aria-label="Patrol Boat, 2 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship" data-ship="patrol-boat" data-length="2" style="grid-column: 1 / span 2"></div></div>
+        <div class="bs-fleet__label">Patrol Boat · 2</div>
+      </div>
+    </div>
+    <div>
+      <span class="bs-caption">Vertical</span>
+      <div class="bs-fleet bs-fleet--vertical" style="margin-top: var(--bs-space-2)">
+        <div><div class="bs-fleet__col" aria-label="Carrier, 5 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship bs-ship--v" data-ship="carrier" data-length="5" style="grid-row: 1 / span 5"></div></div><div class="bs-fleet__label">5</div></div>
+        <div><div class="bs-fleet__col" aria-label="Battleship, 4 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship bs-ship--v" data-ship="battleship" data-length="4" style="grid-row: 1 / span 4"></div></div><div class="bs-fleet__label">4</div></div>
+        <div><div class="bs-fleet__col" aria-label="Destroyer, 3 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship bs-ship--v" data-ship="destroyer" data-length="3" style="grid-row: 1 / span 3"></div></div><div class="bs-fleet__label">3</div></div>
+        <div><div class="bs-fleet__col" aria-label="Submarine, 3 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship bs-ship--v" data-ship="submarine" data-length="3" style="grid-row: 1 / span 3"></div></div><div class="bs-fleet__label">3</div></div>
+        <div><div class="bs-fleet__col" aria-label="Patrol Boat, 2 cells"><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-cell"></div><div class="bs-ship bs-ship--v" data-ship="patrol-boat" data-length="2" style="grid-row: 1 / span 2"></div></div><div class="bs-fleet__label">2</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ INSTRUMENTS -->
+<section id="instruments">
+  <h2>8. Instruments</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-duration-sweep</code> <code>--bs-duration-ping</code> <code>--bs-ease-linear</code> <code>--bs-ease-standard</code> <code>--bs-glow-primary</code> <code>--bs-color-accent</code> <code>--bs-color-grid-line</code> <code>--bs-color-danger</code> <code>--bs-color-text-dim</code> <code>--bs-color-text-strong</code></p>
+  <p>Four bridge motifs, each inline SVG animated with CSS alone. They freeze under reduced motion.</p>
+  <div class="bs-instruments">
+    <div class="bs-instrument">
+      <h4>Radar</h4>
+      <svg class="bs-radar" viewBox="0 0 200 200" aria-label="Radar sweep">
+        <defs>
+          <linearGradient id="bs-sweep-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" style="stop-color: var(--bs-color-accent); stop-opacity: 0"></stop>
+            <stop offset="1" style="stop-color: var(--bs-color-accent); stop-opacity: 0.75"></stop>
+          </linearGradient>
+        </defs>
+        <circle class="bs-radar__ring" cx="100" cy="100" r="96"></circle>
+        <circle class="bs-radar__ring" cx="100" cy="100" r="64"></circle>
+        <circle class="bs-radar__ring" cx="100" cy="100" r="32"></circle>
+        <line class="bs-radar__line" x1="100" y1="4" x2="100" y2="196"></line>
+        <line class="bs-radar__line" x1="4" y1="100" x2="196" y2="100"></line>
+        <g class="bs-radar__sweep">
+          <path d="M100 100 L196 100 A96 96 0 0 0 148 16.9 Z" fill="url(#bs-sweep-grad)"></path>
+          <line x1="100" y1="100" x2="196" y2="100" stroke="var(--bs-color-accent)" stroke-width="1.5"></line>
+        </g>
+        <circle class="bs-radar__blip" cx="62" cy="70" r="3.5"></circle>
+        <circle class="bs-radar__blip" cx="138" cy="128" r="3.5"></circle>
+        <circle cx="100" cy="100" r="3" fill="var(--bs-color-accent)"></circle>
+      </svg>
+      <div class="bs-instrument__readout">Contacts <b>2</b></div>
+    </div>
+    <div class="bs-instrument">
+      <h4>Sonar</h4>
+      <svg class="bs-sonar" viewBox="0 0 200 200" aria-label="Sonar ping">
+        <circle class="bs-sonar__base" cx="100" cy="100" r="96"></circle>
+        <circle class="bs-sonar__ring" cx="100" cy="100" r="96"></circle>
+        <circle class="bs-sonar__ring" cx="100" cy="100" r="96"></circle>
+        <circle class="bs-sonar__ring" cx="100" cy="100" r="96"></circle>
+        <circle class="bs-sonar__dot" cx="100" cy="100" r="5"></circle>
+      </svg>
+      <div class="bs-instrument__readout">Range <b>1200</b> m</div>
+    </div>
+    <div class="bs-instrument">
+      <h4>Compass</h4>
+      <svg class="bs-compass" viewBox="0 0 200 200" aria-label="Compass rose">
+        <circle class="bs-compass__ring" cx="100" cy="100" r="96"></circle>
+        <g>
+          <line class="bs-compass__tick bs-compass__tick--major" x1="100" y1="6" x2="100" y2="22" transform="rotate(0 100 100)"></line>
+          <line class="bs-compass__tick" x1="100" y1="6" x2="100" y2="16" transform="rotate(22.5 100 100)"></line>
+          <line class="bs-compass__tick bs-compass__tick--major" x1="100" y1="6" x2="100" y2="18" transform="rotate(45 100 100)"></line>
+          <line class="bs-compass__tick" x1="100" y1="6" x2="100" y2="16" transform="rotate(67.5 100 100)"></line>
+          <line class="bs-compass__tick bs-compass__tick--major" x1="100" y1="6" x2="100" y2="22" transform="rotate(90 100 100)"></line>
+          <line class="bs-compass__tick" x1="100" y1="6" x2="100" y2="16" transform="rotate(112.5 100 100)"></line>
+          <line class="bs-compass__tick bs-compass__tick--major" x1="100" y1="6" x2="100" y2="18" transform="rotate(135 100 100)"></line>
+          <line class="bs-compass__tick" x1="100" y1="6" x2="100" y2="16" transform="rotate(157.5 100 100)"></line>
+          <line class="bs-compass__tick bs-compass__tick--major" x1="100" y1="6" x2="100" y2="22" transform="rotate(180 100 100)"></line>
+          <line class="bs-compass__tick" x1="100" y1="6" x2="100" y2="16" transform="rotate(202.5 100 100)"></line>
+          <line class="bs-compass__tick bs-compass__tick--major" x1="100" y1="6" x2="100" y2="18" transform="rotate(225 100 100)"></line>
+          <line class="bs-compass__tick" x1="100" y1="6" x2="100" y2="16" transform="rotate(247.5 100 100)"></line>
+          <line class="bs-compass__tick bs-compass__tick--major" x1="100" y1="6" x2="100" y2="22" transform="rotate(270 100 100)"></line>
+          <line class="bs-compass__tick" x1="100" y1="6" x2="100" y2="16" transform="rotate(292.5 100 100)"></line>
+          <line class="bs-compass__tick bs-compass__tick--major" x1="100" y1="6" x2="100" y2="18" transform="rotate(315 100 100)"></line>
+          <line class="bs-compass__tick" x1="100" y1="6" x2="100" y2="16" transform="rotate(337.5 100 100)"></line>
+        </g>
+        <text class="bs-compass__letter" x="100" y="36">N</text>
+        <text class="bs-compass__letter" x="164" y="100">E</text>
+        <text class="bs-compass__letter" x="100" y="164">S</text>
+        <text class="bs-compass__letter" x="36" y="100">W</text>
+        <g transform="rotate(47 100 100)">
+          <polygon class="bs-compass__needle-n" points="100,44 92,100 108,100"></polygon>
+          <polygon class="bs-compass__needle-s" points="100,156 92,100 108,100"></polygon>
+        </g>
+        <circle class="bs-compass__hub" cx="100" cy="100" r="5"></circle>
+      </svg>
+      <div class="bs-instrument__readout">Heading <b>047</b></div>
+    </div>
+    <div class="bs-instrument">
+      <h4>Engine RPM</h4>
+      <svg class="bs-gauge" viewBox="0 0 200 180" aria-label="Engine RPM gauge">
+        <path class="bs-gauge__arc" d="M30.72 150 A80 80 0 1 1 169.28 150"></path>
+        <path class="bs-gauge__arc bs-gauge__arc--danger" d="M176.08 85.28 A80 80 0 0 1 169.28 150"></path>
+        <g>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(-120 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(-110 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(-100 100 110)"></line>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(-90 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(-80 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(-70 100 110)"></line>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(-60 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(-50 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(-40 100 110)"></line>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(-30 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(-20 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(-10 100 110)"></line>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(0 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(10 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(20 100 110)"></line>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(30 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(40 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(50 100 110)"></line>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(60 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(70 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(80 100 110)"></line>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(90 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(100 100 110)"></line>
+          <line class="bs-gauge__tick" x1="100" y1="20" x2="100" y2="26" transform="rotate(110 100 110)"></line>
+          <line class="bs-gauge__tick bs-gauge__tick--major" x1="100" y1="20" x2="100" y2="30" transform="rotate(120 100 110)"></line>
+        </g>
+        <text class="bs-gauge__label" x="40" y="172">0</text>
+        <text class="bs-gauge__label" x="100" y="22">15</text>
+        <text class="bs-gauge__label" x="160" y="172">30</text>
+        <polygon class="bs-gauge__needle" points="100,40 96,110 104,110"></polygon>
+        <circle class="bs-gauge__hub" cx="100" cy="110" r="6"></circle>
+      </svg>
+      <div class="bs-instrument__readout">RPM <b>1480</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ RESPONSIVE -->
+<section id="responsive">
+  <h2>9. Responsive notes</h2>
+  <p class="bs-tokens-shown">Tokens shown: <code>--bs-bp-sm</code> <code>--bs-bp-md</code> <code>--bs-bp-lg</code> <code>--bs-bp-xl</code></p>
+  <p>This page is laid out for 360px first. Resize the window to see each breakpoint add layout: at 480px button rows stop stacking and swatch grids widen; at 768px the board sits beside its legend and instruments go two by two; at 1024px instruments sit in one row and scales show all ten steps across; at 1280px content is centred inside the 1200px container. Nothing scrolls horizontally at any width between 360px and 1920px; wide tables scroll inside their own box.</p>
+  <div class="bs-table-wrap">
+    <table>
+      <thead><tr><th>Token</th><th>Min width</th><th>Adds</th></tr></thead>
+      <tbody>
+        <tr><td><code>--bs-bp-sm</code></td><td>480px</td><td>Button rows in a line, 3-column swatches, 4-column radius row</td></tr>
+        <tr><td><code>--bs-bp-md</code></td><td>768px</td><td>Two-column sections, instruments 2 × 2, all anchors in the top bar</td></tr>
+        <tr><td><code>--bs-bp-lg</code></td><td>1024px</td><td>Instruments in one row, ten-step scales in one row, 6-column swatches</td></tr>
+        <tr><td><code>--bs-bp-xl</code></td><td>1280px</td><td>Content centred at the container width</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer>Battleship design system · tokens in <code>docs/design-system.md</code> · no script on this page</footer>
+
+</body>
+</html>

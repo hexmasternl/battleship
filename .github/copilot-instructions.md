@@ -15,3 +15,11 @@ Every OpenSpec change is governed by the `openspec-git-flow` skill (`.github/ski
 ## GitHub issues and changes
 
 The `openspec-github-issues` skill (the `issue` prompt) triages issues, labels and types them, proposes a linked change, and keeps the issue in sync through implementation and archive. Issue to change links live in `openspec/changes/<name>/github-issue.yaml`.
+
+## Frontend work uses the Angular agent
+
+The Angular app under `src/Frontend/` (Angular 22, Angular Material 22.2.2, zoneless, signals) is built by the `angular-frontend` agent (`.github/agents/angular-frontend.agent.md`). Use it for any screen, component, store, form, Material or frontend test work. It keeps component data in a local immutable state store exposed as read-only signals.
+
+## Gateway routes are owned by a skill
+
+The YARP `gateway` in the Aspire AppHost is the single backend endpoint the frontend calls. Its route table (`GatewayRoutes.cs` in the AppHost) is owned by the `yarp-gateway-routes` skill (`.github/skills/yarp-gateway-routes/SKILL.md`). Load it when a backend module or `*.Api` project is added, when an API maps an endpoint under a new first path segment, or when the route table changes. Every new, renamed or removed prefix is proposed and approved before it is added.

@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-10-13
+goal: "User identification: anonymous tokens backed by Azure Table Storage and a frontend player session"
+affected_areas:
+  - players
+  - aspire
+  - core
+  - frontend

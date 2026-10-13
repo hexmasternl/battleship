@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 14
+url: https://github.com/hexmasternl/battleship/issues/14
+title: Integration events catalog with a Dapr event sender and shared Aspire constants
+linked: 2026-10-13

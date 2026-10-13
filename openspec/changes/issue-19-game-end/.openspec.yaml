@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Game end
+affected_areas:
+  - frontend
+  - games

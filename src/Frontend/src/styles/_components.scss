@@ -1,0 +1,173 @@
+// Battleship design system component recipes.
+// Buttons (docs/design-system.md section 7.1) and cards and panels (section 7.3), built from the
+// `--bs-*` tokens in _tokens.scss. Every value is a token reference so a theme change stays a
+// one-block edit; nothing here is a literal colour, size or duration.
+
+// ---- 7.1 Buttons ------------------------------------------------------------------------------
+// `.bs-btn` plus one variant. Pressing brightens: the active fill is one step lighter than hover.
+.bs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bs-space-2);
+  min-height: 44px;
+  padding: var(--bs-space-3) var(--bs-space-5);
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-md);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  line-height: 1;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--bs-radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--bs-duration-fast) var(--bs-ease-standard),
+    box-shadow var(--bs-duration-fast) var(--bs-ease-standard),
+    color var(--bs-duration-fast) var(--bs-ease-standard),
+    border-color var(--bs-duration-fast) var(--bs-ease-standard);
+
+  // Focus is always the ring, never a colour change alone.
+  &:focus-visible {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: var(--bs-focus-offset);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+}
+
+.bs-btn--primary {
+  background: var(--bs-color-accent);
+  color: var(--bs-color-text-on-accent);
+
+  &:hover {
+    background: var(--bs-color-accent-hover);
+    box-shadow: var(--bs-glow-primary);
+  }
+
+  &:active {
+    background: var(--bs-color-accent-active);
+    box-shadow: var(--bs-glow-primary);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    background: var(--bs-color-surface-overlay);
+    color: var(--bs-color-text-dim-raised);
+    box-shadow: none;
+  }
+}
+
+.bs-btn--secondary {
+  background: var(--bs-color-secondary);
+  color: var(--bs-color-text-on-accent);
+
+  &:hover {
+    background: var(--bs-color-secondary-hover);
+    box-shadow: var(--bs-glow-secondary);
+  }
+
+  &:active {
+    background: var(--bs-color-secondary-active);
+    box-shadow: var(--bs-glow-secondary);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    background: var(--bs-color-surface-overlay);
+    color: var(--bs-color-text-dim-raised);
+    box-shadow: none;
+  }
+}
+
+.bs-btn--ghost {
+  background: transparent;
+  color: var(--bs-color-text);
+  border-color: var(--bs-color-border-strong);
+
+  &:hover {
+    color: var(--bs-color-accent);
+    border-color: var(--bs-color-accent);
+  }
+
+  &:active {
+    background: var(--bs-color-accent-subtle);
+    color: var(--bs-color-accent);
+    border-color: var(--bs-color-accent);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    background: transparent;
+    color: var(--bs-color-text-dim-raised);
+    border-color: var(--bs-color-border);
+  }
+}
+
+// ---- 7.3 Cards and panels ---------------------------------------------------------------------
+.bs-card {
+  background: var(--bs-color-surface-raised);
+  border-radius: var(--bs-radius-md);
+  box-shadow: var(--bs-shadow-2);
+  padding: var(--bs-space-5);
+  transition: background-color var(--bs-duration-base) var(--bs-ease-standard);
+
+  &:hover {
+    background: var(--bs-color-surface-overlay);
+  }
+
+  // Card headings sit in the heading face at the large size.
+  > h2,
+  > h3,
+  > h4 {
+    margin-top: 0;
+    font-family: var(--bs-font-heading);
+    font-size: var(--bs-text-lg);
+    font-weight: var(--bs-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--bs-tracking-heading);
+    line-height: var(--bs-leading-tight);
+    color: var(--bs-color-text-strong);
+  }
+}
+
+// A 2px top rule in the accent colour marks the panel as live.
+.bs-panel {
+  background: var(--bs-color-surface);
+  border: 1px solid var(--bs-color-border);
+  border-top: 2px solid var(--bs-color-accent);
+  border-radius: var(--bs-radius-lg);
+  padding: var(--bs-space-6);
+}
+
+// Bitcount Single appears only here and in the bridge console's message text.
+.bs-panel--info {
+  font-family: var(--bs-font-panel);
+  font-weight: var(--bs-font-weight-panel);
+  line-height: var(--bs-leading-panel);
+  font-size: var(--bs-text-lg);
+  color: var(--bs-color-accent);
+  text-shadow: var(--bs-glow-text-primary);
+
+  p {
+    max-width: none;
+    margin: 0;
+  }
+
+  p + p {
+    margin-top: var(--bs-space-3);
+  }
+}
+
+// ---- Reduced motion ---------------------------------------------------------------------------
+// Transitions drop to the fast duration; loops elsewhere stop (each component owns its own loop).
+@media (prefers-reduced-motion: reduce) {
+  .bs-btn,
+  .bs-card {
+    transition-duration: var(--bs-duration-fast);
+  }
+}

@@ -1,0 +1,83 @@
+// Global styles: the Angular Material theme built from the Battleship design system.
+//
+// `mat.theme()` defines the `--mat-sys-*` system variables that style every Angular Material
+// component. The palettes and typefaces it is given come from docs/design-system.md, so
+// Material components and the design system's own page elements share one visual language.
+// See the "Theming" section of README.md for the verification commands.
+@use '@angular/material' as mat;
+
+// Battleship design system tokens (`--bs-*` custom properties on `:root`).
+@use './styles/tokens';
+// Design system button, card and panel recipes (`.bs-btn`, `.bs-card`, `.bs-panel`).
+@use './styles/components';
+// Material 3 tonal palettes built from the design system colour scales.
+@use './styles/palettes';
+
+html {
+  height: 100%;
+
+  // Dark only: `theme-type: dark` emits plain values rather than `light-dark()` pairs.
+  // Primary is the design system primary scale (cyan), tertiary the secondary scale (blue);
+  // the primary palette carries the secondary, neutral, neutral-variant and error palettes.
+  // Quantico is the brand family (display, headline, title-large); Courier Prime the plain
+  // family (body, label, the other title levels). Both typefaces ship only weights 400 and
+  // 700, so the medium weight is 700 rather than a synthesised 500. The fallback stacks are
+  // the design system's `--bs-font-heading` and `--bs-font-body`.
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: palettes.$primary-palette,
+        tertiary: palettes.$tertiary-palette,
+      ),
+      typography: (
+        brand-family: (Quantico, 'Segoe UI', system-ui, sans-serif),
+        plain-family: ('Courier Prime', 'Courier New', Courier, monospace),
+        regular-weight: 400,
+        medium-weight: 700,
+        bold-weight: 700,
+      ),
+      density: 0,
+    )
+  );
+
+  // The roles that carry the page (surfaces, text, outlines) follow the design system's
+  // semantic role tokens rather than the palette tones. The palettes produce the same values
+  // today, so this changes nothing visually; it makes the dependency explicit, and a later
+  // re-assignment of a design system role flows into Material without touching the palettes.
+  // The chromatic roles (primary, tertiary, error) stay on the palettes because Material
+  // derives their container and fixed variants from the same tone ladder.
+  @include mat.theme-overrides(
+    (
+      background: var(--bs-color-bg),
+      surface: var(--bs-color-bg),
+      surface-dim: var(--bs-color-bg),
+      surface-container-lowest: var(--bs-color-bg),
+      surface-container-low: var(--bs-color-surface),
+      surface-container: var(--bs-color-surface-raised),
+      surface-container-high: var(--bs-color-surface-overlay),
+      surface-container-highest: var(--bs-color-border),
+      surface-bright: var(--bs-color-border),
+      on-surface: var(--bs-color-text),
+      on-surface-variant: var(--bs-color-text-dim),
+      outline: var(--bs-color-border-strong),
+      outline-variant: var(--bs-color-border),
+    )
+  );
+}
+
+body {
+  // The application is dark only: native form controls, scrollbars and the user agent
+  // default background follow the theme regardless of the system preference.
+  color-scheme: dark;
+
+  // Default background, text colour and font from Material's system-level variables, which
+  // the theme above resolves to design system values.
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  // Reset the user agent margin.
+  margin: 0;
+  height: 100%;
+}

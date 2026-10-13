@@ -1,0 +1,215 @@
+// Material 3 tonal palettes built from the Battleship design system colour scales.
+//
+// Every tone below is a design system value (a step of the primary, secondary, danger,
+// text or surface scale from docs/design-system.md) or a documented mix of two such
+// values. No tone comes from a seed colour or from a stock Material palette.
+//
+// Sass cannot read CSS custom properties at build time, so the scale steps are repeated
+// here as Sass variables named after their `--bs-*` tokens. The token-diff command in the
+// "Theming" section of src/Frontend/README.md checks that these equal the document.
+//
+// Mixes are computed with `color.mix()` in Oklab (a perceptual straight line between the two
+// colours, so a mix of the danger shade and the navy background cannot detour through purple
+// the way an OKLCH hue arc would) and rounded to integer sRGB channels, so the built CSS
+// contains plain `rgb()` values that can be read and compared directly.
+
+@use 'sass:color';
+@use 'sass:map';
+@use 'sass:math';
+
+// ---- Design system scale steps (mirror of _tokens.scss / docs/design-system.md) ----
+
+$bs-color-bg-base: #011627;
+
+$bs-color-primary-50: #eef9ff;
+$bs-color-primary-100: #d9f2ff;
+$bs-color-primary-300: #92daff;
+$bs-color-primary-500: #00c0ff;
+$bs-color-primary-600: #0097c9;
+$bs-color-primary-700: #00739a;
+$bs-color-primary-800: #00516e;
+$bs-color-primary-900: #003449;
+
+$bs-color-secondary-50: #ecf4ff;
+$bs-color-secondary-100: #d5e6ff;
+$bs-color-secondary-300: #8abaff;
+$bs-color-secondary-500: #2f87ff;
+$bs-color-secondary-600: #266bcb;
+$bs-color-secondary-700: #1e539d;
+$bs-color-secondary-800: #163c72;
+$bs-color-secondary-900: #0e294e;
+
+$bs-color-danger-50: #ffefee;
+$bs-color-danger-100: #ffdbd9;
+$bs-color-danger-300: #ff9796;
+$bs-color-danger-500: #ff2146;
+$bs-color-danger-600: #ca2038;
+$bs-color-danger-700: #9c1d2c;
+$bs-color-danger-800: #701820;
+$bs-color-danger-900: #4b1316;
+
+$bs-color-text-300: #b2c2d4;
+$bs-color-text-700: #425468;
+$bs-color-text-dim-base: #7a8694;
+
+$bs-color-surface-0: $bs-color-bg-base;
+$bs-color-surface-1: #041e32;
+$bs-color-surface-2: #09273c;
+$bs-color-surface-3: #103048;
+$bs-color-surface-4: #163953;
+
+$white: #ffffff;
+$black: #000000;
+
+// ---- Helpers ----
+
+/// Mixes two colours in Oklab (`$weight` is the share of `$a`) and returns the result as an
+/// sRGB colour with integer channels.
+@function mix-oklab($a, $b, $weight) {
+  $c: color.to-space(color.mix($a, $b, $weight, $method: oklab), rgb);
+  @return rgb(
+    math.clamp(0, math.round(color.channel($c, 'red', $space: rgb)), 255),
+    math.clamp(0, math.round(color.channel($c, 'green', $space: rgb)), 255),
+    math.clamp(0, math.round(color.channel($c, 'blue', $space: rgb)), 255)
+  );
+}
+
+/// Interpolates a tone between two pinned tones: `$tone` lies between `$lo-tone` (colour
+/// `$lo`) and `$hi-tone` (colour `$hi`), and the mix ratio is the tone's position between them.
+@function between($lo-tone, $lo, $hi-tone, $hi, $tone) {
+  @return mix-oklab($hi, $lo, math.div($tone - $lo-tone, $hi-tone - $lo-tone) * 100%);
+}
+
+/// Builds a chromatic palette (tones 0 to 100) from a design system colour scale, which is a
+/// map of steps 50 to 900 with the base colour at 500. The tone-to-step table is the one in
+/// openspec design.md; the trailing comment names the dark-theme role Material reads from it.
+@function chromatic-palette($scale) {
+  $s900: map.get($scale, 900);
+  @return (
+    100: $white, // none
+    99: map.get($scale, 50), // none
+    98: map.get($scale, 50), // none
+    95: map.get($scale, 100), // none
+    90: map.get($scale, 300), // on-*-container, *-fixed
+    80: map.get($scale, 500), // primary / secondary / tertiary / error (the base colour)
+    70: map.get($scale, 600), // none
+    60: map.get($scale, 700), // none
+    50: map.get($scale, 800), // none
+    40: mix-oklab(map.get($scale, 800), $s900, 50%), // inverse-primary: mix(step 800, step 900, 50%)
+    35: $s900, // none
+    30: $s900, // *-container, on-*-fixed-variant
+    25: mix-oklab($s900, $bs-color-surface-0, 50%), // none: mix(step 900, surface-0, 50%)
+    20: mix-oklab($s900, $bs-color-surface-0, 50%), // on-primary / on-tertiary / on-error: mix(step 900, surface-0, 50%)
+    10: mix-oklab($s900, $bs-color-surface-0, 80%), // on-*-fixed: mix(step 900, surface-0, 80%)
+    0: mix-oklab($bs-color-surface-0, $black, 50%), // none: mix(surface-0, black, 50%)
+  );
+}
+
+// ---- Scales as maps (step -> token) ----
+
+$primary-scale: (
+  50: $bs-color-primary-50,
+  100: $bs-color-primary-100,
+  300: $bs-color-primary-300,
+  500: $bs-color-primary-500,
+  600: $bs-color-primary-600,
+  700: $bs-color-primary-700,
+  800: $bs-color-primary-800,
+  900: $bs-color-primary-900,
+);
+
+$secondary-scale: (
+  50: $bs-color-secondary-50,
+  100: $bs-color-secondary-100,
+  300: $bs-color-secondary-300,
+  500: $bs-color-secondary-500,
+  600: $bs-color-secondary-600,
+  700: $bs-color-secondary-700,
+  800: $bs-color-secondary-800,
+  900: $bs-color-secondary-900,
+);
+
+$danger-scale: (
+  50: $bs-color-danger-50,
+  100: $bs-color-danger-100,
+  300: $bs-color-danger-300,
+  500: $bs-color-danger-500,
+  600: $bs-color-danger-600,
+  700: $bs-color-danger-700,
+  800: $bs-color-danger-800,
+  900: $bs-color-danger-900,
+);
+
+// ---- Neutral palette: the surface scale, with body text at tone 90 ----
+//
+// Material's dark theme reads tone 6 for surface and background, 4 for
+// surface-container-lowest, 10 / 12 / 17 / 22 for -low / default / -high / -highest,
+// 24 for surface-bright, 90 for on-surface and inverse-surface, 20 for inverse-on-surface
+// and 0 for shadows and the scrim. Tone 4 is surface-0 rather than a darker mix so that
+// surface-container-lowest is a step of the surface scale, as the material-theme spec
+// requires. Tones that no role reads are interpolated between their pinned neighbours.
+$neutral-palette: (
+  0: $black, // shadow, scrim
+  4: $bs-color-surface-0, // surface-container-lowest (--bs-color-surface-0, the background)
+  6: $bs-color-surface-0, // surface, surface-dim, background (--bs-color-surface-0)
+  10: $bs-color-surface-1, // surface-container-low (--bs-color-surface-1)
+  12: $bs-color-surface-2, // surface-container (--bs-color-surface-2)
+  17: $bs-color-surface-3, // surface-container-high (--bs-color-surface-3)
+  20: between(17, $bs-color-surface-3, 22, $bs-color-surface-4, 20), // inverse-on-surface: mix(surface-4, surface-3, 60%)
+  22: $bs-color-surface-4, // surface-container-highest (--bs-color-surface-4)
+  24: $bs-color-surface-4, // surface-bright (--bs-color-surface-4)
+  25: between(24, $bs-color-surface-4, 90, $bs-color-text-300, 25), // none: mix(text-300, surface-4, 1/66)
+  30: between(24, $bs-color-surface-4, 90, $bs-color-text-300, 30), // none: mix(text-300, surface-4, 6/66)
+  35: between(24, $bs-color-surface-4, 90, $bs-color-text-300, 35), // none: mix(text-300, surface-4, 11/66)
+  40: between(24, $bs-color-surface-4, 90, $bs-color-text-300, 40), // none: mix(text-300, surface-4, 16/66)
+  50: between(24, $bs-color-surface-4, 90, $bs-color-text-300, 50), // none: mix(text-300, surface-4, 26/66)
+  60: between(24, $bs-color-surface-4, 90, $bs-color-text-300, 60), // none: mix(text-300, surface-4, 36/66)
+  70: between(24, $bs-color-surface-4, 90, $bs-color-text-300, 70), // none: mix(text-300, surface-4, 46/66)
+  80: between(24, $bs-color-surface-4, 90, $bs-color-text-300, 80), // none: mix(text-300, surface-4, 56/66)
+  90: $bs-color-text-300, // on-surface, on-background, inverse-surface (--bs-color-text-300)
+  95: between(90, $bs-color-text-300, 100, $white, 95), // none: mix(white, text-300, 50%)
+  98: between(90, $bs-color-text-300, 100, $white, 98), // none: mix(white, text-300, 80%)
+  99: between(90, $bs-color-text-300, 100, $white, 99), // none: mix(white, text-300, 90%)
+  100: $white, // none
+);
+
+// ---- Neutral-variant palette: the neutral tones, with the dim text and border roles pinned ----
+//
+// Material's dark theme reads tone 90 for on-surface-variant, 60 for outline and 30 for
+// outline-variant and surface-variant. Material validates this map against the standard
+// tone list, so the surface-only tones 4, 6, 12, 17, 22 and 24 are dropped.
+$neutral-variant-palette: map.merge(
+  map.remove($neutral-palette, 4, 6, 12, 17, 22, 24),
+  (
+    30: $bs-color-surface-4, // outline-variant, surface-variant (--bs-color-surface-4, the border role)
+    60: $bs-color-text-700, // outline (--bs-color-text-700, the border-strong role)
+    90: $bs-color-text-dim-base, // on-surface-variant (--bs-color-text-dim-base)
+  )
+);
+
+// ---- Palettes handed to mat.theme() ----
+
+/// Primary palette: the primary scale, carrying the nested palettes Material reads from it.
+/// The nested secondary map uses the secondary scale, so Material's secondary role equals
+/// the tertiary role below.
+$primary-palette: map.merge(
+  chromatic-palette($primary-scale),
+  (
+    secondary: chromatic-palette($secondary-scale),
+    neutral: $neutral-palette,
+    neutral-variant: $neutral-variant-palette,
+    error: chromatic-palette($danger-scale),
+  )
+);
+
+/// Tertiary palette: the secondary scale, so the design system secondary colour is Material's
+/// tertiary role.
+$tertiary-palette: map.merge(
+  chromatic-palette($secondary-scale),
+  (
+    secondary: chromatic-palette($secondary-scale),
+    neutral: $neutral-palette,
+    neutral-variant: $neutral-variant-palette,
+    error: chromatic-palette($danger-scale),
+  )
+);

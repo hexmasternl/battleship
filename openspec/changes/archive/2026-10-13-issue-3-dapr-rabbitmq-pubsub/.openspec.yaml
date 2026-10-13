@@ -1,0 +1,7 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Local messaging with RabbitMq and Dapr
+affected_areas:
+  - aspire
+  - games
+  - players
