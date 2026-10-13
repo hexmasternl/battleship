@@ -43,8 +43,8 @@ The Games API and the Players API SHALL each run with a Dapr sidecar that loads 
 Any service with a sidecar SHALL be able to publish an event to a topic on `pubsub` and SHALL be able to declare a subscription to a topic on `pubsub` that delivers each published event to a handler in that service.
 
 #### Scenario: Event crosses from one API to the other
-- **WHEN** the Games API publishes an event to a topic on `pubsub` that the Players API subscribes to
-- **THEN** the Players API handler receives the event payload within five seconds on a local run
+- **WHEN** the Players API publishes an integration event to the `integration-events` topic on `pubsub`, to which the Events API subscribes
+- **THEN** the Events API handler receives the event within five seconds on a local run
 
 #### Scenario: Subscription is discoverable by the sidecar
 - **WHEN** the sidecar of a subscribing API asks the API for its subscriptions
