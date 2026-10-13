@@ -49,5 +49,8 @@ public sealed class InMemoryGameRepository : IGameRepository
         return Task.FromResult(_rows.TryUpdate(game.GameCode, updated, current));
     }
 
+    // The token of the stored version, as a read would return it.
+    public string TokenOf(string gameCode) => _rows[gameCode].Token;
+
     private string NextToken() => $"W/\"{Interlocked.Increment(ref _version)}\"";
 }
