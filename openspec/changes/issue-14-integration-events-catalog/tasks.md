@@ -4,7 +4,7 @@
 
 - [x] 1.1 Create `src/Core/HexMaster.Battleship.IntegrationEvents` (net10.0, nullable, implicit usings, `FrameworkReference Microsoft.AspNetCore.App` for hosting abstractions) referencing `Events.Abstractions` and `Dapr.Client` 1.18.10, and `src/Core/HexMaster.Battleship.IntegrationEvents.Tests` (xUnit, Moq, Bogus, coverlet, `Aspire.Hosting.Testing`, references to the library, ServiceDefaults and the AppHost); add both under a `/Core/` folder in `src/Battleship.slnx` (create the folder if missing); verify `dotnet build src/Battleship.slnx` succeeds
 - [x] 1.2 Add `AspireConstants.cs` (`internal static class` with `PubSubName = "pubsub"` and `IntegrationEventsTopic = "integration-events"`) to the ServiceDefaults project and link it with `<Compile Include=... Link="AspireConstants.cs" />` into the AppHost, the integration events library and the Events API (design D5); verify the solution builds with no CS0433/CS0436 warnings
-- [ ] 1.3 Use the constants in `AppHost.cs` (`AddDaprComponent(AspireConstants.PubSubName, ...)`) and as the defaults of `PubSubOptions.Name`/`Topic` in the Events API; verify `grep -rn '"pubsub"' src --include=*.cs` only matches `AspireConstants.cs` and test assertions, and the existing Events tests still pass (`dotnet test src/Events/HexMaster.Battleship.Events.Tests`)
+- [x] 1.3 Use the constants in `AppHost.cs` (`AddDaprComponent(AspireConstants.PubSubName, ...)`) and as the defaults of `PubSubOptions.Name`/`Topic` in the Events API; verify `grep -rn '"pubsub"' src --include=*.cs` only matches `AspireConstants.cs` and test assertions, and the existing Events tests still pass (`dotnet test src/Events/HexMaster.Battleship.Events.Tests`)
 
 ## 2. Event catalog
 
