@@ -35,6 +35,16 @@ var messagingEndpoint = messaging.Resource.PrimaryEndpoint;
 var messagingHostAndPort = ReferenceExpression.Create(
     $"{messagingEndpoint.Property(EndpointProperty.Host)}:{messagingEndpoint.Property(EndpointProperty.Port)}");
 
+// Sidecar tracing. Each sidecar exports its spans to the dashboard through the OTEL_* settings
+// the toolkit gives it; the generated configuration samples every request and replaces the
+// `dapr init` default, which would send them to Zipkin. Written to the temp directory per run.
+var daprConfig = builder.ExecutionContext.IsRunMode
+    ? DaprTracingConfiguration.Write(
+        builder.Configuration,
+        Path.Combine(Path.GetTempPath(), "hexmaster-battleship"),
+        warning => Console.Error.WriteLine($"warning: {warning}"))
+    : null;
+
 var pubsub = builder.AddDaprComponent(AspireConstants.PubSubName, "pubsub.rabbitmq")
     .WithMetadata("hostname", messagingHostAndPort)
     .WithMetadata("username", rabbitUsername.Resource)
@@ -64,7 +74,7 @@ var signingKey = builder.AddParameter(
 // The APIs reach the broker only through Dapr, so they wait for it but do not reference it.
 var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(GatewayRoutes.GamesApi)
     .WithDaprSidecar(sidecar => sidecar
-        .WithOptions(new DaprSidecarOptions { AppId = "games-api" })
+        .WithOptions(new DaprSidecarOptions { AppId = "games-api", Config = daprConfig })
         .WithReference(pubsub))
     .WithReference(tables)
     .WithEnvironment("Players__Tokens__SigningKey", signingKey)
@@ -73,7 +83,7 @@ var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(Gatew
 
 var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(GatewayRoutes.PlayersApi)
     .WithDaprSidecar(sidecar => sidecar
-        .WithOptions(new DaprSidecarOptions { AppId = "players-api" })
+        .WithOptions(new DaprSidecarOptions { AppId = "players-api", Config = daprConfig })
         .WithReference(pubsub))
     .WithReference(tables)
     .WithEnvironment("Players__Tokens__SigningKey", signingKey)
@@ -84,7 +94,7 @@ var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(G
 // process, so the service runs as a single instance.
 var eventsApi = builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("hexmaster-battleship-events-api")
     .WithDaprSidecar(sidecar => sidecar
-        .WithOptions(new DaprSidecarOptions { AppId = "events-api" })
+        .WithOptions(new DaprSidecarOptions { AppId = "events-api", Config = daprConfig })
         .WithReference(pubsub))
     .WaitFor(messaging);
 

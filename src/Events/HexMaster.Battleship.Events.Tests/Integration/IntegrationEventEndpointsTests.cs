@@ -1,10 +1,16 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using HexMaster.Battleship.Events.Abstractions.DataTransferObjects;
+using HexMaster.Battleship.Events.Observability;
 using HexMaster.Battleship.Events.Tests.Factories;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 
 namespace HexMaster.Battleship.Events.Tests.Integration;
 
@@ -88,6 +94,51 @@ public class IntegrationEventEndpointsTests(WebApplicationFactory<Program> facto
             "/integration-events", new StringContent(body, Encoding.UTF8, "application/json"));
 
         await AssertDroppedAsync(response);
+    }
+
+    [Fact]
+    public async Task InvalidEnvelope_IsCountedAsDropped()
+    {
+        using var client = factory.CreateClient();
+        using var dropped = new MetricCollector<long>(
+            factory.Services.GetRequiredService<IMeterFactory>(), EventsTelemetry.Name, EventsMetrics.DroppedName);
+
+        using var response = await client.PostAsJsonAsync(
+            "/integration-events", IntegrationEventEnvelopeFactory.Create() with { TargetIds = [] }, JsonSerializerOptions.Web);
+
+        await AssertDroppedAsync(response);
+        var measurement = Assert.Single(dropped.GetMeasurementSnapshot());
+        Assert.Equal(DropReasons.InvalidEnvelope, measurement.Tags[EventsTelemetry.ReasonTag]);
+    }
+
+    [Fact]
+    public async Task ValidEnvelope_IsProcessedInAConsumerSpanWithTheDeliverSpanBeneathIt()
+    {
+        using var client = factory.CreateClient();
+        var envelope = IntegrationEventEnvelopeFactory.ForPlayer(Guid.NewGuid().ToString(), "shot-fired");
+        var stopped = new ConcurrentQueue<Activity>();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == EventsTelemetry.Name,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = stopped.Enqueue
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        await PostAsync(client, envelope);
+
+        var process = Assert.Single(stopped, a => (string?)a.GetTagItem(EventsTelemetry.MessageIdAttribute) == envelope.Id);
+        Assert.Equal("process integration-events", process.OperationName);
+        Assert.Equal(ActivityKind.Consumer, process.Kind);
+        Assert.Equal(ActivityStatusCode.Ok, process.Status);
+        Assert.Equal("dapr", process.GetTagItem(EventsTelemetry.MessagingSystemAttribute));
+        Assert.Equal("process", process.GetTagItem(EventsTelemetry.OperationTypeAttribute));
+        Assert.Equal("integration-events", process.GetTagItem(EventsTelemetry.DestinationNameAttribute));
+        Assert.Equal("shot-fired", process.GetTagItem(EventsTelemetry.EventTypeAttribute));
+
+        var deliver = Assert.Single(stopped, a => a.ParentSpanId == process.SpanId);
+        Assert.Equal(EventsTelemetry.DeliverActivityName, deliver.OperationName);
+        Assert.Equal(process.TraceId, deliver.TraceId);
     }
 
     [Fact]

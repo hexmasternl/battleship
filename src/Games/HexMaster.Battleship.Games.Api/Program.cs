@@ -1,18 +1,16 @@
-using HexMaster.Battleship.Games;
 using HexMaster.Battleship.Games.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+// Games publishes integration events (game created, joined, ...) through its Dapr sidecar.
+builder.AddIntegrationEvents();
+
 builder.AddGatewayCors();
 
 // Validates the access tokens the Players service issues; endpoints opt in with RequireAuthorization().
 builder.AddBattleshipAuthentication();
-
-// Exports the module's own activities and counters next to the service defaults' instrumentation.
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing.AddSource(GamesTelemetry.Name))
-    .WithMetrics(metrics => metrics.AddMeter(GamesTelemetry.Name));
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

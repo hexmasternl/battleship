@@ -27,6 +27,7 @@ public class CreateGameCommandHandlerTests
 
     public CreateGameCommandHandlerTests()
     {
+        _logger.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         _codes.Setup(c => c.Generate()).Returns(GameFactory.Code);
         _games.Setup(g => g.TryAddAsync(It.IsAny<IGame>(), It.IsAny<CancellationToken>()))
             .Callback<IGame, CancellationToken>((game, _) => _attempted.Add(game))

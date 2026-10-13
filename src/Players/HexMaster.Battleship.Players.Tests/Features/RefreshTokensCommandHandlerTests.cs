@@ -1,9 +1,13 @@
+using System.Diagnostics.Metrics;
 using HexMaster.Battleship.Core.DomainModels;
 using HexMaster.Battleship.Players.Abstractions.DomainModels;
 using HexMaster.Battleship.Players.Abstractions.Repositories;
 using HexMaster.Battleship.Players.Features.RefreshTokens;
+using HexMaster.Battleship.Players.Observability;
 using HexMaster.Battleship.Players.Services;
 using HexMaster.Battleship.Players.Tests.Factories;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -35,7 +39,9 @@ public class RefreshTokensCommandHandlerTests
             _users.Object,
             _refreshTokens.Object,
             new JwtTokenService(Options.Create(TokenOptionsFactory.Create()), new RefreshTokenGenerator()),
-            new FakeTimeProvider(Now));
+            new FakeTimeProvider(Now),
+            new PlayersMetrics(new ServiceCollection().AddMetrics().BuildServiceProvider().GetRequiredService<IMeterFactory>()),
+            NullLogger<RefreshTokensCommandHandler>.Instance);
     }
 
     [Fact]

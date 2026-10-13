@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using HexMaster.Battleship.Events.Abstractions;
 using HexMaster.Battleship.Events.Abstractions.DataTransferObjects;
 using HexMaster.Battleship.Events.Connections;
+using HexMaster.Battleship.Events.Observability;
 using HexMaster.Battleship.Events.Replay;
 using HexMaster.Battleship.Events.Streaming;
 using Microsoft.Extensions.Logging;
@@ -12,6 +14,7 @@ public sealed class EventRouter(
     IConnectionRegistry registry,
     IReplayBuffer replayBuffer,
     IOptions<StreamOptions> streamOptions,
+    EventsMetrics metrics,
     ILogger<EventRouter> logger) : IEventRouter
 {
     private long _sequence;
@@ -23,7 +26,8 @@ public sealed class EventRouter(
 
     public EventConnection Connect(string playerId, long? lastEventId)
     {
-        var connection = new EventConnection(playerId, streamOptions.Value.ChannelCapacity, logger);
+        var connection = new EventConnection(playerId, streamOptions.Value.ChannelCapacity, logger, metrics);
+        var replayed = 0;
 
         lock (_lock)
         {
@@ -33,14 +37,17 @@ public sealed class EventRouter(
             {
                 foreach (var item in replayBuffer.Since(lastId, playerId))
                 {
-                    connection.TryWrite(item);
+                    if (connection.TryWrite(item))
+                    {
+                        replayed++;
+                    }
                 }
             }
         }
 
-        logger.LogInformation(
-            "Opened event stream {ConnectionId} for player {PlayerId} after event {LastEventId}",
-            connection.Id, playerId, lastEventId);
+        metrics.ConnectionOpened();
+        metrics.Replayed(replayed);
+        EventsLog.StreamOpened(logger, connection.Id, playerId, lastEventId, replayed);
 
         return connection;
     }
@@ -49,13 +56,20 @@ public sealed class EventRouter(
     {
         registry.Unregister(connection);
 
-        logger.LogInformation(
-            "Closed event stream {ConnectionId} of player {PlayerId}",
-            connection.Id, connection.PlayerId);
+        if (connection.TryMarkClosed())
+        {
+            metrics.ConnectionClosed();
+            EventsLog.StreamClosed(logger, connection.Id, connection.PlayerId);
+        }
     }
 
     public RouteResult Route(IntegrationEventEnvelope envelope)
     {
+        // One span per routed event rather than per connection, so a broadcast to many players
+        // does not flood the trace.
+        using var activity = EventsTelemetry.ActivitySource.StartActivity(EventsTelemetry.DeliverActivityName);
+        activity?.SetTag(EventsTelemetry.EventTypeAttribute, envelope.Type);
+
         lock (_lock)
         {
             var sequence = Interlocked.Increment(ref _sequence);
@@ -74,11 +88,18 @@ public sealed class EventRouter(
 
                 // A completed connection has gone away without unregistering; drop it and
                 // carry on with the others.
-                logger.LogInformation(
-                    "Removing closed event stream {ConnectionId} of player {PlayerId}",
-                    connection.Id, connection.PlayerId);
+                metrics.Dropped(DropReasons.ConnectionClosed);
+                activity?.AddEvent(new ActivityEvent(
+                    EventsTelemetry.ConnectionRemovedEventName,
+                    tags: new ActivityTagsCollection { [EventsTelemetry.ConnectionIdAttribute] = connection.Id.ToString() }));
+                EventsLog.ClosedStreamRemoved(logger, connection.Id, connection.PlayerId);
                 registry.Unregister(connection);
             }
+
+            metrics.Delivered(envelope.Type, delivered);
+            activity?.SetTag(EventsTelemetry.EventSequenceAttribute, sequence);
+            activity?.SetTag(EventsTelemetry.ConnectionCountAttribute, delivered);
+            activity?.SetStatus(ActivityStatusCode.Ok);
 
             return new RouteResult(sequence, delivered);
         }

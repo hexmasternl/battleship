@@ -27,7 +27,7 @@ Every event is wrapped in the integration event envelope from `HexMaster.Battles
 
 ## Publishing
 
-`AddServiceDefaults()` calls `AddIntegrationEvents()`, so every backend service can inject `IIntegrationEventSender`:
+A publishing API opts in with `builder.AddIntegrationEvents()` right after `AddServiceDefaults()`, and can then inject `IIntegrationEventSender`:
 
 ```csharp
 await sender.SendAsync(

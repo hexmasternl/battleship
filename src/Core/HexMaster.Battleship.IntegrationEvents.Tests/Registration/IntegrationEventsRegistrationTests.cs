@@ -7,11 +7,12 @@ namespace HexMaster.Battleship.IntegrationEvents.Tests.Registration;
 public class IntegrationEventsRegistrationTests
 {
     [Fact]
-    public void AddServiceDefaults_RegistersTheDaprSender()
+    public void AddIntegrationEvents_RegistersTheDaprSender()
     {
         var builder = Host.CreateApplicationBuilder();
 
         builder.AddServiceDefaults();
+        builder.AddIntegrationEvents();
 
         using var host = builder.Build();
 
@@ -22,11 +23,22 @@ public class IntegrationEventsRegistrationTests
     }
 
     [Fact]
-    public void AddServiceDefaults_RegistersOneSingletonDaprClient()
+    public void AddServiceDefaults_AloneRegistersNoSender()
     {
         var builder = Host.CreateApplicationBuilder();
 
         builder.AddServiceDefaults();
+
+        Assert.DoesNotContain(builder.Services, s => s.ServiceType == typeof(IIntegrationEventSender));
+    }
+
+    [Fact]
+    public void AddServiceDefaultsAndIntegrationEvents_RegisterOneSingletonDaprClient()
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.AddServiceDefaults();
+        builder.AddIntegrationEvents();
 
         var registrations = builder.Services.Where(s => s.ServiceType == typeof(DaprClient)).ToList();
 
