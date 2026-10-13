@@ -170,6 +170,7 @@ public class FireShotApiTests : IClassFixture<JoinGameApiFactory>
         Assert.Equal(2, body.GetProperty("column").GetInt32());
         Assert.Equal(0, body.GetProperty("row").GetInt32());
         Assert.True(body.GetProperty("hit").GetBoolean());
+        Assert.Equal("Started", body.GetProperty("state").GetString());
         var stored = await ReadAsync(game);
         Assert.Equal([new Shot(2, 0, true)], stored.PlayerOne.Shots);
         Assert.True(stored.PlayerTwo!.HasTurn);
@@ -192,6 +193,83 @@ public class FireShotApiTests : IClassFixture<JoinGameApiFactory>
         Assert.Equal(2, shot.GetProperty("column").GetInt32());
         Assert.True(shot.GetProperty("hit").GetBoolean());
         Assert.True(body.GetProperty("me").GetProperty("hasTurn").GetBoolean());
+    }
+
+    [Fact]
+    public async Task FireShot_WinningShot_Is200WithStateCompletedAndAnnouncesTheEnd()
+    {
+        var game = await StoreAsync(Features.FireShotCommandHandlerTests.AlmostWonGame());
+        var last = Features.FireShotCommandHandlerTests.LastCell;
+        var winner = game.PlayerOne.PlayerId;
+
+        using var response = await FireAsync(game.GameCode, Token(winner), Body(last.Column, last.Row));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+        Assert.Equal(last.Column, body.GetProperty("column").GetInt32());
+        Assert.Equal(last.Row, body.GetProperty("row").GetInt32());
+        Assert.True(body.GetProperty("hit").GetBoolean());
+        Assert.Equal("Completed", body.GetProperty("state").GetString());
+        _factory.Events.Verify(e => e.SendAsync(
+            It.Is<GameEndedEvent>(x => x.Reason == GameEndReason.Completed && x.WinnerId == winner && x.GameCode == game.GameCode),
+            It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()), Times.Once);
+        _factory.Events.Verify(e => e.SendAsync(
+            It.IsAny<GameTurnChangedEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task FireShot_OnACompletedGame_Is409AndChangesAndPublishesNothing(bool winnerFires)
+    {
+        var game = await StoreAsync(Features.FireShotCommandHandlerTests.AlmostWonGame());
+        var last = Features.FireShotCommandHandlerTests.LastCell;
+        using (await FireAsync(game.GameCode, Token(game.PlayerOne.PlayerId), Body(last.Column, last.Row)))
+        {
+        }
+
+        _factory.Events.Reset();
+        var token = _factory.Games.TokenOf(game.GameCode);
+        var shooter = winnerFires ? game.PlayerOne.PlayerId : game.PlayerTwo!.PlayerId;
+
+        using var response = await FireAsync(game.GameCode, Token(shooter), Body(11, 11));
+
+        await AssertProblemAsync(response, HttpStatusCode.Conflict, "game-not-started");
+        Assert.Equal(token, _factory.Games.TokenOf(game.GameCode));
+        _factory.Events.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task GetGame_OfARunningGame_HasNoWinner()
+    {
+        var game = await StoreAsync();
+
+        using var response = await SendAsync(HttpMethod.Get, $"/games/{game.GameCode}", Token(game.PlayerOne.PlayerId));
+
+        var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+        Assert.Equal(JsonValueKind.Null, body.GetProperty("winnerId").ValueKind);
+    }
+
+    [Fact]
+    public async Task GetGame_OfACompletedGame_ReportsTheWinnerWithoutRevealingTheOpponentsShips()
+    {
+        var game = await StoreAsync(Features.FireShotCommandHandlerTests.AlmostWonGame());
+        var last = Features.FireShotCommandHandlerTests.LastCell;
+        var winner = game.PlayerOne.PlayerId;
+        using (await FireAsync(game.GameCode, Token(winner), Body(last.Column, last.Row)))
+        {
+        }
+
+        using var response = await SendAsync(HttpMethod.Get, $"/games/{game.GameCode}", Token(game.PlayerTwo!.PlayerId));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+        Assert.Equal("Completed", body.GetProperty("state").GetString());
+        Assert.Equal(winner, body.GetProperty("winnerId").GetGuid());
+        Assert.False(body.GetProperty("me").GetProperty("hasTurn").GetBoolean());
+        Assert.False(body.GetProperty("opponent").GetProperty("hasTurn").GetBoolean());
+        Assert.False(body.GetProperty("opponent").TryGetProperty("ships", out _));
+        Assert.Equal(17, body.GetProperty("opponent").GetProperty("shots").GetArrayLength());
     }
 
     private static object Body(int column, int row) => new { column, row };

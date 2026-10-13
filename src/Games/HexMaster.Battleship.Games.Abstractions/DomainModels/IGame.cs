@@ -18,6 +18,9 @@ public interface IGame : IDomainModel<Guid>
 
     DateTimeOffset LastActivityOn { get; }
 
+    // The player who sank the opponent's fleet; empty until the game is completed.
+    Guid? WinnerId { get; }
+
     // Gives the turn to one of the players of a started game in which nobody has the turn yet.
     void GiveFirstTurnTo(Guid playerId, DateTimeOffset now);
 

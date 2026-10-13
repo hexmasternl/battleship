@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using HexMaster.Battleship.Core.Cqrs;
 using HexMaster.Battleship.Games.Abstractions.DataTransferObjects;
+using HexMaster.Battleship.Games.Abstractions.DomainModels;
 using HexMaster.Battleship.Games.DomainModels;
 using HexMaster.Battleship.Games.Exceptions;
 using HexMaster.Battleship.Games.Observability;
@@ -11,12 +12,13 @@ using Microsoft.Extensions.Logging;
 
 namespace HexMaster.Battleship.Games.Features.FireShot;
 
-// Records the caller's shot and passes the turn. Refusals surface as ShotRefusedException, conflicts
-// as GameUpdateConflictException.
+// Records the caller's shot and passes the turn, or, when the shot sank the opponent's fleet,
+// completes the game. Refusals surface as ShotRefusedException, conflicts as
+// GameUpdateConflictException.
 //
 // A double submit fires once: both requests read the same version, the first write wins, and the
-// loser's retry runs FireShot on the stored game, where the opponent now has the turn, so it is
-// refused as not-your-turn. Only the stored attempt publishes, so the events are never duplicated.
+// loser's retry runs FireShot on the stored game, where the opponent now has the turn (or the game is
+// completed), so it is refused. Only the stored attempt publishes, so the events are never duplicated.
 public sealed class FireShotCommandHandler(
     IGameUpdater updater,
     IIntegrationEventSender events,
@@ -63,13 +65,20 @@ public sealed class FireShotCommandHandler(
         activity?.SetTag(GamesTelemetry.GameIdAttribute, shot.GameId.ToString());
         activity?.SetTag(GamesTelemetry.ShotOutcomeAttribute, "recorded");
         activity?.SetTag(GamesTelemetry.ShotHitAttribute, shot.Outcome.Hit);
+        activity?.SetTag(GamesTelemetry.GameCompletedAttribute, shot.Outcome.GameCompleted);
 
         metrics.ShotFired(shot.Outcome.Hit);
         GamesLog.ShotFired(logger, shot.GameId, command.Code.Value, command.PlayerId, shot.Outcome.Hit);
+        if (shot.Outcome.GameCompleted)
+        {
+            metrics.GameCompleted();
+            GamesLog.GameCompleted(logger, shot.GameId, command.Code.Value, command.PlayerId);
+        }
+
         await AnnounceAsync(shot, command, cancellationToken);
 
         var at = shot.Outcome.At;
-        return FireShotResult.Success(new FireShotResponse(at.Column, at.Row, shot.Outcome.Hit));
+        return FireShotResult.Success(new FireShotResponse(at.Column, at.Row, shot.Outcome.Hit, shot.GameState));
     }
 
     // Runs again on fresh state after a conflict, so it only reads the game it is given. A recorded
@@ -83,14 +92,17 @@ public sealed class FireShotCommandHandler(
 
         var outcome = game.FireShot(command.PlayerId, command.At, time.GetUtcNow());
         var playerTwo = game.PlayerTwo!;
-        var withTurn = game.PlayerOne.HasTurn ? game.PlayerOne.PlayerId : playerTwo.PlayerId;
+        Guid? withTurn = game.PlayerOne.HasTurn ? game.PlayerOne.PlayerId
+            : playerTwo.HasTurn ? playerTwo.PlayerId
+            : null;
 
         return GameMutation.Save<ShotSnapshot?>(
-            new ShotSnapshot(game.Id, outcome, [game.PlayerOne.PlayerId, playerTwo.PlayerId], withTurn));
+            new ShotSnapshot(game.Id, outcome, game.GameState, [game.PlayerOne.PlayerId, playerTwo.PlayerId], withTurn, game.WinnerId));
     }
 
     // The shot is stored; a broker hiccup must not fail the player's request. Each event is tried on
-    // its own, so a failed shot event still lets the turn change through. Pages catch up on reload.
+    // its own, so a failed shot event still lets the turn change or the end through. Pages catch up on
+    // reload. The winning shot announces the end instead of a turn change: nobody has the turn.
     private async Task AnnounceAsync(ShotSnapshot shot, FireShotCommand command, CancellationToken cancellationToken)
     {
         var audience = EventAudience.Game(shot.PlayerIds);
@@ -99,9 +111,19 @@ public sealed class FireShotCommandHandler(
         await TrySendAsync(
             new GameShotFiredEvent(shot.GameId, command.Code.Value, command.PlayerId, at.Column, at.Row, shot.Outcome.Hit),
             audience, command, cancellationToken);
-        await TrySendAsync(
-            new GameTurnChangedEvent(shot.GameId, command.Code.Value, shot.PlayerWithTurnId),
-            audience, command, cancellationToken);
+
+        if (shot.Outcome.GameCompleted)
+        {
+            await TrySendAsync(
+                new GameEndedEvent(shot.GameId, command.Code.Value, GameEndReason.Completed, shot.WinnerId),
+                audience, command, cancellationToken);
+        }
+        else
+        {
+            await TrySendAsync(
+                new GameTurnChangedEvent(shot.GameId, command.Code.Value, shot.PlayerWithTurnId!.Value),
+                audience, command, cancellationToken);
+        }
     }
 
     private async Task TrySendAsync<TEvent>(
@@ -118,5 +140,11 @@ public sealed class FireShotCommandHandler(
         }
     }
 
-    private sealed record ShotSnapshot(Guid GameId, ShotOutcome Outcome, IReadOnlyList<Guid> PlayerIds, Guid PlayerWithTurnId);
+    private sealed record ShotSnapshot(
+        Guid GameId,
+        ShotOutcome Outcome,
+        GameState GameState,
+        IReadOnlyList<Guid> PlayerIds,
+        Guid? PlayerWithTurnId,
+        Guid? WinnerId);
 }

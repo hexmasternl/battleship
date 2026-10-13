@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   inject,
+  input,
   linkedSignal,
   untracked,
 } from '@angular/core';
@@ -34,6 +35,9 @@ export const SHOT_ERROR_DURATION = 5000;
  * target and closes when the target is cleared. A refused or failed shot shows its message in a
  * snackbar of its own that dismisses itself.
  *
+ * With `readonly` (a finished game) it shows the final boards only: no turn line, no selectable
+ * cell, no confirm snackbar, and the selected tab stays put.
+ *
  * Mobile first: the turn line, the tabs and the grid stacked.
  */
 @Component({
@@ -46,10 +50,34 @@ export class GamePlayPhase {
   protected readonly store = inject(GamePageStore);
   readonly #snackBar = inject(MatSnackBar);
 
-  /** The selected tab: follows the turn, and holds a manual choice until the turn moves. */
-  protected readonly selectedTab = linkedSignal<number>(() =>
-    this.store.myTurn() ? YOU_TAB : OPPONENT_TAB,
-  );
+  /**
+   * The final boards of a finished game: no cell can be selected, no shot confirmed, nobody is
+   * shown with the turn and the tabs no longer follow the turn.
+   */
+  readonly readonly = input(false);
+
+  /**
+   * The selected tab: follows the turn, and holds a manual choice until the turn moves. Read only,
+   * it stays where it was; shown read only from the start, it opens on the board that decided the
+   * game (the caller's own fleet for a loss, the opponent's waters otherwise).
+   */
+  protected readonly selectedTab = linkedSignal<
+    { readonly myTurn: boolean; readonly readonly: boolean; readonly lost: boolean },
+    number
+  >({
+    source: () => ({
+      myTurn: this.store.myTurn(),
+      readonly: this.readonly(),
+      lost: this.store.outcome() === 'lost',
+    }),
+    computation: (source, previous) => {
+      if (source.readonly) return previous?.value ?? (source.lost ? OPPONENT_TAB : YOU_TAB);
+      return source.myTurn ? YOU_TAB : OPPONENT_TAB;
+    },
+  });
+
+  /** Whether a cell of the opponent's waters may be selected: never on the final boards. */
+  protected readonly canShoot = computed(() => !this.readonly() && this.store.canShoot());
 
   protected readonly turnText = computed(() =>
     this.store.myTurn() ? 'Your turn' : "Opponent's turn",
@@ -72,7 +100,7 @@ export class GamePlayPhase {
   constructor() {
     // Leaves the reactive graph: the snackbar overlay opens with a target and closes without one.
     effect(() => {
-      const hasTarget = this.store.target() !== null;
+      const hasTarget = this.store.target() !== null && !this.readonly();
       untracked(() => (hasTarget ? this.#openConfirm() : this.#closeConfirm()));
     });
 

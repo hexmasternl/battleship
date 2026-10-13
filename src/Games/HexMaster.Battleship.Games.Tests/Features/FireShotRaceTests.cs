@@ -23,22 +23,7 @@ public class FireShotRaceTests
         var games = new InMemoryGameRepository();
         var game = FireShotCommandHandlerTests.StartedGame();
         await games.TryAddAsync(game, CancellationToken.None);
-
-        // Both requests read the same stored version, where player one has the turn, before either writes.
-        var reads = 0;
-        var bothRead = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        games.AfterRead = async () =>
-        {
-            if (Interlocked.Increment(ref reads) <= 2)
-            {
-                if (reads == 2)
-                {
-                    bothRead.SetResult();
-                }
-
-                await bothRead.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            }
-        };
+        BlockUntilBothRead(games);
 
         var events = new Mock<IIntegrationEventSender>();
         var shooter = game.PlayerOne.PlayerId;
@@ -55,6 +40,51 @@ public class FireShotRaceTests
         events.Verify(e => e.SendAsync(It.IsAny<GameShotFiredEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()), Times.Once);
         events.Verify(e => e.SendAsync(It.IsAny<GameTurnChangedEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()), Times.Once);
         events.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task WinningShotSubmittedTwice_CompletesOnceAndRefusesTheRetryOnTheCompletedGame()
+    {
+        var games = new InMemoryGameRepository();
+        var game = FireShotCommandHandlerTests.AlmostWonGame();
+        await games.TryAddAsync(game, CancellationToken.None);
+        BlockUntilBothRead(games);
+
+        var events = new Mock<IIntegrationEventSender>();
+        var shooter = game.PlayerOne.PlayerId;
+        var lastCell = FireShotCommandHandlerTests.LastCell;
+
+        var attempts = await Task.WhenAll(
+            AttemptAsync(games, events.Object, game.Code, shooter, lastCell),
+            AttemptAsync(games, events.Object, game.Code, shooter, lastCell));
+
+        Assert.Equal(GameState.Completed, Assert.Single(attempts, a => a.Result?.Shot is not null).Result!.Shot!.State);
+        Assert.Equal(ShotRefusedReason.GameNotStarted, Assert.Single(attempts, a => a.Refusal is not null).Refusal);
+        var stored = await games.GetByCodeAsync(game.GameCode, CancellationToken.None);
+        Assert.Equal(GameState.Completed, stored!.GameState);
+        Assert.Equal(shooter, stored.WinnerId);
+        events.Verify(e => e.SendAsync(It.IsAny<GameShotFiredEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()), Times.Once);
+        events.Verify(e => e.SendAsync(It.IsAny<GameEndedEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()), Times.Once);
+        events.VerifyNoOtherCalls();
+    }
+
+    // Both requests read the same stored version before either writes.
+    private static void BlockUntilBothRead(InMemoryGameRepository games)
+    {
+        var reads = 0;
+        var bothRead = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        games.AfterRead = async () =>
+        {
+            if (Interlocked.Increment(ref reads) <= 2)
+            {
+                if (reads == 2)
+                {
+                    bothRead.SetResult();
+                }
+
+                await bothRead.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            }
+        };
     }
 
     private static async Task<(FireShotResult? Result, ShotRefusedReason? Refusal)> AttemptAsync(

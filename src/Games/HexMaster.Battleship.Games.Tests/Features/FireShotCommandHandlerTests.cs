@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HexMaster.Battleship.Events.Abstractions;
 using HexMaster.Battleship.Games.Abstractions.DataTransferObjects;
 using HexMaster.Battleship.Games.Abstractions.DomainModels;
@@ -30,6 +31,7 @@ public class FireShotCommandHandlerTests
     private readonly Mock<ILogger<FireShotCommandHandler>> _logger = new();
     private readonly List<(object Event, EventAudience Audience)> _sent = [];
     private readonly Func<long> _shotsFired;
+    private readonly Func<long> _gamesCompleted;
     private readonly FireShotCommandHandler _handler;
 
     public FireShotCommandHandlerTests()
@@ -41,8 +43,12 @@ public class FireShotCommandHandlerTests
         _events.Setup(e => e.SendAsync(It.IsAny<GameTurnChangedEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()))
             .Callback<GameTurnChangedEvent, EventAudience, CancellationToken>((e, a, _) => _sent.Add((e, a)))
             .Returns(Task.CompletedTask);
+        _events.Setup(e => e.SendAsync(It.IsAny<GameEndedEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()))
+            .Callback<GameEndedEvent, EventAudience, CancellationToken>((e, a, _) => _sent.Add((e, a)))
+            .Returns(Task.CompletedTask);
         var telemetry = TelemetryFactory.Create(out var meterFactory);
         _shotsFired = TelemetryFactory.Listen(meterFactory, GamesMetrics.ShotsFiredName);
+        _gamesCompleted = TelemetryFactory.Listen(meterFactory, GamesMetrics.GamesCompletedName);
         _handler = new FireShotCommandHandler(
             new GameUpdater(_games, telemetry, NullLogger<GameUpdater>.Instance),
             _events.Object,
@@ -62,7 +68,7 @@ public class FireShotCommandHandlerTests
 
         var result = await _handler.Handle(new FireShotCommand(game.Code, shooter, new Coordinate(column, row)), CancellationToken.None);
 
-        Assert.Equal(new FireShotResponse(column, row, hit), result.Shot);
+        Assert.Equal(new FireShotResponse(column, row, hit, GameState.Started), result.Shot);
         Assert.Equal(
             [
                 (object)new GameShotFiredEvent(game.Id, game.GameCode, shooter, column, row, hit),
@@ -75,6 +81,81 @@ public class FireShotCommandHandlerTests
         Assert.True(stored.PlayerTwo!.HasTurn);
         Assert.Equal(Later, stored.LastActivityOn);
         Assert.Equal(1, _shotsFired());
+        Assert.Equal(0, _gamesCompleted());
+    }
+
+    [Fact]
+    public async Task Handle_WinningShot_CompletesTheGameAndAnnouncesShotThenEndWithoutATurnChange()
+    {
+        var game = await StoreAsync(AlmostWonGame());
+        var shooter = game.PlayerOne.PlayerId;
+        var opponent = game.PlayerTwo!.PlayerId;
+
+        var result = await _handler.Handle(new FireShotCommand(game.Code, shooter, LastCell), CancellationToken.None);
+
+        Assert.Equal(new FireShotResponse(LastCell.Column, LastCell.Row, true, GameState.Completed), result.Shot);
+        Assert.Equal(
+            [
+                (object)new GameShotFiredEvent(game.Id, game.GameCode, shooter, LastCell.Column, LastCell.Row, true),
+                new GameEndedEvent(game.Id, game.GameCode, GameEndReason.Completed, shooter),
+            ],
+            _sent.Select(s => s.Event));
+        Assert.All(_sent, s => AssertAudience(s.Audience, shooter, opponent));
+        _events.Verify(e => e.SendAsync(It.IsAny<GameTurnChangedEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()), Times.Never);
+        var stored = await _games.GetByCodeAsync(game.GameCode, CancellationToken.None);
+        Assert.Equal(GameState.Completed, stored!.GameState);
+        Assert.Equal(shooter, stored.WinnerId);
+        Assert.False(stored.PlayerOne.HasTurn);
+        Assert.False(stored.PlayerTwo!.HasTurn);
+        Assert.Equal(1, _gamesCompleted());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Handle_TagsTheUseCaseSpanWithWhetherTheShotCompletedTheGame(bool winning)
+    {
+        var game = await StoreAsync(AlmostWonGame());
+        using var span = new Activity("FireShot").Start();
+
+        await _handler.Handle(new FireShotCommand(game.Code, game.PlayerOne.PlayerId, winning ? LastCell : Water), CancellationToken.None);
+
+        Assert.Equal(winning, span.GetTagItem(GamesTelemetry.GameCompletedAttribute));
+        Assert.Equal(winning ? 1 : 0, _gamesCompleted());
+    }
+
+    [Fact]
+    public async Task Handle_SwallowsAnEndPublishFailureAndKeepsTheCompletedGame()
+    {
+        _events.Setup(e => e.SendAsync(It.IsAny<GameEndedEvent>(), It.IsAny<EventAudience>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("The sidecar is down."));
+        var game = await StoreAsync(AlmostWonGame());
+
+        var result = await _handler.Handle(new FireShotCommand(game.Code, game.PlayerOne.PlayerId, LastCell), CancellationToken.None);
+
+        Assert.Equal(GameState.Completed, result.Shot!.State);
+        Assert.IsType<GameShotFiredEvent>(Assert.Single(_sent).Event);
+        var stored = await _games.GetByCodeAsync(game.GameCode, CancellationToken.None);
+        Assert.Equal(GameState.Completed, stored!.GameState);
+        Assert.Equal(game.PlayerOne.PlayerId, stored.WinnerId);
+        VerifyErrorLogged(game.GameCode, Times.Once());
+    }
+
+    [Fact]
+    public async Task Handle_ShotOnACompletedGame_IsRefusedWithoutAWriteOrEvents()
+    {
+        var game = await StoreAsync(AlmostWonGame());
+        await _handler.Handle(new FireShotCommand(game.Code, game.PlayerOne.PlayerId, LastCell), CancellationToken.None);
+        _sent.Clear();
+        var token = _games.TokenOf(game.GameCode);
+
+        var refused = await Assert.ThrowsAsync<ShotRefusedException>(
+            () => _handler.Handle(new FireShotCommand(game.Code, game.PlayerTwo!.PlayerId, Water), CancellationToken.None));
+
+        Assert.Equal(ShotRefusedReason.GameNotStarted, refused.Reason);
+        Assert.Equal(token, _games.TokenOf(game.GameCode));
+        Assert.Empty(_sent);
+        Assert.Equal(1, _gamesCompleted());
     }
 
     [Fact]
@@ -147,6 +228,21 @@ public class FireShotCommandHandlerTests
         GameFactory.Stored(
             GameState.Started,
             GameFactory.Player(hasTurn: true, isReady: true, ships: GameFactory.FullFleet()),
+            GameFactory.Player(isReady: true, ships: GameFactory.FullFleet()));
+
+    // The last cell of the patrol boat, the final ship of the full fleet.
+    internal static readonly Coordinate LastCell = GameFactory.FullFleet()[^1].Cells[^1];
+
+    // A started game in which player one has the turn and has hit every cell of player two's fleet
+    // except LastCell.
+    internal static Game AlmostWonGame() =>
+        GameFactory.Stored(
+            GameState.Started,
+            GameFactory.Player(
+                hasTurn: true,
+                isReady: true,
+                ships: GameFactory.FullFleet(),
+                shots: GameFactory.FullFleet().SelectMany(s => s.Cells).Where(c => c != LastCell).Select(c => new Shot(c.Column, c.Row, true))),
             GameFactory.Player(isReady: true, ships: GameFactory.FullFleet()));
 
     private static void AssertAudience(EventAudience audience, params Guid[] playerIds)

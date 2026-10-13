@@ -3,10 +3,12 @@ import { Service, inject } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
 import { toGameApiError } from './game-api-error';
 import {
+  GameState,
   GameView,
   GameViewResponse,
   ShipKind,
   ShipPlacementRequest,
+  toGameState,
   toGameView,
 } from './game-view';
 
@@ -66,11 +68,20 @@ export function toJoinGameError(error: unknown): JoinGameError {
   }
 }
 
-/** The answer to a recorded shot: the cell fired at and whether it hit a ship. */
+/**
+ * The answer to a recorded shot: the cell fired at, whether it hit a ship, and the game state after
+ * it (`completed` when this shot sank the last ship, so the shooter won).
+ */
 export interface FireShotResponse {
   readonly column: number;
   readonly row: number;
   readonly hit: boolean;
+  readonly state: GameState;
+}
+
+/** A `FireShotResponse` as it arrives on the wire, before its state casing is normalised. */
+export interface FireShotResponseBody extends Omit<FireShotResponse, 'state'> {
+  readonly state: string;
 }
 
 /**
@@ -188,9 +199,10 @@ export class GamesApi {
    */
   async fireShot(code: string, column: number, row: number): Promise<FireShotResponse> {
     try {
-      return await firstValueFrom(
-        this.#http.post<FireShotResponse>(`${gameUrl(code)}/shots`, { column, row }),
+      const body = await firstValueFrom(
+        this.#http.post<FireShotResponseBody>(`${gameUrl(code)}/shots`, { column, row }),
       );
+      return { ...body, state: toGameState(body.state) };
     } catch (error) {
       throw new FireShotFailure(toFireShotError(error));
     }

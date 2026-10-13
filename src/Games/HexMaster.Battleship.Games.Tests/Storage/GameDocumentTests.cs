@@ -36,6 +36,42 @@ public class GameDocumentTests
     }
 
     [Fact]
+    public void Document_RoundTripsACompletedGameWithItsWinner()
+    {
+        var winner = GameFactory.Player(isReady: true, ships: GameFactory.FullFleet(), lastActivityOn: Now);
+        var game = GameFactory.Stored(GameState.Completed, winner, winnerId: winner.PlayerId);
+
+        var json = GameDocument.From(game).Serialize();
+        var restored = GameDocument.Deserialize(json, GameDocument.CurrentVersion).ToGame();
+
+        Assert.Contains($"\"winnerId\":\"{winner.PlayerId}\"", json);
+        Assert.Equal(GameState.Completed, restored.GameState);
+        Assert.Equal(winner.PlayerId, restored.WinnerId);
+        Assert.False(restored.PlayerOne.HasTurn);
+        Assert.False(restored.PlayerTwo!.HasTurn);
+    }
+
+    [Fact]
+    public void VersionTwo_WithoutAWinnerReadsWithoutOne()
+    {
+        var json = $$"""
+            {"id":"{{Guid.NewGuid()}}","gameCode":"K7Q2M9XA","gameState":"Started",
+             "playerOne":{"playerId":"{{Guid.NewGuid()}}","playerName":"Admiral Nelson","hasTurn":true,"isReady":true,
+               "ships":[],"shots":[{"column":3,"row":4,"hit":true}],"lastActivityOn":"{{Now:O}}"},
+             "playerTwo":{"playerId":"{{Guid.NewGuid()}}","playerName":"Admiral Tromp","hasTurn":false,"isReady":true,
+               "ships":[],"shots":[],"lastActivityOn":"{{Now:O}}"},
+             "lastActivityOn":"{{Now:O}}"}
+            """;
+
+        var game = GameDocument.Deserialize(json, GameDocument.CurrentVersion).ToGame();
+
+        Assert.Null(game.WinnerId);
+        Assert.Equal(GameState.Started, game.GameState);
+        Assert.True(game.PlayerOne.HasTurn);
+        Assert.Equal([new Shot(3, 4, true)], game.PlayerOne.Shots);
+    }
+
+    [Fact]
     public void Document_WritesCamelCaseAndTheStateByName()
     {
         var game = Game.Create(Guid.NewGuid(), "Admiral Nelson", GameFactory.Code(), Now);

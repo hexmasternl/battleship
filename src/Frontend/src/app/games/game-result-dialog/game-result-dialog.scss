@@ -1,0 +1,17 @@
+// The dialog container itself is themed globally (styles.scss, `mat.dialog-overrides`); the button
+// recipe comes from styles/_components.scss.
+.game-result-dialog__title {
+  font-family: var(--bs-font-heading);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+
+  &.is-won {
+    color: var(--bs-color-accent);
+  }
+}
+
+.game-result-dialog__message {
+  margin: 0;
+  color: var(--bs-color-text);
+}

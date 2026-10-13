@@ -68,7 +68,7 @@ describe('Shot marker animation', () => {
     const { store, api, marker, settle } = await render(started(true));
     store.selectTarget({ column: 4, row: 6 });
     const done = store.fireAtTarget();
-    api.last('fireShot').resolve({ column: 4, row: 6, hit: false });
+    api.last('fireShot').resolve({ column: 4, row: 6, hit: false, state: 'started' });
     await done;
     await settle();
     expect(marker('E7, miss')?.classList).toContain('is-fresh');

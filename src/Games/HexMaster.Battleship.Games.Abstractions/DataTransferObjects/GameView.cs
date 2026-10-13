@@ -4,13 +4,15 @@ using HexMaster.Battleship.Games.Abstractions.DomainModels;
 namespace HexMaster.Battleship.Games.Abstractions.DataTransferObjects;
 
 // One game as the caller sees it: the caller in full, the opponent without ships. Opponent is null
-// until a second player joined. The state is written by name (New, Started, ...).
+// until a second player joined. The state is written by name (New, Started, ...). WinnerId is null
+// until the game is completed with a winner; the opponent's ships stay hidden after the end too.
 public sealed record GameView(
     Guid GameId,
     string GameCode,
     [property: JsonConverter(typeof(JsonStringEnumConverter<GameState>))] GameState State,
     PlayerView Me,
-    OpponentView? Opponent);
+    OpponentView? Opponent,
+    Guid? WinnerId);
 
 // The caller: everything, including the placed ships.
 public sealed record PlayerView(

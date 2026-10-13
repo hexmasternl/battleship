@@ -54,6 +54,7 @@ export function gameView(overrides: Partial<GameView> = {}): GameView {
     state: 'new',
     me: me(),
     opponent: null,
+    winnerId: null,
     ...overrides,
   };
 }

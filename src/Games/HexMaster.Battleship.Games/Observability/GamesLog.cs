@@ -37,4 +37,7 @@ internal static partial class GamesLog
 
     [LoggerMessage(EventId = 4010, Level = LogLevel.Error, Message = "Publishing {EventType} for game {GameCode} failed; the shot was recorded")]
     public static partial void ShotAnnouncementFailed(ILogger logger, Exception exception, string eventType, string gameCode);
+
+    [LoggerMessage(EventId = 4011, Level = LogLevel.Information, Message = "Game {GameId} with code {GameCode} completed; player {WinnerId} won")]
+    public static partial void GameCompleted(ILogger logger, Guid gameId, string gameCode, Guid winnerId);
 }

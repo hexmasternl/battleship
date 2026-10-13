@@ -22,6 +22,7 @@ public static class GamesTelemetry
     public const string ReadyOutcomeAttribute = "game.ready.outcome";
     public const string ShotOutcomeAttribute = "game.shot.outcome";
     public const string ShotHitAttribute = "game.shot.hit";
+    public const string GameCompletedAttribute = "game.completed";
 
     // Span events.
     public const string UpdateConflictEvent = "game.update.conflict";

@@ -100,7 +100,7 @@ describe('Shot confirmation', () => {
     await settle();
     expect(api.of('fireShot').map((call) => call.args)).toEqual([[GAME_CODE, 4, 6]]);
 
-    api.last('fireShot').resolve({ column: 4, row: 6, hit: true });
+    api.last('fireShot').resolve({ column: 4, row: 6, hit: true, state: 'started' });
     await settle();
     expect(confirmLabel()).toBeNull();
     expect(host.querySelector('[aria-label="E7, hit"] .shot-marker.is-hit')).not.toBeNull();

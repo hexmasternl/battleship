@@ -80,6 +80,22 @@ describe('GamesApi', () => {
       expect(view.state).toBe('started');
       expect(view.me.ships).toEqual([ship('carrier', 1, 2, 'vertical')]);
     });
+
+    it('reads the winner of a completed game, and no winner when it is absent', async () => {
+      const completed = api.getGame(GAME_CODE);
+      backend
+        .expectOne(`/api/games/${GAME_CODE}`)
+        .flush({ ...gameView(), state: 'Completed', winnerId: 'player-a' });
+      const view = await completed;
+      expect(view.state).toBe('completed');
+      expect(view.winnerId).toBe('player-a');
+
+      const running = api.getGame(GAME_CODE);
+      backend
+        .expectOne(`/api/games/${GAME_CODE}`)
+        .flush({ ...gameView({ state: 'started' }), winnerId: undefined });
+      expect((await running).winnerId).toBeNull();
+    });
   });
 
   describe('placeShip', () => {
@@ -199,9 +215,20 @@ describe('GamesApi', () => {
       const req = backend.expectOne(SHOTS_URL);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ column: 4, row: 6 });
-      req.flush({ column: 4, row: 6, hit: true });
+      req.flush({ column: 4, row: 6, hit: true, state: 'Started' });
 
-      expect(await fired).toEqual({ column: 4, row: 6, hit: true } satisfies FireShotResponse);
+      expect(await fired).toEqual({
+        column: 4,
+        row: 6,
+        hit: true,
+        state: 'started',
+      } satisfies FireShotResponse);
+    });
+
+    it('reads the completed state of a winning shot in any casing', async () => {
+      const fired = api.fireShot(GAME_CODE, 4, 6);
+      backend.expectOne(SHOTS_URL).flush({ column: 4, row: 6, hit: true, state: 'Completed' });
+      expect((await fired).state).toBe('completed');
     });
 
     it.each([

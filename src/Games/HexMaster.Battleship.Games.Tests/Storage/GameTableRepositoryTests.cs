@@ -64,6 +64,53 @@ public class GameTableRepositoryTests
     }
 
     [AzuriteFact]
+    public async Task CompletedGame_RoundTripsWithItsWinnerAndNoTurn()
+    {
+        var repository = new GameTableRepository(Azurite.CreateClient());
+        var winner = GameFactory.Player(isReady: true, ships: GameFactory.FullFleet(), lastActivityOn: Now);
+        var game = GameFactory.Stored(GameState.Completed, winner, lastActivityOn: Now, winnerId: winner.PlayerId);
+
+        Assert.True(await repository.TryAddAsync(game, CancellationToken.None));
+        var stored = await repository.GetByCodeAsync(game.GameCode, CancellationToken.None);
+
+        Assert.NotNull(stored);
+        Assert.Equal(GameState.Completed, stored.GameState);
+        Assert.Equal(winner.PlayerId, stored.WinnerId);
+        Assert.False(stored.PlayerOne.HasTurn);
+        Assert.False(stored.PlayerTwo!.HasTurn);
+    }
+
+    [AzuriteFact]
+    public async Task VersionTwoRowWithoutAWinner_ReadsWithoutOne()
+    {
+        var client = Azurite.CreateClient();
+        var repository = new GameTableRepository(client);
+        var code = GameFactory.Code().Value;
+        var gameId = Guid.NewGuid();
+        var table = client.GetTableClient(GameTableRepository.TableName);
+        await table.CreateIfNotExistsAsync();
+        await table.AddEntityAsync(new GameEntity
+        {
+            PartitionKey = code,
+            GameId = gameId,
+            State = "New",
+            LastActivityOn = Now,
+            DocumentVersion = 2,
+            Document = $$"""
+                {"id":"{{gameId}}","gameCode":"{{code}}","gameState":"New","playerOne":{"playerId":"{{Guid.NewGuid()}}",
+                "playerName":"Admiral Nelson","hasTurn":false,"isReady":false,"ships":[],"shots":[],
+                "lastActivityOn":"{{Now:O}}"},"playerTwo":null,"lastActivityOn":"{{Now:O}}"}
+                """,
+        });
+
+        var stored = await repository.GetByCodeAsync(code, CancellationToken.None);
+
+        Assert.Equal(gameId, stored!.Id);
+        Assert.Equal(GameState.New, stored.GameState);
+        Assert.Null(stored.WinnerId);
+    }
+
+    [AzuriteFact]
     public async Task TryAdd_ReturnsFalseForACodeInUseAndKeepsTheStoredGame()
     {
         var repository = new GameTableRepository(Azurite.CreateClient());

@@ -9,13 +9,16 @@ namespace HexMaster.Battleship.Games.Data.Entities;
 // CurrentVersion, so a later change to the shape can upgrade documents written before it.
 // Version 2 holds ship placements, shots with a hit flag and the ready flag; version 1 documents
 // (GameDocumentV1) are upgraded when read and written back as version 2 on their next update.
+// WinnerId is an additive, optional field of version 2: a document written before it reads as a game
+// without a winner, which every New or Started game is anyway.
 public sealed record GameDocument(
     Guid Id,
     string GameCode,
     GameState GameState,
     PlayerDocument PlayerOne,
     PlayerDocument? PlayerTwo,
-    DateTimeOffset LastActivityOn)
+    DateTimeOffset LastActivityOn,
+    Guid? WinnerId = null)
 {
     public const int CurrentVersion = 2;
 
@@ -30,7 +33,8 @@ public sealed record GameDocument(
         game.GameState,
         PlayerDocument.From(game.PlayerOne),
         game.PlayerTwo is { } playerTwo ? PlayerDocument.From(playerTwo) : null,
-        game.LastActivityOn);
+        game.LastActivityOn,
+        game.WinnerId);
 
     public static GameDocument Deserialize(string json, int version) => version switch
     {
@@ -48,7 +52,8 @@ public sealed record GameDocument(
         GameState,
         PlayerOne.ToPlayer(),
         PlayerTwo?.ToPlayer(),
-        LastActivityOn);
+        LastActivityOn,
+        WinnerId);
 }
 
 public sealed record PlayerDocument(
