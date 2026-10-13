@@ -13,7 +13,7 @@
 
 ## 3. Token service and configuration
 
-- [ ] 3.1 Add `TokenOptions` bound from `Players:Tokens` (signing key, issuer, audience, access and refresh lifetimes, clock skew with the defaults from design.md), validated on start with a key length check of at least 32 bytes, and verify a unit test shows validation fails for a missing and for a 16-byte key and passes for a 32-byte key
+- [x] 3.1 Add `TokenOptions` bound from `Players:Tokens` (signing key, issuer, audience, access and refresh lifetimes, clock skew with the defaults from design.md), validated on start with a key length check of at least 32 bytes, and verify a unit test shows validation fails for a missing and for a 16-byte key and passes for a 32-byte key
 - [ ] 3.2 Implement `RefreshTokenGenerator` (32 random bytes, Base64Url) with a static `Hash` helper (SHA-256, Base64Url), `CallSignGenerator` (nautical rank plus surname from a fixed word list), and `JwtTokenService` creating HS256 tokens with `sub`, `name`, `jti`, `iat`, `exp`, `iss`, `aud`; verify unit tests decode an issued token and assert every claim, assert expiry equals issue time plus the configured lifetime, and assert the refresh token hash never equals the raw value
 - [ ] 3.3 Add `AddBattleshipAuthentication` to ServiceDefaults (JWT bearer with validation parameters from `Players:Tokens`, authorization services, `Microsoft.AspNetCore.Authentication.JwtBearer` package) and verify a test host with the registration accepts a token from `JwtTokenService`, rejects one signed with another key, rejects one expired beyond the clock skew, and leaves an anonymous endpoint reachable
 
