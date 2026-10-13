@@ -9,7 +9,7 @@
 ## 2. Domain models and contracts
 
 - [x] 2.1 Add `IUser`, `IRefreshToken` (Abstractions `DomainModels`), `IUserRepository` and `IRefreshTokenRepository` (Abstractions `Repositories`), and the DTO records `CreateTokensRequest`, `RefreshTokensRequest`, `TokenPairResponse`, `CurrentUserResponse` (Abstractions `DataTransferObjects`) with data annotations for the display name (1 to 40 characters) and required refresh token, and verify the Abstractions project builds
-- [ ] 2.2 Implement `User` (`Create`, `Reconcile`, `Touch`, `Revoke`, display name validation) and `RefreshToken` (`Create` from hash, `Reconcile`, `IsActive`, `Consume`) in the module project and verify unit tests cover creation rules, `Consume` on an already consumed or expired token throwing, and `Reconcile` producing Pristine models
+- [x] 2.2 Implement `User` (`Create`, `Reconcile`, `Touch`, `Revoke`, display name validation) and `RefreshToken` (`Create` from hash, `Reconcile`, `IsActive`, `Consume`) in the module project and verify unit tests cover creation rules, `Consume` on an already consumed or expired token throwing, and `Reconcile` producing Pristine models
 
 ## 3. Token service and configuration
 
