@@ -154,6 +154,24 @@ public sealed class GameSessionTests
     }
 
     [Fact]
+    public async Task ReconcileAsync_GameEndedBeforeTheShot_ReadsTheCompletedGameAndStops()
+    {
+        // game-ending: a completed game refuses shots with 409; the re-read shows the winner.
+        client.SetupSequence(c => c.GetGameAsync(code, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GameCallResult<GameView>.Ok(
+                GameViewFactory.View(code, GameState.Started, GameViewFactory.FullFleet(), ready: true, hasTurn: true)))
+            .ReturnsAsync(GameCallResult<GameView>.Ok(
+                GameViewFactory.View(code, GameState.Completed, GameViewFactory.FullFleet(), ready: true, winnerId: Guid.NewGuid())));
+        client.Setup(c => c.FireAsync(code, It.IsAny<Coordinate>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GameCallResult<FireShotResponse>.Problem(GameCallStatus.GameNotStarted, "The game is not being played."));
+
+        await session.ReconcileAsync(CancellationToken.None);
+
+        Assert.True(session.IsEnded);
+        client.Verify(c => c.FireAsync(code, It.IsAny<Coordinate>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task ReconcileAsync_ShotWinsTheGame_EndsTheSession()
     {
         Read(GameViewFactory.View(code, GameState.Started, GameViewFactory.FullFleet(), ready: true, hasTurn: true));

@@ -35,6 +35,6 @@
 
 ## 6. Play to the end (requires #18 and #19 merged into `development`)
 
-- [ ] 6.1 Re-read the merged `game-play` and `game-ending` specs, align the shots client, `game.turn-changed.v1` and `game.ended.v1` handling and `winnerId` with them, and enable firing in `GameSession`. Verify that the client and session tests pass against the merged contracts.
+- [x] 6.1 Re-read the merged `game-play` and `game-ending` specs, align the shots client, `game.turn-changed.v1` and `game.ended.v1` handling and `winnerId` with them, and enable firing in `GameSession`. Verify that the client and session tests pass against the merged contracts.
 - [ ] 6.2 Integration check: start the AppHost, create a game in the browser, let the bot join after the grace period, get ready, and play to the end with `ProbabilityDensity`, switching the preset mid-game. Verify in the dashboard that the properties update, that the game reaches `Completed`, and that the game code disappears from `devbot.games`.
 - [ ] 6.3 Run the full `dotnet build` and `dotnet test` for `src/Battleship.slnx`, and verify that both pass.
