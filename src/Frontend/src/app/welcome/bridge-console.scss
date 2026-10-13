@@ -65,6 +65,13 @@
   white-space: pre;
 }
 
+// The message text uses the panel face; it inherits the accent colour and glow from the list.
+.console__text {
+  font-family: var(--bs-font-panel);
+  font-weight: var(--bs-font-weight-panel);
+  font-size: var(--bs-text-md);
+}
+
 // A CSS caret after the newest line. It blinks while typing and sits still otherwise.
 .console__caret {
   display: inline-block;
