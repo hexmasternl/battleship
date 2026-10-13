@@ -1,11 +1,25 @@
+using HexMaster.Battleship.Games;
+using HexMaster.Battleship.Games.Endpoints;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddGatewayCors();
 
-// Add services to the container.
+// Validates the access tokens the Players service issues; endpoints opt in with RequireAuthorization().
+builder.AddBattleshipAuthentication();
+
+// Exports the module's own activities and counters next to the service defaults' instrumentation.
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing.AddSource(GamesTelemetry.Name))
+    .WithMetrics(metrics => metrics.AddMeter(GamesTelemetry.Name));
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddGamesModule();
+builder.AddGamesData();
 
 var app = builder.Build();
 
@@ -28,28 +42,9 @@ app.UseCloudEvents();
 // Lets the sidecar discover this API's topic subscriptions (GET /dapr/subscribe).
 app.MapSubscribeHandler();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapGamesEndpoints();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+// Exposed for WebApplicationFactory<Program> in the integration tests.
+public partial class Program;
