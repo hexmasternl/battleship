@@ -87,9 +87,8 @@ export const GAME_RELOAD_EVENTS: readonly RealtimeEventType[] = [
   'game.started.v1',
 ];
 
-/** Whether an event from the stream is about the game with `code` and changes what it shows. */
-export function isReloadEventFor(event: RealtimeEvent, code: string): boolean {
-  if (!GAME_RELOAD_EVENTS.includes(event.type)) return false;
+/** Whether an event from the stream is about the game with `code` (its `gameCode`, any casing). */
+export function isEventFor(event: RealtimeEvent, code: string): boolean {
   const payload = event.payload;
   return (
     typeof payload === 'object' &&
@@ -98,6 +97,35 @@ export function isReloadEventFor(event: RealtimeEvent, code: string): boolean {
     typeof payload.gameCode === 'string' &&
     payload.gameCode.toUpperCase() === code.toUpperCase()
   );
+}
+
+/** Whether an event from the stream is about the game with `code` and changes what it shows. */
+export function isReloadEventFor(event: RealtimeEvent, code: string): boolean {
+  return GAME_RELOAD_EVENTS.includes(event.type) && isEventFor(event, code);
+}
+
+/** The shot a `game.shot-fired.v1` event reports, or `null` for any other or a malformed event. */
+export function shotFiredFrom(event: RealtimeEvent): FiredShot | null {
+  const p = event.payload;
+  if (event.type !== 'game.shot-fired.v1' || typeof p !== 'object' || p === null) return null;
+  if (
+    !('playerId' in p && typeof p.playerId === 'string') ||
+    !('column' in p && typeof p.column === 'number') ||
+    !('row' in p && typeof p.row === 'number') ||
+    !('hit' in p && typeof p.hit === 'boolean')
+  ) {
+    return null;
+  }
+  return { playerId: p.playerId, column: p.column, row: p.row, hit: p.hit };
+}
+
+/** The player a `game.turn-changed.v1` event gives the turn, or `null` for any other event. */
+export function turnChangedFrom(event: RealtimeEvent): string | null {
+  const p = event.payload;
+  if (event.type !== 'game.turn-changed.v1' || typeof p !== 'object' || p === null) return null;
+  return 'playerWithTurnId' in p && typeof p.playerWithTurnId === 'string'
+    ? p.playerWithTurnId
+    : null;
 }
 
 /**
@@ -389,12 +417,13 @@ export class GamePageStore {
   constructor() {
     const destroyRef = inject(DestroyRef);
 
+    // Only events for this game: a join, ready or start reloads it, shots and turns apply in place.
     this.#events.events$
       .pipe(
-        filter((event) => isReloadEventFor(event, this.code())),
+        filter((event) => isEventFor(event, this.code())),
         takeUntilDestroyed(destroyRef),
       )
-      .subscribe(() => void this.reload());
+      .subscribe((event) => this.#route(event));
 
     // Events sent while the stream was down are not all replayed, so a reconnect reloads.
     toObservable(this.#events.state)
@@ -587,6 +616,21 @@ export class GamePageStore {
       this.#notify(gameApiErrorMessage(error));
       await this.reload();
     }
+  }
+
+  /** Hands an event for this game to the intent it drives. */
+  #route(event: RealtimeEvent): void {
+    if (GAME_RELOAD_EVENTS.includes(event.type)) {
+      void this.reload();
+      return;
+    }
+    const shot = shotFiredFrom(event);
+    if (shot !== null) {
+      this.applyShotFired(shot);
+      return;
+    }
+    const playerWithTurnId = turnChangedFrom(event);
+    if (playerWithTurnId !== null) this.applyTurnChanged(playerWithTurnId);
   }
 
   #notify(message: string): void {

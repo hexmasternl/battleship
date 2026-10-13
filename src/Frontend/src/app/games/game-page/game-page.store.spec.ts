@@ -14,7 +14,7 @@ import {
   opponent,
   ship,
 } from '../../../testing/game-views';
-import { GamePageStore, isReloadEventFor } from './game-page.store';
+import { GamePageStore, isReloadEventFor, shotFiredFrom, turnChangedFrom } from './game-page.store';
 
 describe('isReloadEventFor', () => {
   const event = (type: string, payload: unknown) =>
@@ -473,6 +473,151 @@ describe('GamePageStore play', () => {
       expect(store.myTurn()).toBe(true);
       expect(store.opponent()?.hasTurn).toBe(false);
     });
+  });
+});
+
+describe('shotFiredFrom and turnChangedFrom', () => {
+  const event = (type: string, payload: unknown) =>
+    ({ type, id: '1', payload }) as Parameters<typeof shotFiredFrom>[0];
+
+  it('reads a shot fired payload', () => {
+    expect(
+      shotFiredFrom(
+        event('game.shot-fired.v1', {
+          gameId: 'g',
+          gameCode: GAME_CODE,
+          playerId: OPPONENT_ID,
+          column: 1,
+          row: 2,
+          hit: true,
+        }),
+      ),
+    ).toEqual({ playerId: OPPONENT_ID, column: 1, row: 2, hit: true });
+  });
+
+  it('rejects malformed shot payloads and other types', () => {
+    expect(shotFiredFrom(event('game.shot-fired.v1', { playerId: 'p', column: 1 }))).toBeNull();
+    expect(shotFiredFrom(event('game.shot-fired.v1', null))).toBeNull();
+    expect(
+      shotFiredFrom(event('game.started.v1', { playerId: 'p', column: 1, row: 1, hit: true })),
+    ).toBeNull();
+  });
+
+  it('reads a turn changed payload and rejects anything else', () => {
+    expect(turnChangedFrom(event('game.turn-changed.v1', { playerWithTurnId: ME_ID }))).toBe(ME_ID);
+    expect(turnChangedFrom(event('game.turn-changed.v1', {}))).toBeNull();
+    expect(turnChangedFrom(event('game.started.v1', { playerWithTurnId: ME_ID }))).toBeNull();
+  });
+});
+
+describe('GamePageStore play events', () => {
+  let api: FakeGamesApi;
+  let events: FakeEventsService;
+  let store: GamePageStore;
+
+  beforeEach(async () => {
+    api = new FakeGamesApi();
+    events = new FakeEventsService();
+    TestBed.configureTestingModule({
+      providers: [provideFakeGamesApi(api), provideFakeEvents(events), GamePageStore],
+    });
+    store = TestBed.inject(GamePageStore);
+    const done = store.load(GAME_CODE);
+    api.last('getGame').resolve(
+      gameView({
+        state: 'started',
+        me: me({ hasTurn: true, ships: FULL_FLEET }),
+        opponent: opponent(),
+      }),
+    );
+    await done;
+  });
+
+  const shot = (code: string, playerId: string, column: number, row: number, hit: boolean) =>
+    events.emit('game.shot-fired.v1', {
+      gameId: 'game-1',
+      gameCode: code,
+      playerId,
+      column,
+      row,
+      hit,
+    });
+  const turn = (code: string, playerWithTurnId: string) =>
+    events.emit('game.turn-changed.v1', { gameId: 'game-1', gameCode: code, playerWithTurnId });
+
+  it('routes a shot of the opponent to their shots and the turn change to the turn', () => {
+    shot(GAME_CODE, OPPONENT_ID, 1, 1, true);
+    turn(GAME_CODE, ME_ID);
+    expect(store.opponentShots()).toEqual([{ column: 1, row: 1, hit: true }]);
+    expect(store.myTurn()).toBe(true);
+
+    turn(GAME_CODE, OPPONENT_ID);
+    expect(store.myTurn()).toBe(false);
+    expect(store.opponent()?.hasTurn).toBe(true);
+    expect(api.of('getGame').length).toBe(1);
+  });
+
+  it('routes the caller own shot event without duplicating it', () => {
+    shot(GAME_CODE, ME_ID, 4, 6, false);
+    shot(GAME_CODE, ME_ID, 4, 6, false);
+    expect(store.myShots()).toEqual([{ column: 4, row: 6, hit: false }]);
+  });
+
+  it('matches the game code in any casing', () => {
+    shot(GAME_CODE.toLowerCase(), OPPONENT_ID, 2, 2, false);
+    expect(store.opponentShots()).toEqual([{ column: 2, row: 2, hit: false }]);
+  });
+
+  it('ignores shots and turn changes of another game', () => {
+    const before = store.state();
+    shot('ZZZZ9999', OPPONENT_ID, 1, 1, true);
+    turn('ZZZZ9999', OPPONENT_ID);
+    expect(store.state()).toBe(before);
+    expect(api.of('getGame').length).toBe(1);
+  });
+
+  it('switches a placing page to play on game.started.v1 with the turn the server reports', async () => {
+    const done = store.load(GAME_CODE);
+    api.last('getGame').resolve(gameView({ me: me({ ready: true, ships: FULL_FLEET }) }));
+    await done;
+    expect(store.phase()).toBe('new');
+
+    events.emit('game.started.v1', { gameId: 'game-1', gameCode: GAME_CODE });
+    expect(api.of('getGame').length).toBe(3);
+    api.last('getGame').resolve(
+      gameView({
+        state: 'started',
+        me: me({ ready: true, hasTurn: true, ships: FULL_FLEET }),
+        opponent: opponent({ ready: true }),
+      }),
+    );
+    await flushPromises();
+    expect(store.phase()).toBe('started');
+    expect(store.myTurn()).toBe(true);
+    expect(store.canShoot()).toBe(true);
+  });
+
+  it('reloads exactly once per reconnect and shows what was missed', async () => {
+    events.setState('open');
+    TestBed.tick();
+    events.setState('reconnecting');
+    TestBed.tick();
+    events.setState('open');
+    TestBed.tick();
+    TestBed.tick();
+    expect(api.of('getGame').length).toBe(2);
+
+    api.last('getGame').resolve(
+      gameView({
+        state: 'started',
+        me: me({ hasTurn: true, ships: FULL_FLEET }),
+        opponent: opponent({ shots: [{ column: 0, row: 0, hit: true }] }),
+      }),
+    );
+    await flushPromises();
+    expect(api.of('getGame').length).toBe(2);
+    expect(store.opponentShots()).toEqual([{ column: 0, row: 0, hit: true }]);
+    expect(store.myTurn()).toBe(true);
   });
 });
 
