@@ -15,7 +15,7 @@
 
 ## 3. Module APIs and CORS
 
-- [ ] 3.1 Add `AddGatewayCors()` / `UseGatewayCors()` to ServiceDefaults (Development only, origins from `Gateway:AllowedOrigins`), call them from the Players and Games APIs, and add unit tests for the policy. Verify `dotnet test` passes.
+- [x] 3.1 Add `AddGatewayCors()` / `UseGatewayCors()` to ServiceDefaults (Development only, origins from `Gateway:AllowedOrigins`), call them from the Players and Games APIs, and add unit tests for the policy. Verify `dotnet test` passes.
 - [ ] 3.2 Confirm neither API maps a public endpoint outside its declared prefix (smoke, weather-forecast and Dapr routes stay internal), and record the check in the task commit.
 
 ## 4. Frontend runtime configuration and interceptor (angular-frontend agent)
