@@ -1,52 +1,5 @@
-<!-- TEMPORARY theme preview: verifies the Material theme and is removed before the pull request. -->
-<main class="preview">
+<main class="shell">
   <h1>Hello, {{ title() }}</h1>
-  <p>
-    Body copy set in Courier Prime through the Material body-medium level. The heading above is
-    Quantico through headline-large.
-  </p>
-
-  <section class="preview__row">
-    <button matButton="filled" type="button" data-test="filled">Filled button</button>
-    <button matButton="outlined" type="button" (click)="openDialog()" data-test="dialog-trigger">
-      Open dialog
-    </button>
-  </section>
-
-  <section class="preview__row">
-    <mat-form-field appearance="outline" data-test="valid-field">
-      <mat-label>Commander</mat-label>
-      <input matInput [formControl]="validName" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" data-test="invalid-field">
-      <mat-label>Call sign</mat-label>
-      <input matInput [formControl]="invalidName" />
-      @if (invalidName.hasError('required')) {
-        <mat-error>A call sign is required</mat-error>
-      }
-    </mat-form-field>
-  </section>
-
-  <mat-card data-test="card">
-    <mat-card-header>
-      <mat-card-title>Mission briefing</mat-card-title>
-      <mat-card-subtitle>Sector 7, dawn patrol</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <p>The card surface is a step of the design system surface scale; this is body text on it.</p>
-      <label class="preview__native">
-        Native select
-        <select data-test="native-select">
-          <option>Carrier</option>
-          <option>Destroyer</option>
-        </select>
-      </label>
-    </mat-card-content>
-    <mat-card-actions align="end">
-      <button matButton type="button">Dismiss</button>
-    </mat-card-actions>
-  </mat-card>
 </main>
 
 <router-outlet />

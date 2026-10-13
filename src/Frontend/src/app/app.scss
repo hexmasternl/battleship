@@ -1,32 +1,8 @@
-// TEMPORARY theme preview layout. Removed before the pull request.
-.preview {
-  display: grid;
-  gap: var(--bs-space-6);
-  max-width: 40rem;
+.shell {
   padding: var(--bs-space-8) var(--bs-gutter);
-  margin: 0 auto;
 
   h1 {
     font: var(--mat-sys-headline-large);
     margin: 0;
-  }
-
-  p {
-    margin: 0;
-  }
-
-  &__row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--bs-space-4);
-    align-items: center;
-  }
-
-  &__native {
-    display: flex;
-    gap: var(--bs-space-2);
-    align-items: center;
-    margin-top: var(--bs-space-4);
-    color: var(--mat-sys-on-surface-variant);
   }
 }
