@@ -46,7 +46,7 @@
 
 ## 10. Frontend placement screen (angular-frontend agent)
 
-- [ ] 10.1 Add `placement-rules.ts` mirroring the fleet, cells, board bounds and overlap rules; verify unit specs matching the backend rule cases pass
+- [x] 10.1 Add `placement-rules.ts` mirroring the fleet, cells, board bounds and overlap rules; verify unit specs matching the backend rule cases pass
 - [ ] 10.2 Add `PlacementPhase`, `PlacementBoard` (`.bs-board`, A–L / 1–12 labels, roving-tabindex grid with coordinate labels) and `ShipList` (unplaced ships with name and length), with the mobile-first layout and the wide-screen grid from `--bs-bp-md`, styled only through the central SASS variables (design D9); verify component specs for an empty board with five listed ships, placed ships shown on the board and removed from the list, and cell labels pass
 - [ ] 10.3 Add drag and drop with `@angular/cdk/drag-drop` (list and placed ships draggable, one board drop list, grab-offset drop maths, `.is-valid`/`.is-invalid` preview, invalid drop reverts) plus tap and keyboard placement through the active ship (design D9); verify specs for drag from the list, move on the board, invalid drop, tap-then-cell placement, keyboard placement and Escape clearing the active ship pass
 - [ ] 10.4 Add the active ship border and rotate control (90° clockwise, origin fixed), refusing an invalid rotation locally with a snackbar message, and the ordered save queue that applies changes at once, replaces the state with the returned view, and on any error shows a message and reloads (design D9); verify specs for rotation, refusal at the edge and on overlap, one active ship at a time, one request per change in order, and reload after a `409`
