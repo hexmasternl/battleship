@@ -18,6 +18,7 @@
   <Folder Name="/Games/">
     <Project Path="Games/HexMaster.Battleship.Games.Abstractions/HexMaster.Battleship.Games.Abstractions.csproj" Id="28949574-8e96-40fd-b77c-9202ee8795b8" />
     <Project Path="Games/HexMaster.Battleship.Games.Api/HexMaster.Battleship.Games.Api.csproj" />
+    <Project Path="Games/HexMaster.Battleship.Games.Data/HexMaster.Battleship.Games.Data.csproj" />
     <Project Path="Games/HexMaster.Battleship.Games.Tests/HexMaster.Battleship.Games.Tests.csproj" Id="3465d902-1fc1-4fcb-b5a7-0908ab415ec1" />
     <Project Path="Games/HexMaster.Battleship.Games/HexMaster.Battleship.Games.csproj" Id="5a32d682-5bae-45db-adf8-6ba89b184996" />
   </Folder>

@@ -96,7 +96,7 @@ describe('WelcomePage', () => {
       // The response is still pending, yet the hero and both calls to action are on screen.
       expect(TestBed.inject(PlayerSession).status()).toBe('restoring');
       expect(host.querySelector('h1')?.textContent?.trim()).toBe('Welcome aboard, Captain');
-      expect(host.querySelectorAll('.hero__actions a').length).toBe(2);
+      expect(host.querySelectorAll('.hero__actions .bs-btn').length).toBe(2);
 
       req.flush({
         accessToken: 'access-1',

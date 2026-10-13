@@ -32,9 +32,14 @@
         that is waiting for its second captain.
       </p>
       <div class="hero__actions">
-        <a class="bs-btn bs-btn--primary" routerLink="/games/new" battleRequirePlayer>
+        <button
+          #createButton
+          class="bs-btn bs-btn--primary"
+          type="button"
+          (click)="createGame(createButton)"
+        >
           Create a new game
-        </a>
+        </button>
         <a class="bs-btn bs-btn--secondary" routerLink="/games/join" battleRequirePlayer>
           Join an existing game
         </a>
