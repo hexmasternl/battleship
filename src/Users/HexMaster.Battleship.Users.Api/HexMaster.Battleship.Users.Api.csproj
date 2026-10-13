@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>bd45b2c6-8a98-4730-b835-b6fa9979b008</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Aspire\HexMaster.Battleship.Aspire\HexMaster.Battleship.Aspire.ServiceDefaults\HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Users\HexMaster.Battleship.Users.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Users.Data.TableStorage\HexMaster.Battleship.Users.Data.TableStorage.csproj" />
+  </ItemGroup>
+
+</Project>

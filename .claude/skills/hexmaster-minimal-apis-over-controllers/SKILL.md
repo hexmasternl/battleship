@@ -32,7 +32,7 @@ metadata:
 
 ## In this repository
 
-Both `HexMaster.Battleship.Players.Api` and `HexMaster.Battleship.Games.Api` are Minimal API
+Both `HexMaster.Battleship.Users.Api` and `HexMaster.Battleship.Games.Api` are Minimal API
 hosts that already call `AddOpenApi` and `MapOpenApi`. Replace the template weather forecast
 endpoint with grouped endpoints in `Endpoints/` files and add Scalar when the API UI is needed.
 

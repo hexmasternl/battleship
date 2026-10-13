@@ -20,14 +20,14 @@ public class IntegrationEventEndpointsTests(WebApplicationFactory<Program> facto
     private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(5);
 
     [Fact]
-    public async Task PlayerEnvelope_PostedToTopicEndpoint_ArrivesOnThePlayersStreamWithinOneSecond()
+    public async Task UserEnvelope_PostedToTopicEndpoint_ArrivesOnTheUsersStreamWithinOneSecond()
     {
         using var client = factory.CreateClient();
-        var playerA = Guid.NewGuid().ToString();
+        var userA = Guid.NewGuid().ToString();
         var payload = JsonSerializer.SerializeToElement(new { x = 3, y = 5 });
-        var envelope = IntegrationEventEnvelopeFactory.Create(targetIds: [playerA], type: "shot-fired", payload: payload);
+        var envelope = IntegrationEventEnvelopeFactory.Create(targetIds: [userA], type: "shot-fired", payload: payload);
 
-        using var stream = await OpenStreamAsync(client, playerA);
+        using var stream = await OpenStreamAsync(client, userA);
 
         using var posted = await client.PostAsJsonAsync("/integration-events", envelope, JsonSerializerOptions.Web);
         Assert.Equal(HttpStatusCode.OK, posted.StatusCode);
@@ -41,16 +41,16 @@ public class IntegrationEventEndpointsTests(WebApplicationFactory<Program> facto
     }
 
     [Fact]
-    public async Task EnvelopeForAnotherPlayer_IsNotReceived()
+    public async Task EnvelopeForAnotherUser_IsNotReceived()
     {
         using var client = factory.CreateClient();
-        var playerA = Guid.NewGuid().ToString();
-        var playerB = Guid.NewGuid().ToString();
+        var userA = Guid.NewGuid().ToString();
+        var userB = Guid.NewGuid().ToString();
 
-        using var stream = await OpenStreamAsync(client, playerA);
+        using var stream = await OpenStreamAsync(client, userA);
 
-        await PostAsync(client, IntegrationEventEnvelopeFactory.ForPlayer(playerB, "for-b"));
-        await PostAsync(client, IntegrationEventEnvelopeFactory.ForPlayer(playerA, "for-a"));
+        await PostAsync(client, IntegrationEventEnvelopeFactory.ForUser(userB, "for-b"));
+        await PostAsync(client, IntegrationEventEnvelopeFactory.ForUser(userA, "for-a"));
 
         using var delivery = new CancellationTokenSource(DeliveryTimeout);
         var message = await stream.ReadMessageAsync(delivery.Token);
@@ -65,7 +65,7 @@ public class IntegrationEventEndpointsTests(WebApplicationFactory<Program> facto
 
         using var response = await client.PostAsJsonAsync(
             "/integration-events",
-            IntegrationEventEnvelopeFactory.ForPlayer(Guid.NewGuid().ToString()),
+            IntegrationEventEnvelopeFactory.ForUser(Guid.NewGuid().ToString()),
             JsonSerializerOptions.Web);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -115,7 +115,7 @@ public class IntegrationEventEndpointsTests(WebApplicationFactory<Program> facto
     public async Task ValidEnvelope_IsProcessedInAConsumerSpanWithTheDeliverSpanBeneathIt()
     {
         using var client = factory.CreateClient();
-        var envelope = IntegrationEventEnvelopeFactory.ForPlayer(Guid.NewGuid().ToString(), "shot-fired");
+        var envelope = IntegrationEventEnvelopeFactory.ForUser(Guid.NewGuid().ToString(), "shot-fired");
         var stopped = new ConcurrentQueue<Activity>();
         using var listener = new ActivityListener
         {
@@ -155,11 +155,11 @@ public class IntegrationEventEndpointsTests(WebApplicationFactory<Program> facto
                  && s.GetProperty("route").GetString() == "integration-events");
     }
 
-    private static async Task<SseStreamReader> OpenStreamAsync(HttpClient client, string playerId)
+    private static async Task<SseStreamReader> OpenStreamAsync(HttpClient client, string userId)
     {
         using var connect = new CancellationTokenSource(ConnectTimeout);
         var response = await client.GetAsync(
-            $"/events?playerId={playerId}", HttpCompletionOption.ResponseHeadersRead, connect.Token);
+            $"/events?userId={userId}", HttpCompletionOption.ResponseHeadersRead, connect.Token);
         response.EnsureSuccessStatusCode();
 
         return new SseStreamReader(await response.Content.ReadAsStreamAsync(connect.Token));

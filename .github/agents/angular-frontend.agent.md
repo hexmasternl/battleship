@@ -123,7 +123,7 @@ export class FleetPlacement {
 - **Scope follows ownership.**
   - State for one component instance (a dialog, a board, a form flow): `@Injectable()` with no `providedIn`, listed in that component's `providers`. It is created with the component and destroyed with it.
   - State for one routed feature and its children: `providers` on the route definition.
-  - State for the whole session (current player, connection status): a root singleton with `@Service`. Keep these few.
+  - State for the whole session (current user, connection status): a root singleton with `@Service`. Keep these few.
 - **Inputs feed the store, they do not get copied into it.** When a store depends on a component input, hand it the input signal once (`store.connect(this.gameId)`) and let the store read it inside `computed()` or as `resource()` params. No effect that copies an input into state.
 - **Async goes through `resource()` / `httpResource()` or an intent method.** Loading and error are state like any other: either a resource exposed by the store (`game.value()`, `game.isLoading()`, `game.error()`), or an async method that calls `set`/`update` on completion. Never `subscribe()` in a component to push values into a field.
 - **Children read slices or get them as inputs.** A child that shows part of the state takes it as `input()` from the parent; a child that lives in the same feature and needs many slices may `inject()` the same store. Children never own copies.

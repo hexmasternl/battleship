@@ -100,10 +100,10 @@ function setup() {
 }
 
 describe('eventsUrl', () => {
-  it('appends the events path and the encoded player id', () => {
-    expect(eventsUrl('http://localhost:5317', 'A')).toBe('http://localhost:5317/events?playerId=A');
+  it('appends the events path and the encoded user id', () => {
+    expect(eventsUrl('http://localhost:5317', 'A')).toBe('http://localhost:5317/events?userId=A');
     expect(eventsUrl('http://localhost:5317/', 'a b')).toBe(
-      'http://localhost:5317/events?playerId=a%20b',
+      'http://localhost:5317/events?userId=a%20b',
     );
   });
 });
@@ -119,14 +119,14 @@ describe('EventsService', () => {
     expect(sources.length).toBe(0);
   });
 
-  it('opens exactly one stream carrying the player id on connect', () => {
+  it('opens exactly one stream carrying the user id on connect', () => {
     const { service, sources } = setup();
     service.connect('A');
     expect(sources.length).toBe(1);
-    expect(sources[0].url).toBe(`${BASE_URL}/events?playerId=A`);
+    expect(sources[0].url).toBe(`${BASE_URL}/events?userId=A`);
   });
 
-  it('keeps the existing stream when connecting again for the same player', () => {
+  it('keeps the existing stream when connecting again for the same user', () => {
     const { service, sources } = setup();
     service.connect('A');
     sources[0].open();
@@ -136,14 +136,14 @@ describe('EventsService', () => {
     expect(service.state()).toBe('open');
   });
 
-  it('closes the current stream before connecting for a different player', () => {
+  it('closes the current stream before connecting for a different user', () => {
     const { service, sources, received } = setup();
     service.connect('A');
     sources[0].open();
     service.connect('B');
     expect(sources.length).toBe(2);
     expect(sources[0].readyState).toBe(EVENT_SOURCE_CLOSED);
-    expect(sources[1].url).toBe(`${BASE_URL}/events?playerId=B`);
+    expect(sources[1].url).toBe(`${BASE_URL}/events?userId=B`);
     // A late message on the old stream is ignored.
     sources[0].emit('game.shot-fired.v1', '{}', '1');
     expect(received).toEqual([]);
@@ -229,7 +229,7 @@ describe('EventsService', () => {
     service.connect('A');
     sources[0].fail();
     expect(service.state()).toBe('disconnected');
-    // A later connect for the same player opens a fresh stream.
+    // A later connect for the same user opens a fresh stream.
     service.connect('A');
     expect(sources.length).toBe(2);
   });
@@ -246,7 +246,7 @@ describe('EventsService', () => {
     source.reconnect();
     expect(service.state()).toBe('open');
     expect(source.requests.at(-1)).toEqual({
-      url: `${BASE_URL}/events?playerId=A`,
+      url: `${BASE_URL}/events?userId=A`,
       lastEventId: '10',
     });
     source.emit('game.shot-fired.v1', '{"x":2,"y":2}', '11');

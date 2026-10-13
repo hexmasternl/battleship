@@ -24,9 +24,9 @@ public sealed class EventRouter(
     // replay or live, never both.
     private readonly Lock _lock = new();
 
-    public EventConnection Connect(string playerId, long? lastEventId)
+    public EventConnection Connect(string userId, long? lastEventId)
     {
-        var connection = new EventConnection(playerId, streamOptions.Value.ChannelCapacity, logger, metrics);
+        var connection = new EventConnection(userId, streamOptions.Value.ChannelCapacity, logger, metrics);
         var replayed = 0;
 
         lock (_lock)
@@ -35,7 +35,7 @@ public sealed class EventRouter(
 
             if (lastEventId is { } lastId)
             {
-                foreach (var item in replayBuffer.Since(lastId, playerId))
+                foreach (var item in replayBuffer.Since(lastId, userId))
                 {
                     if (connection.TryWrite(item))
                     {
@@ -47,7 +47,7 @@ public sealed class EventRouter(
 
         metrics.ConnectionOpened();
         metrics.Replayed(replayed);
-        EventsLog.StreamOpened(logger, connection.Id, playerId, lastEventId, replayed);
+        EventsLog.StreamOpened(logger, connection.Id, userId, lastEventId, replayed);
 
         return connection;
     }
@@ -59,13 +59,13 @@ public sealed class EventRouter(
         if (connection.TryMarkClosed())
         {
             metrics.ConnectionClosed();
-            EventsLog.StreamClosed(logger, connection.Id, connection.PlayerId);
+            EventsLog.StreamClosed(logger, connection.Id, connection.UserId);
         }
     }
 
     public RouteResult Route(IntegrationEventEnvelope envelope)
     {
-        // One span per routed event rather than per connection, so a broadcast to many players
+        // One span per routed event rather than per connection, so a broadcast to many users
         // does not flood the trace.
         using var activity = EventsTelemetry.ActivitySource.StartActivity(EventsTelemetry.DeliverActivityName);
         activity?.SetTag(EventsTelemetry.EventTypeAttribute, envelope.Type);
@@ -92,7 +92,7 @@ public sealed class EventRouter(
                 activity?.AddEvent(new ActivityEvent(
                     EventsTelemetry.ConnectionRemovedEventName,
                     tags: new ActivityTagsCollection { [EventsTelemetry.ConnectionIdAttribute] = connection.Id.ToString() }));
-                EventsLog.ClosedStreamRemoved(logger, connection.Id, connection.PlayerId);
+                EventsLog.ClosedStreamRemoved(logger, connection.Id, connection.UserId);
                 registry.Unregister(connection);
             }
 
@@ -109,7 +109,7 @@ public sealed class EventRouter(
         envelope.Target switch
         {
             EventTarget.All => registry.AllConnections(),
-            EventTarget.Player or EventTarget.Game => envelope.TargetIds
+            EventTarget.User or EventTarget.Game => envelope.TargetIds
                 .Where(id => !string.IsNullOrWhiteSpace(id))
                 .Distinct(StringComparer.Ordinal)
                 .SelectMany(registry.ConnectionsFor),

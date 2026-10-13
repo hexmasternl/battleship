@@ -5,9 +5,9 @@ namespace HexMaster.Battleship.Events.Routing;
 
 public interface IEventRouter
 {
-    // Opens a connection for the player. With a last event id, the buffered events the player
+    // Opens a connection for the user. With a last event id, the buffered events the user
     // missed are queued first, ahead of any event routed afterwards.
-    EventConnection Connect(string playerId, long? lastEventId);
+    EventConnection Connect(string userId, long? lastEventId);
 
     void Disconnect(EventConnection connection);
 

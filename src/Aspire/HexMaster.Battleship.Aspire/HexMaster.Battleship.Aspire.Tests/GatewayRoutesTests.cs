@@ -12,7 +12,7 @@ public sealed class GatewayRoutesTests
     }
 
     [Theory]
-    [InlineData("users", GatewayRoutes.PlayersApi)]
+    [InlineData("users", GatewayRoutes.UsersApi)]
     [InlineData("games", GatewayRoutes.GamesApi)]
     public void Modules_RoutesPrefixToItsApi(string prefix, string apiResourceName)
     {
@@ -32,7 +32,7 @@ public sealed class GatewayRoutesTests
     [Fact]
     public void RoutePath_IsPrefixedCatchAll()
     {
-        Assert.Equal("/players/{**catch-all}", GatewayRoutes.RoutePath("players"));
+        Assert.Equal("/users/{**catch-all}", GatewayRoutes.RoutePath("users"));
     }
 
     [Fact]
@@ -45,9 +45,9 @@ public sealed class GatewayRoutesTests
 
     [Theory]
     [InlineData("")]
-    [InlineData("Players")]
-    [InlineData("players/me")]
-    [InlineData("-players")]
+    [InlineData("Users")]
+    [InlineData("users/me")]
+    [InlineData("-users")]
     [InlineData("pla yers")]
     public void Validate_RejectsPrefixThatIsNotOneLowercaseSegment(string prefix)
     {

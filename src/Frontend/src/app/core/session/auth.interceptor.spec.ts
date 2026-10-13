@@ -12,7 +12,7 @@ import { MemoryStorage } from '../../../testing/memory-storage';
 import { apiGatewayInterceptor } from '../api-gateway.interceptor';
 import { BackendConfig } from '../backend-config';
 import { RETRIED_AFTER_RENEWAL, authInterceptor } from './auth.interceptor';
-import { PlayerSession, SESSION_CLOCK } from './player-session';
+import { UserSession, SESSION_CLOCK } from './user-session';
 import {
   ACCESS_TOKEN_EXPIRES_AT_KEY,
   ACCESS_TOKEN_KEY,
@@ -99,7 +99,7 @@ describe('authInterceptor', () => {
       storeAccessToken('access-1', '2026-10-13T10:15:00Z');
       storeRefreshToken();
 
-      const restored = TestBed.inject(PlayerSession).restore();
+      const restored = TestBed.inject(UserSession).restore();
       await settle();
 
       const req = backend.expectOne(REFRESH);
@@ -111,7 +111,7 @@ describe('authInterceptor', () => {
     it('is not added to the create-tokens request', async () => {
       storeAccessToken('access-1', '2026-10-13T10:15:00Z');
 
-      const created = TestBed.inject(PlayerSession).createPlayer('Admiral Nelson');
+      const created = TestBed.inject(UserSession).createUser('Admiral Nelson');
       await settle();
 
       const req = backend.expectOne(CREATE_TOKENS);
@@ -263,7 +263,7 @@ describe('authInterceptor', () => {
       const error = await result;
       expect((error as HttpErrorResponse).status).toBe(401);
       expect(local.getItem(REFRESH_TOKEN_KEY)).toBeNull();
-      expect(TestBed.inject(PlayerSession).isKnown()).toBe(false);
+      expect(TestBed.inject(UserSession).isKnown()).toBe(false);
     });
 
     it('is not renewed when the request carried no token', async () => {

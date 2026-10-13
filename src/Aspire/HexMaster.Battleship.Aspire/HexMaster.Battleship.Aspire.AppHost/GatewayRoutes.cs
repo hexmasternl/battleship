@@ -14,7 +14,7 @@ internal sealed record ModuleRoute(string Module, string ApiResourceName, IReadO
 /// </summary>
 internal static class GatewayRoutes
 {
-    public const string PlayersApi = "hexmaster-battleship-players-api";
+    public const string UsersApi = "hexmaster-battleship-users-api";
     public const string GamesApi = "hexmaster-battleship-games-api";
 
     // First path segments the module APIs use for platform and diagnostics endpoints. They stay
@@ -33,7 +33,7 @@ internal static class GatewayRoutes
 
     public static IReadOnlyList<ModuleRoute> Modules { get; } =
     [
-        new("players", PlayersApi, ["users"]),
+        new("users", UsersApi, ["users"]),
         new("games", GamesApi, ["games"]),
     ];
 

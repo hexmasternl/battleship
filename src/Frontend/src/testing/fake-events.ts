@@ -14,8 +14,8 @@ export class FakeEventsService {
   readonly events$ = this.#events.asObservable();
   readonly state = this.#state.asReadonly();
 
-  connect(playerId: string): void {
-    this.connected.push(playerId);
+  connect(userId: string): void {
+    this.connected.push(userId);
   }
 
   emit(type: RealtimeEventType, payload: unknown): void {

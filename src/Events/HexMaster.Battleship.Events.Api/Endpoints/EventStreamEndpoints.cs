@@ -37,13 +37,13 @@ public static class EventStreamEndpoints
         IOptions<StreamOptions> streamOptions,
         TimeProvider timeProvider)
     {
-        var playerId = identityResolver.ResolvePlayerId(httpContext);
+        var userId = identityResolver.ResolveUserId(httpContext);
 
-        if (playerId is null)
+        if (userId is null)
         {
             return TypedResults.Problem(
-                title: "Player identity required",
-                detail: $"Identify the player with the '{QueryStringIdentityResolver.PlayerIdParameter}' query parameter.",
+                title: "User identity required",
+                detail: $"Identify the user with the '{QueryStringIdentityResolver.UserIdParameter}' query parameter.",
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
@@ -55,7 +55,7 @@ public static class EventStreamEndpoints
             Stream(
                 httpContext,
                 router,
-                playerId,
+                userId,
                 lastEventId,
                 streamOptions.Value.HeartbeatInterval,
                 timeProvider,
@@ -65,13 +65,13 @@ public static class EventStreamEndpoints
     private static async IAsyncEnumerable<SseItem<JsonElement>> Stream(
         HttpContext httpContext,
         IEventRouter router,
-        string playerId,
+        string userId,
         long? lastEventId,
         TimeSpan heartbeatInterval,
         TimeProvider timeProvider,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var connection = router.Connect(playerId, lastEventId);
+        var connection = router.Connect(userId, lastEventId);
 
         // A failed write (client gone) or an aborted request ends the enumeration, and the
         // finally block takes the connection out of routing.

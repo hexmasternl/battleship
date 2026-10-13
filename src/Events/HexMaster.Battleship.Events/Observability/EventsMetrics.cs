@@ -2,7 +2,7 @@ using System.Diagnostics.Metrics;
 
 namespace HexMaster.Battleship.Events.Observability;
 
-// The business metrics of the Events service. No tag carries a player or connection id.
+// The business metrics of the Events service. No tag carries a user or connection id.
 public sealed class EventsMetrics
 {
     public const string ConnectionsActiveName = "events.connections.active";

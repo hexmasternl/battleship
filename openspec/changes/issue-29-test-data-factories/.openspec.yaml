@@ -3,5 +3,5 @@ created: 2026-10-13
 skip_specs: true
 goal: Build test domain objects and events through Bogus factories
 affected_areas:
-  - players
+  - users
   - core

@@ -1,14 +1,14 @@
 namespace HexMaster.Battleship.Events.Api.Identity;
 
-// Trusts the playerId query parameter. No authorization until identities exist.
+// Trusts the userId query parameter. No authorization until identities exist.
 public sealed class QueryStringIdentityResolver : IConnectionIdentityResolver
 {
-    public const string PlayerIdParameter = "playerId";
+    public const string UserIdParameter = "userId";
 
-    public string? ResolvePlayerId(HttpContext httpContext)
+    public string? ResolveUserId(HttpContext httpContext)
     {
-        var playerId = httpContext.Request.Query[PlayerIdParameter].ToString().Trim();
+        var userId = httpContext.Request.Query[UserIdParameter].ToString().Trim();
 
-        return playerId.Length == 0 ? null : playerId;
+        return userId.Length == 0 ? null : userId;
     }
 }

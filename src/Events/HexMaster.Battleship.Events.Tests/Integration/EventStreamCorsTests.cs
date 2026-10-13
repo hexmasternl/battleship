@@ -28,7 +28,7 @@ public class EventStreamCorsTests(WebApplicationFactory<Program> factory) : ICla
     public async Task Preflight_ForAReconnectWithLastEventId_IsAllowed()
     {
         using var client = factory.CreateClient();
-        using var request = new HttpRequestMessage(HttpMethod.Options, "/events?playerId=a");
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/events?userId=a");
         request.Headers.Add("Origin", AllowedOrigin);
         request.Headers.Add("Access-Control-Request-Method", "GET");
         request.Headers.Add("Access-Control-Request-Headers", "last-event-id");
@@ -58,7 +58,7 @@ public class EventStreamCorsTests(WebApplicationFactory<Program> factory) : ICla
     {
         using var cancellation = new CancellationTokenSource(Timeout);
         var client = factory.CreateClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/events?playerId={Guid.NewGuid()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/events?userId={Guid.NewGuid()}");
         request.Headers.Add("Origin", origin);
 
         return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation.Token);

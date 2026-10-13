@@ -3,8 +3,8 @@ using HexMaster.Battleship.Events.Abstractions;
 namespace HexMaster.Battleship.IntegrationEvents;
 
 // Who an integration event is for. The publisher states it on every send, because the same
-// event can go to different players depending on the context it is raised in. Maps onto the
-// envelope's target kind and target player ids.
+// event can go to different users depending on the context it is raised in. Maps onto the
+// envelope's target kind and target user ids.
 public readonly record struct EventAudience
 {
     private EventAudience(EventTarget target, IReadOnlyList<string> targetIds)
@@ -17,21 +17,22 @@ public readonly record struct EventAudience
 
     public IReadOnlyList<string> TargetIds => field ?? [];
 
-    // Every connected player.
+    // Every connected user.
     public static EventAudience Everyone { get; } = new(EventTarget.All, []);
 
-    // The listed players.
-    public static EventAudience Players(params IEnumerable<Guid> playerIds) =>
-        new(EventTarget.Player, ToTargetIds(playerIds));
+    // The listed users.
+    public static EventAudience Users(params IEnumerable<Guid> userIds) =>
+        new(EventTarget.User, ToTargetIds(userIds));
 
-    // The players of a game. Listing them keeps routing free of game membership state.
-    public static EventAudience Game(params IEnumerable<Guid> playerIds) =>
-        new(EventTarget.Game, ToTargetIds(playerIds));
+    // The players of a game, by their user ids. Listing them keeps routing free of game
+    // membership state.
+    public static EventAudience Game(params IEnumerable<Guid> userIds) =>
+        new(EventTarget.Game, ToTargetIds(userIds));
 
-    private static string[] ToTargetIds(IEnumerable<Guid> playerIds)
+    private static string[] ToTargetIds(IEnumerable<Guid> userIds)
     {
-        ArgumentNullException.ThrowIfNull(playerIds);
+        ArgumentNullException.ThrowIfNull(userIds);
 
-        return [.. playerIds.Select(id => id.ToString())];
+        return [.. userIds.Select(id => id.ToString())];
     }
 }

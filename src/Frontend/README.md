@@ -15,13 +15,13 @@ Once the server is running, open your browser and navigate to `http://localhost:
 ## Calling the backend
 
 Backend calls go through `HttpClient` to a relative URL under `/api/`, followed by the module
-prefix and the rest of the endpoint path, for example `http.get('/api/players/me')`. Never write
+prefix and the rest of the endpoint path, for example `http.get('/api/users/me')`. Never write
 a host or port into the app: the backend runs behind the local YARP gateway, whose port changes
 on every run.
 
 - **Interceptor.** `apiGatewayInterceptor` (`src/app/core/api-gateway.interceptor.ts`) rewrites
   every request starting with `/api/` to `<gateway>/<rest>`, stripping `/api` and keeping the
-  query string, so `/api/players/me?x=1` goes to `<gateway>/players/me?x=1`. Other URLs, such as
+  query string, so `/api/users/me?x=1` goes to `<gateway>/users/me?x=1`. Other URLs, such as
   assets or absolute URLs, pass through unchanged.
 - **Runtime configuration.** The gateway URL comes from `public/config.json`
   (`{ "backendBaseUrl": "http://localhost:<port>" }`), which `BackendConfig`
@@ -132,12 +132,12 @@ process.exit(bad?1:0)'
 
 Last measured 2026-10-13:
 
-| Foreground | Background | Ratio | Needs | Use | Result |
-|---|---|---|---|---|---|
-| `on-surface` (#b2c2d4) | `surface` (#011627) | 10.09:1 | 4.5:1 | body text on the page and base surface | pass |
-| `on-surface-variant` (#7a8694) | `surface` (#011627) | 4.95:1 | 4.5:1 | secondary text on the page | pass |
-| `on-surface` (#b2c2d4) | `surface-container-highest` (#163953) | 6.63:1 | 4.5:1 | body text on the highest container | pass |
-| `on-primary` (rgb(1, 37, 56)) | `primary` (#00c0ff) | 7.55:1 | 4.5:1 | labels on filled primary buttons | pass |
+| Foreground                     | Background                            | Ratio   | Needs | Use                                    | Result |
+| ------------------------------ | ------------------------------------- | ------- | ----- | -------------------------------------- | ------ |
+| `on-surface` (#b2c2d4)         | `surface` (#011627)                   | 10.09:1 | 4.5:1 | body text on the page and base surface | pass   |
+| `on-surface-variant` (#7a8694) | `surface` (#011627)                   | 4.95:1  | 4.5:1 | secondary text on the page             | pass   |
+| `on-surface` (#b2c2d4)         | `surface-container-highest` (#163953) | 6.63:1  | 4.5:1 | body text on the highest container     | pass   |
+| `on-primary` (rgb(1, 37, 56))  | `primary` (#00c0ff)                   | 7.55:1  | 4.5:1 | labels on filled primary buttons       | pass   |
 
 ## Additional Resources
 
@@ -146,9 +146,9 @@ For more information on using the Angular CLI, including detailed command refere
 ## Real-time events
 
 `src/app/events/` holds `EventsService`, the application-wide client for the Events API stream
-(`GET /events?playerId=<id>`, server-sent events). It wraps the browser's `EventSource`, which
+(`GET /events?userId=<id>`, server-sent events). It wraps the browser's `EventSource`, which
 reconnects on its own and sends `Last-Event-ID` so the server replays what was missed. The service
-exposes `connect(playerId)`, `disconnect()`, `events$` (type, id and parsed JSON payload; heartbeats
+exposes `connect(userId)`, `disconnect()`, `events$` (type, id and parsed JSON payload; heartbeats
 are dropped) and a `state` signal (`disconnected`, `connecting`, `open`, `reconnecting`). Nothing
 connects at start-up yet; the first screen that needs live updates calls `connect`.
 
@@ -181,16 +181,16 @@ dev-server origin to that setting, otherwise the browser blocks the stream and t
    the **Network** tab.
 3. Open the stream. Until a screen calls `connect`, either inject `EventsService` in a component
    and call `connect('A')` for the duration of the check, or run
-   `new EventSource('http://localhost:5317/events?playerId=A')` in the browser console, which uses
+   `new EventSource('http://localhost:5317/events?userId=A')` in the browser console, which uses
    the same request the service makes.
-4. Filter the network list on `events`. The `/events?playerId=A` request stays pending with status
+4. Filter the network list on `events`. The `/events?userId=A` request stays pending with status
    `200` and type `eventsource`; select it and open the **EventStream** tab (Chrome and Edge). A
    `heartbeat` row with data `null` appears every 15 seconds while the stream is idle.
-5. Publish an event for player A from a shell:
+5. Publish an event for user A from a shell:
 
    ```bash
    dapr publish --publish-app-id events-api --pubsub pubsub --topic integration-events \
-     --data '{"id":"e-9","type":"game.shot-fired.v1","target":"player","targetIds":["A"],"occurredAt":"2026-10-13T10:00:00Z","payload":{"gameCode":"ABCD1234","column":3,"row":5}}'
+     --data '{"id":"e-9","type":"game.shot-fired.v1","target":"user","targetIds":["A"],"occurredAt":"2026-10-13T10:00:00Z","payload":{"gameCode":"ABCD1234","column":3,"row":5}}'
    ```
 
    A `game.shot-fired.v1` row appears in the EventStream tab with the server's sequence number as
@@ -232,7 +232,8 @@ import { readFileSync } from 'node:fs';
 
 const src = readFileSync(process.argv[2] ?? 'src/Frontend/src/styles/_tokens.scss', 'utf8');
 const t = {};
-for (const m of src.matchAll(/(--bs-[a-z0-9-]+)\s*:\s*([^;\n]+);/g)) t[m[1]] = t[m[1]] || m[2].trim();
+for (const m of src.matchAll(/(--bs-[a-z0-9-]+)\s*:\s*([^;\n]+);/g))
+  t[m[1]] = t[m[1]] || m[2].trim();
 const r = (v) => {
   let g = 0;
   while (/var\(/.test(v) && g++ < 20) v = v.replace(/var\((--[a-z0-9-]+)\)/g, (_, n) => t[n]);
@@ -264,18 +265,27 @@ const P = [
   ['--bs-color-accent', '--bs-color-surface', 4.5, 'body: console text, eyebrow, panel-info text'],
   ['--bs-color-accent', '--bs-color-bg', 4.5, 'body: console text on the screen, section heading'],
   ['--bs-color-text', '--bs-color-bg', 4.5, 'body: ghost link label on the game placeholder page'],
-  ['--bs-color-text-strong', '--bs-color-hit', 3, 'large: bold 1.25rem cross glyph on the hit marker (decorative, text alongside)'],
+  [
+    '--bs-color-text-strong',
+    '--bs-color-hit',
+    3,
+    'large: bold 1.25rem cross glyph on the hit marker (decorative, text alongside)',
+  ],
   ['--bs-color-text-strong', '--bs-color-sunk', 4.5, 'body: cross glyph on the sunk marker'],
 ];
 let bad = 0;
-console.log('| Foreground | Background | Ratio | Needs | Use | Result |\n|---|---|---|---|---|---|');
+console.log(
+  '| Foreground | Background | Ratio | Needs | Use | Result |\n|---|---|---|---|---|---|',
+);
 for (const [f, b, n, u] of P) {
   const F = r(t[f]);
   const B = r(t[b]);
   const c = C(F, B);
   const ok = c >= n;
   bad += !ok;
-  console.log(`| \`${f}\` (${F}) | \`${b}\` (${B}) | ${c.toFixed(2)}:1 | ${n}:1 | ${u} | ${ok ? 'pass' : 'FAIL'} |`);
+  console.log(
+    `| \`${f}\` (${F}) | \`${b}\` (${B}) | ${c.toFixed(2)}:1 | ${n}:1 | ${u} | ${ok ? 'pass' : 'FAIL'} |`,
+  );
 }
 process.exit(bad ? 1 : 0);
 ```
@@ -284,25 +294,25 @@ process.exit(bad ? 1 : 0);
 
 **Last run:** 2026-10-13, 17 pairs, all pass.
 
-| Foreground | Background | Ratio | Needs | Use | Result |
-|---|---|---|---|---|---|
-| `--bs-color-text` (#b2c2d4) | `--bs-color-bg` (#011627) | 10.09:1 | 4.5:1 | body: intro copy, page text | pass |
-| `--bs-color-text-strong` (#e9eef3) | `--bs-color-surface` (#041e32) | 14.54:1 | 4.5:1 | body: welcome heading on the panel | pass |
-| `--bs-color-text` (#b2c2d4) | `--bs-color-surface` (#041e32) | 9.35:1 | 4.5:1 | body: intro paragraph on the panel | pass |
-| `--bs-color-text` (#b2c2d4) | `--bs-color-surface-raised` (#09273c) | 8.46:1 | 4.5:1 | body: card copy | pass |
-| `--bs-color-text-strong` (#e9eef3) | `--bs-color-surface-raised` (#09273c) | 13.16:1 | 4.5:1 | body: card headings, ship names | pass |
-| `--bs-color-text-dim-raised` (#94a5b8) | `--bs-color-surface-raised` (#09273c) | 6.10:1 | 4.5:1 | body: ship lengths on cards | pass |
-| `--bs-color-text-dim` (#7a8694) | `--bs-color-surface` (#041e32) | 4.58:1 | 4.5:1 | body: console header | pass |
-| `--bs-color-text-dim` (#7a8694) | `--bs-color-bg` (#011627) | 4.95:1 | 4.5:1 | body: console timestamps on the screen | pass |
-| `--bs-color-text-on-accent` (#011627) | `--bs-color-accent` (#00c0ff) | 8.72:1 | 4.5:1 | body: "Create a new game" label | pass |
-| `--bs-color-text-on-accent` (#011627) | `--bs-color-accent-hover` (#63cdff) | 10.22:1 | 4.5:1 | body: primary button hover | pass |
-| `--bs-color-text-on-accent` (#011627) | `--bs-color-secondary` (#2f87ff) | 5.27:1 | 4.5:1 | body: "Join an existing game" label | pass |
-| `--bs-color-text-on-accent` (#011627) | `--bs-color-secondary-hover` (#60a1ff) | 7.02:1 | 4.5:1 | body: secondary button hover | pass |
-| `--bs-color-accent` (#00c0ff) | `--bs-color-surface` (#041e32) | 8.07:1 | 4.5:1 | body: console text, eyebrow, panel-info text | pass |
-| `--bs-color-accent` (#00c0ff) | `--bs-color-bg` (#011627) | 8.72:1 | 4.5:1 | body: console text on the screen, section heading | pass |
-| `--bs-color-text` (#b2c2d4) | `--bs-color-bg` (#011627) | 10.09:1 | 4.5:1 | body: ghost link label on the game placeholder page | pass |
-| `--bs-color-text-strong` (#e9eef3) | `--bs-color-hit` (#ff2146) | 3.24:1 | 3:1 | large: bold 1.25rem cross glyph on the hit marker (decorative, text alongside) | pass |
-| `--bs-color-text-strong` (#e9eef3) | `--bs-color-sunk` (#9c1d2c) | 6.85:1 | 4.5:1 | body: cross glyph on the sunk marker | pass |
+| Foreground                             | Background                             | Ratio   | Needs | Use                                                                            | Result |
+| -------------------------------------- | -------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------ | ------ |
+| `--bs-color-text` (#b2c2d4)            | `--bs-color-bg` (#011627)              | 10.09:1 | 4.5:1 | body: intro copy, page text                                                    | pass   |
+| `--bs-color-text-strong` (#e9eef3)     | `--bs-color-surface` (#041e32)         | 14.54:1 | 4.5:1 | body: welcome heading on the panel                                             | pass   |
+| `--bs-color-text` (#b2c2d4)            | `--bs-color-surface` (#041e32)         | 9.35:1  | 4.5:1 | body: intro paragraph on the panel                                             | pass   |
+| `--bs-color-text` (#b2c2d4)            | `--bs-color-surface-raised` (#09273c)  | 8.46:1  | 4.5:1 | body: card copy                                                                | pass   |
+| `--bs-color-text-strong` (#e9eef3)     | `--bs-color-surface-raised` (#09273c)  | 13.16:1 | 4.5:1 | body: card headings, ship names                                                | pass   |
+| `--bs-color-text-dim-raised` (#94a5b8) | `--bs-color-surface-raised` (#09273c)  | 6.10:1  | 4.5:1 | body: ship lengths on cards                                                    | pass   |
+| `--bs-color-text-dim` (#7a8694)        | `--bs-color-surface` (#041e32)         | 4.58:1  | 4.5:1 | body: console header                                                           | pass   |
+| `--bs-color-text-dim` (#7a8694)        | `--bs-color-bg` (#011627)              | 4.95:1  | 4.5:1 | body: console timestamps on the screen                                         | pass   |
+| `--bs-color-text-on-accent` (#011627)  | `--bs-color-accent` (#00c0ff)          | 8.72:1  | 4.5:1 | body: "Create a new game" label                                                | pass   |
+| `--bs-color-text-on-accent` (#011627)  | `--bs-color-accent-hover` (#63cdff)    | 10.22:1 | 4.5:1 | body: primary button hover                                                     | pass   |
+| `--bs-color-text-on-accent` (#011627)  | `--bs-color-secondary` (#2f87ff)       | 5.27:1  | 4.5:1 | body: "Join an existing game" label                                            | pass   |
+| `--bs-color-text-on-accent` (#011627)  | `--bs-color-secondary-hover` (#60a1ff) | 7.02:1  | 4.5:1 | body: secondary button hover                                                   | pass   |
+| `--bs-color-accent` (#00c0ff)          | `--bs-color-surface` (#041e32)         | 8.07:1  | 4.5:1 | body: console text, eyebrow, panel-info text                                   | pass   |
+| `--bs-color-accent` (#00c0ff)          | `--bs-color-bg` (#011627)              | 8.72:1  | 4.5:1 | body: console text on the screen, section heading                              | pass   |
+| `--bs-color-text` (#b2c2d4)            | `--bs-color-bg` (#011627)              | 10.09:1 | 4.5:1 | body: ghost link label on the game placeholder page                            | pass   |
+| `--bs-color-text-strong` (#e9eef3)     | `--bs-color-hit` (#ff2146)             | 3.24:1  | 3:1   | large: bold 1.25rem cross glyph on the hit marker (decorative, text alongside) | pass   |
+| `--bs-color-text-strong` (#e9eef3)     | `--bs-color-sunk` (#9c1d2c)            | 6.85:1  | 4.5:1 | body: cross glyph on the sunk marker                                           | pass   |
 
 The hit marker's cross is a shape cue, not text: the legend's meaning is carried by the words next
 to it, so the glyph only needs the large-text ratio that the design system also applies to the

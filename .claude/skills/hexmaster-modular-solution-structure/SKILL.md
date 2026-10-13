@@ -57,7 +57,7 @@ tests/Company.Product.IntegrationTests/       optional
 ## In this repository
 
 The solution is `src/Battleship.slnx`; Company.Product is `HexMaster.Battleship`; the frontend
-sits in `src/Frontend/`. Players and Games are the current modules. Add `src/Core/` and a
+sits in `src/Frontend/`. Users and Games are the current modules. Add `src/Core/` and a
 `Directory.Build.props` when the next backend change needs them.
 
 ## Source

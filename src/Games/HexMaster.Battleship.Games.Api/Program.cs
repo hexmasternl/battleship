@@ -11,7 +11,7 @@ builder.AddIntegrationEvents();
 
 builder.AddGatewayCors();
 
-// Validates the access tokens the Players service issues; endpoints opt in with RequireAuthorization().
+// Validates the access tokens the Users service issues; endpoints opt in with RequireAuthorization().
 builder.AddBattleshipAuthentication();
 
 // The OpenAPI document and the Scalar API reference, both mapped in Development only.

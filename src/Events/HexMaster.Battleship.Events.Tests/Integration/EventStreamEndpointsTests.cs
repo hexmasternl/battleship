@@ -10,21 +10,21 @@ public class EventStreamEndpointsTests(WebApplicationFactory<Program> factory) :
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
     [Fact]
-    public async Task OpenStream_WithPlayerId_SendsEventStreamHeadersAndStaysOpen()
+    public async Task OpenStream_WithUserId_SendsEventStreamHeadersAndStaysOpen()
     {
         using var cancellation = new CancellationTokenSource(Timeout);
         using var client = factory.CreateClient();
-        var playerId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid().ToString();
 
         using var response = await client.GetAsync(
-            $"/events?playerId={playerId}", HttpCompletionOption.ResponseHeadersRead, cancellation.Token);
+            $"/events?userId={userId}", HttpCompletionOption.ResponseHeadersRead, cancellation.Token);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
 
         // The headers arrived while the stream is still registered, so it is open and unbuffered.
         var registry = factory.Services.GetRequiredService<IConnectionRegistry>();
-        Assert.Single(registry.ConnectionsFor(playerId));
+        Assert.Single(registry.ConnectionsFor(userId));
     }
 
     [Fact]
@@ -32,16 +32,16 @@ public class EventStreamEndpointsTests(WebApplicationFactory<Program> factory) :
     {
         using var cancellation = new CancellationTokenSource(Timeout);
         using var client = factory.CreateClient();
-        var playerId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid().ToString();
         var registry = factory.Services.GetRequiredService<IConnectionRegistry>();
 
         var response = await client.GetAsync(
-            $"/events?playerId={playerId}", HttpCompletionOption.ResponseHeadersRead, cancellation.Token);
-        Assert.Single(registry.ConnectionsFor(playerId));
+            $"/events?userId={userId}", HttpCompletionOption.ResponseHeadersRead, cancellation.Token);
+        Assert.Single(registry.ConnectionsFor(userId));
 
         response.Dispose();
 
-        while (registry.ConnectionsFor(playerId).Count > 0)
+        while (registry.ConnectionsFor(userId).Count > 0)
         {
             await Task.Delay(20, cancellation.Token);
         }
@@ -49,9 +49,10 @@ public class EventStreamEndpointsTests(WebApplicationFactory<Program> factory) :
 
     [Theory]
     [InlineData("/events")]
-    [InlineData("/events?playerId=")]
-    [InlineData("/events?playerId=%20%20")]
-    public async Task OpenStream_WithoutPlayerId_Returns400ProblemDetails(string url)
+    [InlineData("/events?userId=")]
+    [InlineData("/events?userId=%20%20")]
+    [InlineData("/events?playerId=0b7d2c4e-6f1a-4c3b-9e8d-2a5f7c9e1b3d")]
+    public async Task OpenStream_WithoutUserId_Returns400ProblemDetails(string url)
     {
         using var client = factory.CreateClient();
 

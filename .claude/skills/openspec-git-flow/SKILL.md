@@ -37,7 +37,7 @@ If the checkout fails because of conflicting local changes, stop and show the us
 
 - Stage paths, never everything, in the main worktree: proposals stage `openspec/changes/<name>`, archives stage `openspec/`. Other uncommitted work in the main worktree is left alone.
 - Inside a change worktree the whole tree belongs to the change, so `git add -A` is fine there. Check `git status --short` before each commit for files that should not be there (build output, secrets, local settings).
-- Message format: `<type>(<scope>): <imperative summary>` with `type` one of `feat`, `fix`, `refactor`, `test`, `docs`, `chore` and `scope` the service touched (`players`, `games`, `frontend`, `aspire`) or `openspec` for planning artifacts. Body lines: `Change: <change-name>`, `Task: <id>` for implementation commits, and `Refs #<n>` when the change tracks a GitHub issue (read `github-issue.yaml`).
+- Message format: `<type>(<scope>): <imperative summary>` with `type` one of `feat`, `fix`, `refactor`, `test`, `docs`, `chore` and `scope` the service touched (`users`, `games`, `frontend`, `aspire`) or `openspec` for planning artifacts. Body lines: `Change: <change-name>`, `Task: <id>` for implementation commits, and `Refs #<n>` when the change tracks a GitHub issue (read `github-issue.yaml`).
 - Commit autonomously where this skill says so. Do not ask for confirmation for those commits; the user has delegated them.
 
 ## Propose

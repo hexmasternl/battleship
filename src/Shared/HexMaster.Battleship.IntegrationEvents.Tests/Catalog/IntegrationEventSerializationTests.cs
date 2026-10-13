@@ -11,8 +11,8 @@ public class IntegrationEventSerializationTests
 
     public static TheoryData<object, string[]> PayloadShapes() => new()
     {
-        { IntegrationEventFactory.PlayerCreated(), ["playerId", "playerName"] },
-        { IntegrationEventFactory.PlayerUpdated(), ["playerId", "playerName"] },
+        { IntegrationEventFactory.UserCreated(), ["userId", "displayName"] },
+        { IntegrationEventFactory.UserUpdated(), ["userId", "displayName"] },
         { IntegrationEventFactory.GameCreated(), ["gameId", "gameCode", "playerId"] },
         { IntegrationEventFactory.GameJoined(), ["gameId", "gameCode", "playerId", "playerName"] },
         { IntegrationEventFactory.GameStarted(), ["gameId", "gameCode", "playerWithTurnId"] },

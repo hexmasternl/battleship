@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { PlayerSession } from '../core/session/player-session';
+import { UserSession } from '../core/session/user-session';
 import { HeroSection } from './hero-section';
 import { InfoSection } from './info-section';
 
 /**
  * The landing page at `/`: the full-viewport hero followed by the information section. Every visit
- * restores a returning player in the background; the page renders without waiting for it.
+ * restores a returning user in the background; the page renders without waiting for it.
  */
 @Component({
   selector: 'battle-welcome-page',
@@ -26,6 +26,6 @@ import { InfoSection } from './info-section';
 })
 export class WelcomePage {
   constructor() {
-    void inject(PlayerSession).restore();
+    void inject(UserSession).restore();
   }
 }

@@ -8,8 +8,8 @@ Every event is wrapped in the integration event envelope from `HexMaster.Battles
 
 | Type name | Event | Payload |
 | --- | --- | --- |
-| `player.created.v1` | `PlayerCreatedEvent` | `playerId`, `playerName` |
-| `player.updated.v1` | `PlayerUpdatedEvent` (name changed) | `playerId`, `playerName` |
+| `user.created.v1` | `UserCreatedEvent` | `userId`, `displayName` |
+| `user.updated.v1` | `UserUpdatedEvent` (display name changed) | `userId`, `displayName` |
 | `game.created.v1` | `GameCreatedEvent` | `gameId`, `gameCode`, `playerId` (the creator) |
 | `game.joined.v1` | `GameJoinedEvent` (second player joined) | `gameId`, `gameCode`, `playerId`, `playerName` |
 | `game.player-ready.v1` | `GamePlayerReadyEvent` (fleet placed, player ready) | `gameId`, `gameCode`, `playerId` |
@@ -23,7 +23,7 @@ Every event is wrapped in the integration event envelope from `HexMaster.Battles
 ## Type names and versioning
 
 - A type name has the form `<subject>.<action>.v<version>`: lowercase, kebab-case segments, a positive integer version. Names are unique.
-- A published version never changes incompatibly. Removing or renaming a field, or changing its type or meaning, adds the same event with the next version **alongside** the existing one, for example `PlayerCreatedEventV2` with `player.created.v2`. The old version stays in the catalog until no publisher uses it.
+- A published version never changes incompatibly. Removing or renaming a field, or changing its type or meaning, adds the same event with the next version **alongside** the existing one, for example `UserCreatedEventV2` with `user.created.v2`. The old version stays in the catalog until no publisher uses it.
 - Adding an optional field needs no new version.
 - When a type name is added or removed, update `REALTIME_EVENT_TYPES` in `src/Frontend/src/app/events/realtime-event-types.ts`, so the browser listens for it.
 
@@ -40,8 +40,8 @@ await sender.SendAsync(
 
 The publisher always states the audience:
 
-- `EventAudience.Players(ids)`: the listed players.
-- `EventAudience.Game(playerIds)`: the players of a game.
-- `EventAudience.Everyone`: every connected player.
+- `EventAudience.Users(ids)`: the listed users.
+- `EventAudience.Game(userIds)`: the players of a game, by their user ids (a player id is the user id).
+- `EventAudience.Everyone`: every connected user.
 
-A players or game audience without any player id is rejected with an `ArgumentException`, and nothing is published.
+A users or game audience without any user id is rejected with an `ArgumentException`, and nothing is published.

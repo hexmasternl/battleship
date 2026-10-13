@@ -5,7 +5,7 @@ namespace HexMaster.Battleship.IntegrationEvents;
 public interface IIntegrationEventSender
 {
     // Throws ArgumentException, before anything is published, when the envelope would be
-    // invalid, for example a players or game audience without player ids.
+    // invalid, for example a users or game audience without user ids.
     Task SendAsync<TEvent>(TEvent integrationEvent, EventAudience audience, CancellationToken cancellationToken = default)
         where TEvent : class, IIntegrationEvent;
 }

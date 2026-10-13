@@ -32,9 +32,9 @@ describe('apiGatewayInterceptor', () => {
   it('rewrites /api/ requests to the gateway and keeps the query string', () => {
     const { http, backend } = setup(GATEWAY);
 
-    http.get('/api/players/me?x=1').subscribe();
+    http.get('/api/users/me?x=1').subscribe();
 
-    backend.expectOne(`${GATEWAY}/players/me?x=1`).flush({});
+    backend.expectOne(`${GATEWAY}/users/me?x=1`).flush({});
   });
 
   it('keeps query parameters passed as HttpParams', () => {
@@ -60,15 +60,15 @@ describe('apiGatewayInterceptor', () => {
   it('leaves an absolute URL untouched', () => {
     const { http, backend } = setup(GATEWAY);
 
-    http.get('https://example.com/api/players').subscribe();
+    http.get('https://example.com/api/users').subscribe();
 
-    backend.expectOne('https://example.com/api/players').flush({});
+    backend.expectOne('https://example.com/api/users').flush({});
   });
 
   it('fails /api/ requests without sending them when no gateway is configured', async () => {
     const { http, backend } = setup(null);
 
-    const result = firstValueFrom(http.get('/api/players/me'));
+    const result = firstValueFrom(http.get('/api/users/me'));
 
     await expect(result).rejects.toBeInstanceOf(HttpErrorResponse);
     await expect(result).rejects.toMatchObject({

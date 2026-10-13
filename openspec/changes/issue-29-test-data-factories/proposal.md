@@ -16,7 +16,7 @@ The testing ADR (xUnit, Moq, Bogus) requires test data to come from Bogus-backed
   - `IntegrationEventsDeliveryTests` (1 site)
 - Literal display names (`"Admiral Nelson"`) in these tests come from `UserFactory.DisplayName()`:
   - `CreateTokensCommandHandlerTests`
-  - `PlayersApiTests`
+  - `UsersApiTests`
 - Deliberate boundary inputs stay literal: `null`, a 41-character name, an unknown token string.
 - The domain-model tests (`UserTests`, `RefreshTokenTests`) keep calling `Create` / `Reconcile` directly, because those methods are what they test.
 - Test code only, with no production or behaviour change.
@@ -34,7 +34,7 @@ None (`skip_specs`). This is a test-only refactor.
 ## Impact
 
 - **Test code**:
-  - `src/Players/HexMaster.Battleship.Players.Tests`: `Factories/UserFactory.cs`, `Factories/RefreshTokenFactory.cs`, `Storage/TableRepositoryTests.cs`, `Features/CreateTokensCommandHandlerTests.cs`, `Integration/PlayersApiTests.cs`
+  - `src/Users/HexMaster.Battleship.Users.Tests`: `Factories/UserFactory.cs`, `Factories/RefreshTokenFactory.cs`, `Storage/TableRepositoryTests.cs`, `Features/CreateTokensCommandHandlerTests.cs`, `Integration/UsersApiTests.cs`
   - `src/Shared/HexMaster.Battleship.IntegrationEvents.Tests`: `Factories/IntegrationEventFactory.cs`, `Integration/IntegrationEventsDeliveryTests.cs`
 - **Production code**: none.
 - **Dependencies**: none new; Bogus is already referenced.

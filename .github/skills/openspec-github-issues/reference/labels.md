@@ -7,7 +7,7 @@ Every issue that has been triaged carries exactly: one or more **service** label
 `gh label create` with `--force` is idempotent: it creates the label or updates its colour and description. Run it for each label you are about to apply, before `gh issue edit`. Service labels that are not in the table below (a new directory under `src/`) use the service colour and the description `Touches the <Name> service`.
 
 ```bash
-gh label create "players"  --color 1d76db --description "Touches the Players service" --force
+gh label create "users"    --color 1d76db --description "Touches the Users service" --force
 gh label create "games"    --color 1d76db --description "Touches the Games service" --force
 gh label create "frontend" --color 1d76db --description "Touches the frontend" --force
 gh label create "aspire"   --color 1d76db --description "Touches the Aspire host or service defaults" --force
@@ -33,7 +33,7 @@ gh label create "needs-info" --color d876e3 --description "Triage is blocked on 
 
 | Label | Applies when the issue touches |
 |---|---|
-| `players` | `src/Players` (player registration, profiles, identity) |
+| `users` | `src/Users` (anonymous users, tokens, identity) |
 | `games` | `src/Games` (game setup, boards, turns, rules) |
 | `aspire` | `src/Aspire` (AppHost orchestration, ServiceDefaults, local hosting) |
 | `frontend` | the web client, even before it has a directory under `src/` |

@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace HexMaster.Battleship.Games.Tests.Integration;
 
-// Access tokens shaped like the ones the Players service issues, signed with a test key.
+// Access tokens shaped like the ones the Users service issues, signed with a test key.
 public static class TestTokens
 {
     // 32 ASCII characters, so exactly the minimum key size.
@@ -26,7 +26,7 @@ public static class TestTokens
 
         return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
         {
-            Issuer = "battleship-players",
+            Issuer = "battleship-users",
             Audience = "battleship",
             Claims = claims,
             IssuedAt = expires.AddMinutes(-15).UtcDateTime,

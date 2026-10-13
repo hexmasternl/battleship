@@ -4,7 +4,7 @@
 
 ## Why
 
-The *Minimal APIs over controllers* ADR makes the built-in OpenAPI document plus Scalar the standard API reference UI. The Players, Games and Events APIs each publish an OpenAPI document but have no reference UI, so developers cannot browse or try the endpoints without hand-writing requests. In an Aspire demo, each API's dashboard entry should open its reference directly.
+The *Minimal APIs over controllers* ADR makes the built-in OpenAPI document plus Scalar the standard API reference UI. The Users, Games and Events APIs each publish an OpenAPI document but have no reference UI, so developers cannot browse or try the endpoints without hand-writing requests. In an Aspire demo, each API's dashboard entry should open its reference directly.
 
 ## What Changes
 
@@ -28,7 +28,7 @@ None. `local-gateway` already requires that internal endpoints, `openapi` includ
 
 - **Code:**
   - `HexMaster.Battleship.Aspire.ServiceDefaults`: a new `Scalar.AspNetCore` package reference and a shared OpenAPI/reference registration with a bearer security scheme transformer.
-  - `Players.Api`, `Games.Api`, `Events.Api` `Program.cs`: switch to the shared call.
+  - `Users.Api`, `Games.Api`, `Events.Api` `Program.cs`: switch to the shared call.
   - `IntegrationEventEndpoints`: excluded from the description.
   - `AppHost.cs`: dashboard URLs for each API.
 - **Gateway:** `scalar` is added to the reserved prefixes in `GatewayRoutes.cs`, so no module can claim it.

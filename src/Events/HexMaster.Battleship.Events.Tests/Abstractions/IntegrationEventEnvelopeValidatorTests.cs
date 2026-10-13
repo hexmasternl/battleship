@@ -10,7 +10,7 @@ public class IntegrationEventEnvelopeValidatorTests
     [Fact]
     public void Validate_GameEnvelopeWithTwoTargets_IsAccepted()
     {
-        var envelope = IntegrationEventEnvelopeFactory.ForGame("player-a", "player-b");
+        var envelope = IntegrationEventEnvelopeFactory.ForGame("user-a", "user-b");
 
         Assert.Empty(IntegrationEventEnvelopeValidator.Validate(envelope));
     }
@@ -57,9 +57,9 @@ public class IntegrationEventEnvelopeValidatorTests
     }
 
     [Theory]
-    [InlineData(EventTarget.Player)]
+    [InlineData(EventTarget.User)]
     [InlineData(EventTarget.Game)]
-    public void Validate_PlayerOrGameWithoutTargets_IsRejected(EventTarget target)
+    public void Validate_UserOrGameWithoutTargets_IsRejected(EventTarget target)
     {
         var envelope = IntegrationEventEnvelopeFactory.Create(target) with { TargetIds = [] };
 
@@ -67,9 +67,9 @@ public class IntegrationEventEnvelopeValidatorTests
     }
 
     [Fact]
-    public void Validate_PlayerWithOnlyBlankTargets_IsRejected()
+    public void Validate_UserWithOnlyBlankTargets_IsRejected()
     {
-        var envelope = IntegrationEventEnvelopeFactory.Create(EventTarget.Player) with { TargetIds = [" "] };
+        var envelope = IntegrationEventEnvelopeFactory.Create(EventTarget.User) with { TargetIds = [" "] };
 
         Assert.Contains(nameof(IntegrationEventEnvelope.TargetIds), IntegrationEventEnvelopeValidator.Validate(envelope).Keys);
     }
@@ -103,5 +103,23 @@ public class IntegrationEventEnvelopeValidatorTests
         const string json = """{"id":"1","type":"t","target":"team","targetIds":[],"payload":{}}""";
 
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<IntegrationEventEnvelope>(json, JsonSerializerOptions.Web));
+    }
+
+    [Fact]
+    public void Deserialize_PreRenamePlayerTargetKind_Throws()
+    {
+        const string json = """{"id":"1","type":"t","target":"player","targetIds":["a"],"payload":{}}""";
+
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<IntegrationEventEnvelope>(json, JsonSerializerOptions.Web));
+    }
+
+    [Fact]
+    public void Deserialize_UserTargetKind_BindsToUser()
+    {
+        const string json = """{"id":"1","type":"t","target":"user","targetIds":["a"],"payload":{}}""";
+
+        var envelope = JsonSerializer.Deserialize<IntegrationEventEnvelope>(json, JsonSerializerOptions.Web);
+
+        Assert.Equal(EventTarget.User, envelope!.Target);
     }
 }

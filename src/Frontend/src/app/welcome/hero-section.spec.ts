@@ -6,7 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router, provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MemoryStorage } from '../../testing/memory-storage';
-import { PlayerSession } from '../core/session/player-session';
+import { UserSession } from '../core/session/user-session';
 import {
   PERSISTENT_STORAGE,
   REFRESH_TOKEN_EXPIRES_AT_KEY,
@@ -57,8 +57,8 @@ describe('HeroSection', () => {
     await settle();
   }
 
-  /** Fills in the open player-name dialog and answers the create-player request. */
-  async function createPlayerInDialog(): Promise<void> {
+  /** Fills in the open display-name dialog and answers the create-user request. */
+  async function createUserInDialog(): Promise<void> {
     await typeInDialog('Admiral Nelson');
     (dialogElement()?.querySelector('button[type=submit]') as HTMLButtonElement).click();
     await settle();
@@ -70,7 +70,7 @@ describe('HeroSection', () => {
   }
 
   async function becomeKnown(): Promise<void> {
-    const created = TestBed.inject(PlayerSession).createPlayer('Admiral Nelson');
+    const created = TestBed.inject(UserSession).createUser('Admiral Nelson');
     backend.expectOne(CREATE_URL).flush(PAIR, { status: 201, statusText: 'Created' });
     await created;
   }
@@ -287,7 +287,7 @@ describe('HeroSection', () => {
     it('waits for a pending refresh and asks for confirmation without a name dialog', async () => {
       local.setItem(REFRESH_TOKEN_KEY, 'refresh-0');
       local.setItem(REFRESH_TOKEN_EXPIRES_AT_KEY, '2999-01-01T00:00:00Z');
-      void TestBed.inject(PlayerSession).restore();
+      void TestBed.inject(UserSession).restore();
 
       await activate();
       expect(dialogElement()).toBeNull();
@@ -354,7 +354,7 @@ describe('HeroSection', () => {
       expect(dialogTitle()).toBe('Choose your player name');
       expect(dialogElement()?.contains(document.activeElement)).toBe(true);
 
-      await createPlayerInDialog();
+      await createUserInDialog();
       await waitForDialog();
 
       expect(dialog.openDialogs.length).toBe(1);
@@ -430,7 +430,7 @@ describe('HeroSection', () => {
     it('waits for a pending refresh and asks for a game code without a name dialog', async () => {
       local.setItem(REFRESH_TOKEN_KEY, 'refresh-0');
       local.setItem(REFRESH_TOKEN_EXPIRES_AT_KEY, '2999-01-01T00:00:00Z');
-      void TestBed.inject(PlayerSession).restore();
+      void TestBed.inject(UserSession).restore();
 
       await activate();
       expect(dialogElement()).toBeNull();
