@@ -43,8 +43,9 @@ var pubsub = builder.AddDaprComponent(AspireConstants.PubSubName, "pubsub.rabbit
     .WithMetadata("deletedWhenUnused", "false")
     .WithMetadata("requeueInFailure", "true");
 
-// Identity storage for the Players service. Locally this is the Azurite emulator, so no Azure
-// subscription is needed; the persistent lifetime keeps users across AppHost restarts.
+// Table storage for the Players service (users, refresh tokens) and the Games service (games).
+// Locally this is the Azurite emulator, so no Azure subscription is needed; the persistent
+// lifetime keeps users and games across AppHost restarts.
 var storage = builder.AddAzureStorage("storage")
     .RunAsEmulator(emulator => emulator.WithLifetime(ContainerLifetime.Persistent));
 var tables = storage.AddTables("tables");
@@ -65,7 +66,10 @@ var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(Gatew
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "games-api" })
         .WithReference(pubsub))
-    .WaitFor(messaging);
+    .WithReference(tables)
+    .WithEnvironment("Players__Tokens__SigningKey", signingKey)
+    .WaitFor(messaging)
+    .WaitFor(tables);
 
 var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(GatewayRoutes.PlayersApi)
     .WithDaprSidecar(sidecar => sidecar

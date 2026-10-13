@@ -13,7 +13,7 @@
 ## 3. Persistence
 
 - [x] 3.1 Add `IGameRepository` (`TryAddAsync` returning `false` on conflict, `GetByCodeAsync`), `GameEntity`/`GameDocument` (`DocumentVersion` 1) and `GameTableRepository` over table `games` keyed by code with `CreateIfNotExists`, and `AddGamesData` registering the `tables` client (design D4); verify Azurite-backed repository tests (round trip, conflict returns `false`) pass, or skip with a clear reason when Azurite is unreachable
-- [ ] 3.2 Wire the Games API in the AppHost to `tables` (`WithReference`/`WaitFor`) and the `players-signing-key` parameter; verify the AppHost starts and the dashboard shows the Games API healthy with the storage reference
+- [x] 3.2 Wire the Games API in the AppHost to `tables` (`WithReference`/`WaitFor`) and the `players-signing-key` parameter; verify the AppHost starts and the dashboard shows the Games API healthy with the storage reference
 
 ## 4. Create game slice and endpoint
 
