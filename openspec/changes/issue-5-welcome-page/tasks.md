@@ -5,7 +5,7 @@
 - [x] 1.1 Replace `src/Frontend/src/app/app.html` with `<router-outlet />`, remove the `title` signal from `app.ts` and the inline placeholder styles, rewrite `app.spec.ts` to assert the outlet renders, and verify `ng test` passes with the "Hello, battleship" test gone
 - [x] 1.2 If `src/Frontend/src/styles/_tokens.scss` does not exist yet, create it with the `--bs-*` token block copied verbatim from `docs/design-system.md` onto `:root` and `@use` it from `src/styles.scss`; verify with the token-diff command from design system section 11.3 (adapted to the scss file) that the token name sets are identical
 - [x] 1.3 Create `src/Frontend/src/styles/_components.scss` with the `.bs-btn` (primary, secondary), `.bs-card`, `.bs-panel` and `.bs-panel--info` recipes from design system sections 7.1 and 7.3 including hover, active, `:focus-visible` ring and the reduced-motion transition rule, `@use` it from `styles.scss`, and verify `ng build --configuration development` compiles without Sass errors
-- [ ] 1.4 Add the three lazy routes (`''` to the welcome page, `games/new` and `games/join` to the coming-soon placeholder with `data.feature`) and a wildcard redirect in `app.routes.ts`, write a routes spec that asserts the paths, `loadComponent` presence and the redirect, and verify it passes
+- [x] 1.4 Add the three lazy routes (`''` to the welcome page, `games/new` and `games/join` to the coming-soon placeholder with `data.feature`) and a wildcard redirect in `app.routes.ts`, write a routes spec that asserts the paths, `loadComponent` presence and the redirect, and verify it passes
 
 ## 2. Coming-soon placeholder
 
