@@ -34,8 +34,8 @@ public class EventsTelemetryTests
     {
         using var active = Collect(EventsMetrics.ConnectionsActiveName);
 
-        var first = _router.Connect("player-a", null);
-        _router.Connect("player-b", null);
+        var first = _router.Connect("user-a", null);
+        _router.Connect("user-b", null);
         Assert.Equal(2, active.GetMeasurementSnapshot().EvaluateAsCounter());
 
         _router.Disconnect(first);
@@ -48,11 +48,11 @@ public class EventsTelemetryTests
     public void Connect_WithLastEventId_CountsTheReplayedEvents()
     {
         using var replayed = Collect(EventsMetrics.ReplayedName);
-        var first = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-b"));
+        var first = _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-b"));
 
-        _router.Connect("player-a", first.Sequence - 1);
+        _router.Connect("user-a", first.Sequence - 1);
 
         Assert.Equal(2, replayed.GetMeasurementSnapshot().EvaluateAsCounter());
     }
@@ -61,10 +61,10 @@ public class EventsTelemetryTests
     public void Route_CountsDeliveriesByEventType()
     {
         using var delivered = Collect(EventsMetrics.DeliveredName);
-        Register("player-a");
-        Register("player-a");
+        Register("user-a");
+        Register("user-a");
 
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a", "shot-fired"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a", "shot-fired"));
 
         var measurement = Assert.Single(delivered.GetMeasurementSnapshot());
         Assert.Equal(2, measurement.Value);
@@ -76,8 +76,8 @@ public class EventsTelemetryTests
     {
         using var activities = new ActivityCollector();
         using var dropped = Collect(EventsMetrics.DroppedName);
-        var broken = Register("player-a");
-        Register("player-b");
+        var broken = Register("user-a");
+        Register("user-b");
         broken.Complete();
 
         var result = _router.Route(IntegrationEventEnvelopeFactory.ForAll());
@@ -98,11 +98,11 @@ public class EventsTelemetryTests
     public void FullChannel_CountsTheDroppedEvent()
     {
         using var dropped = Collect(EventsMetrics.DroppedName);
-        var connection = EventConnectionFactory.Create("player-a", capacity: 1, metrics: _metrics);
+        var connection = EventConnectionFactory.Create("user-a", capacity: 1, metrics: _metrics);
         _registry.Register(connection);
 
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
 
         var measurement = Assert.Single(dropped.GetMeasurementSnapshot());
         Assert.Equal(DropReasons.ChannelFull, measurement.Tags[EventsTelemetry.ReasonTag]);
@@ -111,9 +111,9 @@ public class EventsTelemetryTests
     private MetricCollector<long> Collect(string instrumentName) =>
         new(_meterFactory, EventsTelemetry.Name, instrumentName);
 
-    private EventConnection Register(string playerId)
+    private EventConnection Register(string userId)
     {
-        var connection = EventConnectionFactory.Create(playerId, metrics: _metrics);
+        var connection = EventConnectionFactory.Create(userId, metrics: _metrics);
         _registry.Register(connection);
         return connection;
     }

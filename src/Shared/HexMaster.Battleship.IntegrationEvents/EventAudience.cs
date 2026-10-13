@@ -22,7 +22,7 @@ public readonly record struct EventAudience
 
     // The listed users.
     public static EventAudience Users(params IEnumerable<Guid> userIds) =>
-        new(EventTarget.Player, ToTargetIds(userIds));
+        new(EventTarget.User, ToTargetIds(userIds));
 
     // The players of a game, by their user ids. Listing them keeps routing free of game
     // membership state.

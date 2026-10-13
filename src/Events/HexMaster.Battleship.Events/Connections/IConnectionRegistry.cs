@@ -1,6 +1,6 @@
 namespace HexMaster.Battleship.Events.Connections;
 
-// The open event streams of this process, by player.
+// The open event streams of this process, by user.
 public interface IConnectionRegistry
 {
     void Register(EventConnection connection);
@@ -8,7 +8,7 @@ public interface IConnectionRegistry
     // Removes and completes the connection. Safe to call more than once.
     void Unregister(EventConnection connection);
 
-    IReadOnlyCollection<EventConnection> ConnectionsFor(string playerId);
+    IReadOnlyCollection<EventConnection> ConnectionsFor(string userId);
 
     IReadOnlyCollection<EventConnection> AllConnections();
 }

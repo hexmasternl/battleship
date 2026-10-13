@@ -9,6 +9,6 @@ public static class EventConnectionFactory
 {
     private static readonly Faker Faker = new();
 
-    public static EventConnection Create(string? playerId = null, int capacity = 256, EventsMetrics? metrics = null) =>
-        new(playerId ?? Faker.Random.AlphaNumeric(8), capacity, NullLogger.Instance, metrics ?? EventsMetricsFactory.Create());
+    public static EventConnection Create(string? userId = null, int capacity = 256, EventsMetrics? metrics = null) =>
+        new(userId ?? Faker.Random.AlphaNumeric(8), capacity, NullLogger.Instance, metrics ?? EventsMetricsFactory.Create());
 }

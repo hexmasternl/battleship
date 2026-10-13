@@ -34,7 +34,7 @@ public sealed class ReplayBuffer(IOptions<ReplayOptions> options, TimeProvider t
         }
     }
 
-    public IReadOnlyList<SseItem<JsonElement>> Since(long lastEventId, string playerId)
+    public IReadOnlyList<SseItem<JsonElement>> Since(long lastEventId, string userId)
     {
         lock (_lock)
         {
@@ -48,7 +48,7 @@ public sealed class ReplayBuffer(IOptions<ReplayOptions> options, TimeProvider t
             }
 
             return _entries
-                .Where(e => e.Sequence > lastEventId && (e.TargetIds is null || e.TargetIds.Contains(playerId)))
+                .Where(e => e.Sequence > lastEventId && (e.TargetIds is null || e.TargetIds.Contains(userId)))
                 .Select(e => e.Item)
                 .ToList();
         }

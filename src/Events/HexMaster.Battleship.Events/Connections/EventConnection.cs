@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HexMaster.Battleship.Events.Connections;
 
-// One open event stream of one player (one browser tab). Events are queued in a bounded
+// One open event stream of one user (one browser tab). Events are queued in a bounded
 // channel that the stream endpoint drains; a slow client loses its oldest queued events
 // rather than holding up the router.
 public sealed class EventConnection
@@ -14,12 +14,12 @@ public sealed class EventConnection
     private readonly Channel<SseItem<JsonElement>> _channel;
     private int _closed;
 
-    public EventConnection(string playerId, int capacity, ILogger logger, EventsMetrics metrics)
+    public EventConnection(string userId, int capacity, ILogger logger, EventsMetrics metrics)
     {
         ArgumentNullException.ThrowIfNull(metrics);
 
         Id = Guid.NewGuid();
-        PlayerId = playerId;
+        UserId = userId;
 
         _channel = Channel.CreateBounded<SseItem<JsonElement>>(
             new BoundedChannelOptions(capacity)
@@ -30,13 +30,13 @@ public sealed class EventConnection
             dropped =>
             {
                 metrics.Dropped(DropReasons.ChannelFull);
-                EventsLog.ChannelFullDropped(logger, Id, PlayerId, dropped.EventId, dropped.EventType);
+                EventsLog.ChannelFullDropped(logger, Id, UserId, dropped.EventId, dropped.EventType);
             });
     }
 
     public Guid Id { get; }
 
-    public string PlayerId { get; }
+    public string UserId { get; }
 
     public ChannelReader<SseItem<JsonElement>> Reader => _channel.Reader;
 

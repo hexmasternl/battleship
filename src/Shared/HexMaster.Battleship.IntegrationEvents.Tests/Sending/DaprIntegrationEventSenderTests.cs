@@ -48,7 +48,7 @@ public class DaprIntegrationEventSenderTests
         var envelope = Assert.Single(_published);
         Assert.True(Guid.TryParse(envelope.Id, out _));
         Assert.Equal("user.created.v1", envelope.Type);
-        Assert.Equal(EventTarget.Player, envelope.Target);
+        Assert.Equal(EventTarget.User, envelope.Target);
         Assert.Equal([userId.ToString()], envelope.TargetIds);
         Assert.Equal(_timeProvider.GetUtcNow(), envelope.OccurredAt);
         Assert.Equal(TimeSpan.Zero, envelope.OccurredAt.Offset);

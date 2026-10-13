@@ -9,11 +9,11 @@ public class ConnectionRegistryTests
     private readonly ConnectionRegistry _registry = new();
 
     [Fact]
-    public void ConnectionsFor_PlayerWithTwoConnections_ReturnsBoth()
+    public void ConnectionsFor_UserWithTwoConnections_ReturnsBoth()
     {
-        var first = EventConnectionFactory.Create("player-a");
-        var second = EventConnectionFactory.Create("player-a");
-        var other = EventConnectionFactory.Create("player-b");
+        var first = EventConnectionFactory.Create("user-a");
+        var second = EventConnectionFactory.Create("user-a");
+        var other = EventConnectionFactory.Create("user-b");
 
         _registry.Register(first);
         _registry.Register(second);
@@ -21,40 +21,40 @@ public class ConnectionRegistryTests
 
         Assert.Equal(
             new[] { first.Id, second.Id }.Order(),
-            _registry.ConnectionsFor("player-a").Select(c => c.Id).Order());
+            _registry.ConnectionsFor("user-a").Select(c => c.Id).Order());
         Assert.Equal(3, _registry.AllConnections().Count);
     }
 
     [Fact]
     public void Unregister_OneOfTwoConnections_KeepsTheOther()
     {
-        var first = EventConnectionFactory.Create("player-a");
-        var second = EventConnectionFactory.Create("player-a");
+        var first = EventConnectionFactory.Create("user-a");
+        var second = EventConnectionFactory.Create("user-a");
         _registry.Register(first);
         _registry.Register(second);
 
         _registry.Unregister(first);
 
-        Assert.Equal([second], _registry.ConnectionsFor("player-a"));
+        Assert.Equal([second], _registry.ConnectionsFor("user-a"));
         Assert.Equal([second], _registry.AllConnections());
     }
 
     [Fact]
-    public void Unregister_LastConnection_RemovesPlayerAndCompletesConnection()
+    public void Unregister_LastConnection_RemovesUserAndCompletesConnection()
     {
-        var connection = EventConnectionFactory.Create("player-a");
+        var connection = EventConnectionFactory.Create("user-a");
         _registry.Register(connection);
 
         _registry.Unregister(connection);
         _registry.Unregister(connection);
 
-        Assert.Empty(_registry.ConnectionsFor("player-a"));
+        Assert.Empty(_registry.ConnectionsFor("user-a"));
         Assert.Empty(_registry.AllConnections());
         Assert.True(connection.Reader.Completion.IsCompleted);
     }
 
     [Fact]
-    public void ConnectionsFor_UnknownPlayer_IsEmpty()
+    public void ConnectionsFor_UnknownUser_IsEmpty()
     {
         Assert.Empty(_registry.ConnectionsFor("nobody"));
     }

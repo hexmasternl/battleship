@@ -69,7 +69,7 @@ public class IntegrationEventsDeliveryTests
         events.Timeout = Timeout.InfiniteTimeSpan;
 
         using var streamResponse = await events.GetAsync(
-            $"/events?playerId={userId}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            $"/events?userId={userId}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         streamResponse.EnsureSuccessStatusCode();
 
         using var stream = new SseStreamReader(await streamResponse.Content.ReadAsStreamAsync(cancellationToken));
