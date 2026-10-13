@@ -7,6 +7,8 @@
 
 // Battleship design system tokens (`--bs-*` custom properties on `:root`).
 @use './styles/tokens';
+// Material 3 tonal palettes built from the design system colour scales.
+@use './styles/palettes';
 
 html {
   height: 100%;
