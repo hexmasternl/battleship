@@ -21,4 +21,4 @@
 
 ## 5. Integration check
 
-- [ ] 5.1 Run `dotnet test src/Battleship.slnx`, then `aspire run`. From the Players reference, create a token pair, authorize with the access token and call `GET /users/me` successfully. Confirm the Events reference hides the delivery endpoint and that `<gateway>/scalar` returns 404. Verify all pass and note the Scalar version used in the pull request.
+- [x] 5.1 Run `dotnet test src/Battleship.slnx`, then `aspire run`. From the Players reference, create a token pair, authorize with the access token and call `GET /users/me` successfully. Confirm the Events reference hides the delivery endpoint and that `<gateway>/scalar` returns 404. Verify all pass and note the Scalar version used in the pull request.
