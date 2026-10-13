@@ -30,6 +30,7 @@
 
 // A fixed-height screen: lines sit at the bottom and the oldest ones are clipped at the top.
 .console__screen {
+  box-sizing: border-box;
   height: clamp(14rem, 40dvh, 22rem);
   overflow: hidden;
   display: flex;

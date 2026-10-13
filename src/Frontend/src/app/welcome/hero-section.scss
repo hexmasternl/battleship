@@ -40,6 +40,7 @@
 }
 
 .hero__inner {
+  box-sizing: border-box;
   width: min(100%, var(--bs-container));
   min-height: 100dvh;
   margin-inline: auto;
