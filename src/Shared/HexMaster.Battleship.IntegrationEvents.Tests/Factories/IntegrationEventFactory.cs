@@ -1,6 +1,6 @@
 using Bogus;
 using HexMaster.Battleship.IntegrationEvents.Games;
-using HexMaster.Battleship.IntegrationEvents.Players;
+using HexMaster.Battleship.IntegrationEvents.Users;
 
 namespace HexMaster.Battleship.IntegrationEvents.Tests.Factories;
 
@@ -11,10 +11,10 @@ public static class IntegrationEventFactory
 
     public static string GameCode() => Faker.Random.String2(8, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789");
 
-    public static PlayerCreatedEvent PlayerCreated(Guid? playerId = null) =>
-        new(playerId ?? Guid.NewGuid(), Faker.Internet.UserName());
+    public static UserCreatedEvent UserCreated(Guid? userId = null) =>
+        new(userId ?? Guid.NewGuid(), Faker.Internet.UserName());
 
-    public static PlayerUpdatedEvent PlayerUpdated() =>
+    public static UserUpdatedEvent UserUpdated() =>
         new(Guid.NewGuid(), Faker.Internet.UserName());
 
     public static GameCreatedEvent GameCreated() =>

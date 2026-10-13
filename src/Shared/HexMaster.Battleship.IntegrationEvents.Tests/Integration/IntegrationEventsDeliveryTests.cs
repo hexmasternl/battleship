@@ -4,32 +4,32 @@ using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Dapr.Client;
 using HexMaster.Battleship.IntegrationEvents.Observability;
-using HexMaster.Battleship.IntegrationEvents.Players;
+using HexMaster.Battleship.IntegrationEvents.Users;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HexMaster.Battleship.IntegrationEvents.Tests.Integration;
 
 // End-to-end proof of the integration event path: it starts the real AppHost (the RabbitMQ
-// broker, the APIs and their Dapr sidecars), publishes a catalog event through the Players
-// sidecar with the production sender, and reads it from the Events API stream of the player it
+// broker, the APIs and their Dapr sidecars), publishes a catalog event through the Users
+// sidecar with the production sender, and reads it from the Events API stream of the user it
 // targets. Needs Docker and an initialised Dapr runtime, hence the Integration trait.
 [Trait("Category", "Integration")]
 public class IntegrationEventsDeliveryTests
 {
     private const string PubSubName = "pubsub";
     private const string TopicName = "integration-events";
-    private const string PlayersApi = "hexmaster-battleship-users-api";
+    private const string UsersApi = "hexmaster-battleship-users-api";
     private const string EventsApi = "hexmaster-battleship-events-api";
-    private const string PlayersSidecar = PlayersApi + "-dapr-cli";
+    private const string UsersSidecar = UsersApi + "-dapr-cli";
     private const string EventsSidecar = EventsApi + "-dapr-cli";
 
     private static readonly string[] ResourcesThatMustBeHealthy =
     [
         "messaging",
-        PlayersApi,
+        UsersApi,
         EventsApi,
-        PlayersSidecar,
+        UsersSidecar,
         EventsSidecar
     ];
 
@@ -39,7 +39,7 @@ public class IntegrationEventsDeliveryTests
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
 
     [Fact]
-    public async Task PlayerCreated_PublishedByPlayersService_ReachesThePlayersEventStream()
+    public async Task UserCreated_PublishedByUsersService_ReachesTheUsersEventStream()
     {
         using var startup = new CancellationTokenSource(StartupTimeout);
         var cancellationToken = startup.Token;
@@ -63,13 +63,13 @@ public class IntegrationEventsDeliveryTests
 
         Assert.True(subscribed, $"The Events sidecar did not register the '{TopicName}' subscription on '{PubSubName}' within {SubscriptionTimeout.TotalSeconds} seconds.");
 
-        var playerId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         using var events = app.CreateHttpClient(EventsApi, "http");
         events.Timeout = Timeout.InfiniteTimeSpan;
 
         using var streamResponse = await events.GetAsync(
-            $"/events?playerId={playerId}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            $"/events?playerId={userId}", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         streamResponse.EnsureSuccessStatusCode();
 
         using var stream = new SseStreamReader(await streamResponse.Content.ReadAsStreamAsync(cancellationToken));
@@ -77,8 +77,8 @@ public class IntegrationEventsDeliveryTests
         // The Users service's own sidecar, reached the way a service reaches it: the SDK
         // publishes over gRPC and uses HTTP for everything else.
         using var daprClient = new DaprClientBuilder()
-            .UseHttpEndpoint(app.GetEndpoint(PlayersSidecar, "http").ToString())
-            .UseGrpcEndpoint(app.GetEndpoint(PlayersSidecar, "grpc").ToString())
+            .UseHttpEndpoint(app.GetEndpoint(UsersSidecar, "http").ToString())
+            .UseGrpcEndpoint(app.GetEndpoint(UsersSidecar, "grpc").ToString())
             .Build();
 
         var sender = new DaprIntegrationEventSender(
@@ -86,20 +86,20 @@ public class IntegrationEventsDeliveryTests
             TimeProvider.System,
             new IntegrationEventsMetrics(new ServiceCollection().AddMetrics().BuildServiceProvider().GetRequiredService<IMeterFactory>()),
             NullLogger<DaprIntegrationEventSender>.Instance);
-        var created = new PlayerCreatedEvent(playerId, "Captain Nemo");
+        var created = new UserCreatedEvent(userId, "Captain Nemo");
 
-        await sender.SendAsync(created, EventAudience.Players(playerId), cancellationToken);
+        await sender.SendAsync(created, EventAudience.Users(userId), cancellationToken);
 
         using var delivery = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         delivery.CancelAfter(DeliveryTimeout);
 
         var message = await ReadNextEventAsync(stream, delivery.Token);
 
-        Assert.Equal(PlayerCreatedEvent.EventType, message.Event);
+        Assert.Equal(UserCreatedEvent.EventType, message.Event);
 
         using var payload = JsonDocument.Parse(message.Data);
-        Assert.Equal(playerId, payload.RootElement.GetProperty("playerId").GetGuid());
-        Assert.Equal("Captain Nemo", payload.RootElement.GetProperty("playerName").GetString());
+        Assert.Equal(userId, payload.RootElement.GetProperty("userId").GetGuid());
+        Assert.Equal("Captain Nemo", payload.RootElement.GetProperty("displayName").GetString());
     }
 
     // Skips heartbeats; the first real event is the one under test.

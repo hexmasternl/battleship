@@ -61,7 +61,7 @@ public sealed class CreateGameCommandHandler(
         {
             await events.SendAsync(
                 new GameCreatedEvent(game.Id, game.GameCode, game.PlayerOne.PlayerId),
-                EventAudience.Players(game.PlayerOne.PlayerId),
+                EventAudience.Users(game.PlayerOne.PlayerId),
                 cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)

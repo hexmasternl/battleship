@@ -15,7 +15,7 @@
 
 ## 4. Integration events and Events service
 
-- [ ] 4.1 Replace `PlayerCreatedEvent`/`PlayerUpdatedEvent` with `Users/UserCreatedEvent(UserId, DisplayName)` (`user.created.v1`) and `UserUpdatedEvent` (`user.updated.v1`) in the catalog, rename `EventAudience.Players` to `EventAudience.Users` and its callers (Games create handler), update the IntegrationEvents README (design D3); verify catalog, serialization and sender tests pass with the new types and `user` target
+- [x] 4.1 Replace `PlayerCreatedEvent`/`PlayerUpdatedEvent` with `Users/UserCreatedEvent(UserId, DisplayName)` (`user.created.v1`) and `UserUpdatedEvent` (`user.updated.v1`) in the catalog, rename `EventAudience.Players` to `EventAudience.Users` and its callers (Games create handler), update the IntegrationEvents README (design D3); verify catalog, serialization and sender tests pass with the new types and `user` target
 - [ ] 4.2 Rename `EventTarget.Player` to `EventTarget.User` (JSON `user`), the stream parameter to `userId`, and the connection, registry, router, replay and resolver members and log templates to user naming (design D4); verify Events tests pass, including a new test that an envelope with target `player` is rejected and one that `?playerId=` alone gets `400`
 
 ## 5. Frontend

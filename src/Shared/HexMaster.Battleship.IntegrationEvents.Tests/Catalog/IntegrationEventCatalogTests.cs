@@ -14,8 +14,8 @@ public partial class IntegrationEventCatalogTests
 
         Assert.Equal(
             [
-                "player.created.v1",
-                "player.updated.v1",
+                "user.created.v1",
+                "user.updated.v1",
                 "game.created.v1",
                 "game.joined.v1",
                 "game.player-ready.v1",
