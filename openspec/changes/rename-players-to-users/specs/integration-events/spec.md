@@ -25,6 +25,7 @@ Each catalog event SHALL carry the identifiers needed to act on it and no more, 
 - user created and user updated: `userId`, `displayName`
 - game created: `gameId`, `gameCode`, `playerId` (the creator)
 - game joined: `gameId`, `gameCode`, `playerId`, `playerName`
+- player ready: `gameId`, `gameCode`, `playerId`
 - game started: `gameId`, `gameCode`, `playerWithTurnId`
 - shot fired: `gameId`, `gameCode`, `playerId`, `column`, `row`
 - game ended: `gameId`, `gameCode`, `reason`, optional `winnerId`
@@ -38,6 +39,10 @@ Every `playerId`, `playerWithTurnId` and `winnerId` in a game event SHALL be the
 #### Scenario: Shot fired payload
 - **WHEN** player A fires at column 3, row 7 in game `ABCD1234`
 - **THEN** the envelope payload is a JSON object with `gameId`, `gameCode` `ABCD1234`, `playerId` A's user id, `column` 3 and `row` 7
+
+#### Scenario: Player ready payload
+- **WHEN** player A declares ready in game `ABCD1234`
+- **THEN** the envelope has type `game.player-ready.v1` and its payload is a JSON object with `gameId`, `gameCode` `ABCD1234` and `playerId` A's user id
 
 #### Scenario: Game ended by the server
 - **WHEN** the server ends an inactive game

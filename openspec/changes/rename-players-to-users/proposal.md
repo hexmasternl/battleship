@@ -20,6 +20,7 @@ This change renames the identity side to Users and leaves the game side as Playe
   - `Battleship.slnx`.
 
   The HTTP API is unchanged (`/users/tokens`, `/users/tokens/refresh`, `/users/me`).
+- **Users telemetry.** `PlayersTelemetry`, `PlayersMetrics` and `PlayersLog` become `UsersTelemetry`, `UsersMetrics` and `UsersLog`. The activity source and meter follow the assembly name (`HexMaster.Battleship.Users`), the metrics become `users.tokens.issued`, `users.tokens.refreshed` and `users.tokens.refused`, and the token use-case spans carry `user.id` instead of `player.id`. The Games module keeps `player.id`.
 - **AppHost and gateway.**
   - The API resource becomes `hexmaster-battleship-users-api`, and its Dapr app id becomes `users-api`.
   - In the gateway route table, the module entry `players` becomes `users`. Its prefix is already `users`, so no gateway prefix changes.
@@ -62,6 +63,7 @@ This change renames the identity side to Users and leaves the game side as Playe
 - `welcome-page`: the calls to action use the user session and the display-name component.
 - `authenticated-requests`: requests carry the user's access token, and renewal goes through the user session.
 - `game-creation`: the creating player's id is the user id from the Users service's token.
+- `backend-observability`: the Users module's metrics are `users.tokens.*`, its spans carry `user.`-prefixed attributes, and metric tags exclude user ids.
 
 ## Impact
 

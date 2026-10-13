@@ -48,6 +48,8 @@ Namespaces follow the folders. `git mv` keeps file history.
 
 The registrations become `AddUsersModule`, `AddUsersData` (`UsersDataRegistration`) and `MapUsersEndpoints` (`UsersEndpoints`). The Api project's `UserSecretsId` stays, so a developer's API-level secrets survive. The only key in it that changes is `Players:Tokens:SigningKey`, which becomes `Users:Tokens:SigningKey`; the README tells developers to set it again.
 
+The module's telemetry follows (decided during apply): `UsersTelemetry`, `UsersMetrics` and `UsersLog`, source and meter `HexMaster.Battleship.Users`, metrics `users.tokens.*` and span attribute `user.id`. The `backend-observability` spec records the metric and attribute names.
+
 - *Alternative: keep the folder and rename only namespaces.* Rejected. The user asked for the projects to be renamed, and a `Players` folder holding `Users` namespaces would be the same confusion again.
 
 ### D2. Configuration and token names
