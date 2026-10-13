@@ -54,4 +54,4 @@
 
 ## 11. Integration check
 
-- [ ] 11.1 Run the AppHost and, with two browser profiles through the gateway, create and join a game, place all ships by drag, by tap and by keyboard, rotate, refresh mid-placement, ready one player, then the other; verify both screens show the opponent's join and ready live, a refresh restores the same board, both pages switch to the "game started" panel, and the Games API logs show `game.player-ready.v1` twice and `game.started.v1` once; check the layout at 360px and 1280px wide
+- [x] 11.1 Run the AppHost and, with two browser profiles through the gateway, create and join a game, place all ships by drag, by tap and by keyboard, rotate, refresh mid-placement, ready one player, then the other; verify both screens show the opponent's join and ready live, a refresh restores the same board, both pages switch to the "game started" panel, and the Games API logs show `game.player-ready.v1` twice and `game.started.v1` once; check the layout at 360px and 1280px wide
