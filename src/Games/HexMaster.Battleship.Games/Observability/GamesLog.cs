@@ -22,4 +22,13 @@ internal static partial class GamesLog
 
     [LoggerMessage(EventId = 4005, Level = LogLevel.Error, Message = "Publishing {EventType} for game {GameCode} failed; the player joined")]
     public static partial void GameJoinedAnnouncementFailed(ILogger logger, Exception exception, string eventType, string gameCode);
+
+    [LoggerMessage(EventId = 4006, Level = LogLevel.Information, Message = "Player {PlayerId} is ready in game {GameId} with code {GameCode}")]
+    public static partial void PlayerReady(ILogger logger, Guid gameId, string gameCode, Guid playerId);
+
+    [LoggerMessage(EventId = 4007, Level = LogLevel.Information, Message = "Game {GameId} with code {GameCode} started; player {PlayerWithTurnId} shoots first")]
+    public static partial void GameStarted(ILogger logger, Guid gameId, string gameCode, Guid playerWithTurnId);
+
+    [LoggerMessage(EventId = 4008, Level = LogLevel.Error, Message = "Publishing the ready events for game {GameCode} failed; the player is ready")]
+    public static partial void PlayerReadyAnnouncementFailed(ILogger logger, Exception exception, string gameCode);
 }

@@ -9,9 +9,13 @@ public interface IPlayer
 
     bool HasTurn { get; }
 
-    IReadOnlyList<Coordinate> ShipCoordinates { get; }
+    // Set once the whole fleet is placed and the player said so; never unset.
+    bool IsReady { get; }
 
-    IReadOnlyList<Coordinate> ShotCoordinates { get; }
+    // At most one placement per ship kind.
+    IReadOnlyList<ShipPlacement> Ships { get; }
+
+    IReadOnlyList<Shot> Shots { get; }
 
     DateTimeOffset LastActivityOn { get; }
 }

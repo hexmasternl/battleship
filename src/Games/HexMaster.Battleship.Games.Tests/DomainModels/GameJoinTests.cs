@@ -26,8 +26,9 @@ public class GameJoinTests
         Assert.Equal("Admiral Tromp", game.PlayerTwo.PlayerName);
         Assert.False(game.PlayerOne.HasTurn);
         Assert.False(game.PlayerTwo.HasTurn);
-        Assert.Empty(game.PlayerTwo.ShipCoordinates);
-        Assert.Empty(game.PlayerTwo.ShotCoordinates);
+        Assert.False(game.PlayerTwo.IsReady);
+        Assert.Empty(game.PlayerTwo.Ships);
+        Assert.Empty(game.PlayerTwo.Shots);
         Assert.True(game.IsPlayer(playerId));
     }
 

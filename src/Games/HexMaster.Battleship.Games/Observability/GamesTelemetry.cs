@@ -18,6 +18,8 @@ public static class GamesTelemetry
     public const string CodeAttemptsAttribute = "game.code_attempts";
     public const string JoinOutcomeAttribute = "game.join.outcome";
     public const string UpdateAttemptAttribute = "game.update.attempt";
+    public const string ShipKindAttribute = "ship.kind";
+    public const string ReadyOutcomeAttribute = "game.ready.outcome";
 
     // Span events.
     public const string UpdateConflictEvent = "game.update.conflict";

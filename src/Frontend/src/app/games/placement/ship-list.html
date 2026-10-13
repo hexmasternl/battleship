@@ -1,0 +1,41 @@
+<h3 class="ship-list__title" id="ship-list-title">Ships to place</h3>
+@if (ships().length === 0) {
+  <p class="ship-list__empty">All ships are on the board.</p>
+} @else {
+  <ul
+    class="ship-list"
+    aria-labelledby="ship-list-title"
+    cdkDropList
+    cdkDropListSortingDisabled
+    [cdkDropListDisabled]="readOnly()"
+  >
+    @for (ship of ships(); track ship.kind) {
+      <li class="ship-list__entry">
+        <button
+          type="button"
+          class="ship-list__item"
+          [class.is-active]="ship.kind === activeKind()"
+          [attr.aria-pressed]="ship.kind === activeKind()"
+          [attr.aria-disabled]="readOnly() || null"
+          [attr.data-kind]="ship.kind"
+          cdkDrag
+          [cdkDragData]="ship.kind"
+          [cdkDragDisabled]="readOnly()"
+          (pointerdown)="grabbed($event, ship)"
+          (cdkDragStarted)="dragStarted(ship)"
+          (cdkDragMoved)="dragMoved.emit($event.pointerPosition)"
+          (cdkDragEnded)="dragEnded.emit()"
+          (click)="activate(ship.kind)"
+        >
+          <span class="ship-list__name">{{ ship.name }}</span>
+          <span class="ship-list__length">{{ ship.length }} cells</span>
+          <span
+            class="bs-ship ship-list__hull"
+            aria-hidden="true"
+            [style.--ship-length]="ship.length"
+          ></span>
+        </button>
+      </li>
+    }
+  </ul>
+}

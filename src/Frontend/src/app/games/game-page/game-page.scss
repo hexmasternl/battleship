@@ -1,0 +1,63 @@
+// The page owns its own chrome until a shared layout exists, like the other routed pages.
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--bs-color-bg);
+  color: var(--bs-color-text);
+  font-family: var(--bs-font-body);
+  line-height: var(--bs-leading-body);
+}
+
+.game-page {
+  max-width: var(--bs-container);
+  margin-inline: auto;
+  padding: var(--bs-space-6) var(--bs-gutter) var(--bs-space-10);
+  display: grid;
+  gap: var(--bs-space-6);
+}
+
+.game-page__header {
+  display: grid;
+  gap: var(--bs-space-1);
+}
+
+.game-page__eyebrow {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-sm);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-caps);
+  color: var(--bs-color-text-dim);
+}
+
+.game-page__code {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-2xl);
+  letter-spacing: var(--bs-tracking-caps);
+  line-height: var(--bs-leading-tight);
+  color: var(--bs-color-text-strong);
+  overflow-wrap: anywhere;
+}
+
+.game-page__notice {
+  width: 100%;
+  max-width: 36rem;
+  display: grid;
+  justify-items: start;
+  gap: var(--bs-space-4);
+
+  h2 {
+    margin: 0;
+    font-family: var(--bs-font-heading);
+    font-size: var(--bs-text-lg);
+    text-transform: uppercase;
+    letter-spacing: var(--bs-tracking-heading);
+    color: var(--bs-color-text-strong);
+  }
+
+  p {
+    margin: 0;
+  }
+}

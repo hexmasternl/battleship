@@ -10,6 +10,8 @@
 @use './styles/tokens';
 // Design system button, card and panel recipes (`.bs-btn`, `.bs-card`, `.bs-panel`).
 @use './styles/components';
+// Design system game elements (`.bs-board`, `.bs-cell`, `.bs-ship` and the placing states).
+@use './styles/game';
 // Material 3 tonal palettes built from the design system colour scales.
 @use './styles/palettes';
 

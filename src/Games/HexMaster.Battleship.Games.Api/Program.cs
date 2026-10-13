@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using HexMaster.Battleship.Games.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +17,11 @@ builder.AddBattleshipAuthentication();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
+
+// Enums travel as camelCase strings (ship kind "carrier", orientation "horizontal") and are read
+// case-insensitively. GameView keeps its state by name through its own converter.
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
 
 builder.Services.AddGamesModule();
 builder.AddGamesData();

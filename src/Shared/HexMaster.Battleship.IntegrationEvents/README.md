@@ -12,6 +12,7 @@ Every event is wrapped in the integration event envelope from `HexMaster.Battles
 | `player.updated.v1` | `PlayerUpdatedEvent` (name changed) | `playerId`, `playerName` |
 | `game.created.v1` | `GameCreatedEvent` | `gameId`, `gameCode`, `playerId` (the creator) |
 | `game.joined.v1` | `GameJoinedEvent` (second player joined) | `gameId`, `gameCode`, `playerId`, `playerName` |
+| `game.player-ready.v1` | `GamePlayerReadyEvent` (fleet placed, player ready) | `gameId`, `gameCode`, `playerId` |
 | `game.started.v1` | `GameStartedEvent` | `gameId`, `gameCode`, `playerWithTurnId` |
 | `game.shot-fired.v1` | `GameShotFiredEvent` | `gameId`, `gameCode`, `playerId`, `column`, `row` |
 | `game.ended.v1` | `GameEndedEvent` | `gameId`, `gameCode`, `reason` (`completed`, `abandoned-by-player`, `ended-by-server`), optional `winnerId` |

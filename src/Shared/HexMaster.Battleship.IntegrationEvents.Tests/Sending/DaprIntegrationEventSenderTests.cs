@@ -65,6 +65,20 @@ public class DaprIntegrationEventSenderTests
     }
 
     [Fact]
+    public async Task SendAsync_PlayerReady_CarriesItsTypeNameAndCamelCasePayload()
+    {
+        var ready = IntegrationEventFactory.PlayerReady();
+
+        await CreateSender().SendAsync(ready, EventAudience.Game(ready.PlayerId));
+
+        var envelope = Assert.Single(_published);
+        Assert.Equal("game.player-ready.v1", envelope.Type);
+        Assert.Equal(ready.GameId, envelope.Payload.GetProperty("gameId").GetGuid());
+        Assert.Equal(ready.GameCode, envelope.Payload.GetProperty("gameCode").GetString());
+        Assert.Equal(ready.PlayerId, envelope.Payload.GetProperty("playerId").GetGuid());
+    }
+
+    [Fact]
     public async Task SendAsync_GameAudience_TargetsTheGameAndItsPlayers()
     {
         var a = Guid.NewGuid();

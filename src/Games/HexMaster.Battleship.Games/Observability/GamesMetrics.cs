@@ -8,10 +8,14 @@ public sealed class GamesMetrics
     public const string GamesCreatedName = "games.created";
     public const string GamesJoinedName = "games.joined";
     public const string UpdateConflictsName = "games.update.conflicts";
+    public const string PlayersReadyName = "games.player-ready";
+    public const string GamesStartedName = "games.started";
 
     private readonly Counter<long> _gamesCreated;
     private readonly Counter<long> _gamesJoined;
     private readonly Counter<long> _updateConflicts;
+    private readonly Counter<long> _playersReady;
+    private readonly Counter<long> _gamesStarted;
 
     public GamesMetrics(IMeterFactory meterFactory)
     {
@@ -22,7 +26,14 @@ public sealed class GamesMetrics
         _gamesJoined = meter.CreateCounter<long>(GamesJoinedName, unit: "{game}", description: "Games joined by a second player.");
         _updateConflicts = meter.CreateCounter<long>(
             UpdateConflictsName, unit: "{conflict}", description: "Game updates that found the game changed by another request.");
+        _playersReady = meter.CreateCounter<long>(
+            PlayersReadyName, unit: "{player}", description: "Players who placed their fleet and became ready.");
+        _gamesStarted = meter.CreateCounter<long>(GamesStartedName, unit: "{game}", description: "Games started by two ready players.");
     }
+
+    public void PlayerReady() => _playersReady.Add(1);
+
+    public void GameStarted() => _gamesStarted.Add(1);
 
     public void GameCreated() => _gamesCreated.Add(1);
 
