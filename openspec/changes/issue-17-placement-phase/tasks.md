@@ -41,7 +41,7 @@
 ## 9. Frontend game page (angular-frontend agent)
 
 - [x] 9.1 Add `'game.player-ready.v1'` to `REALTIME_EVENT_TYPES`, and the `GameView` types, `GamesApi.getGame`, `placeShip` and `markReady`, and the `GameApiError` mapping of every problem slug and network failure (design D8); verify `HttpTestingController` specs for each call and each error mapping pass
-- [ ] 9.2 Add `playerGuard` and replace the `GamePlaceholder` route with a lazy `GamePage` (delete the placeholder and its spec); verify route specs for redirect to `/` without a player (no game request sent) and `GamePage` with one pass
+- [x] 9.2 Add `playerGuard` and replace the `GamePlaceholder` route with a lazy `GamePage` (delete the placeholder and its spec); verify route specs for redirect to `/` without a player (no game request sent) and `GamePage` with one pass
 - [ ] 9.3 Add the component-scoped `GamePageStore` (state, selectors, `load`, coalesced `reload`) and `GamePage` with loading, not-found (link home), failed (retry) and the phase switch (`New` → placement, `Started` → "game started" panel, `Completed`/`Abandoned` → "game over" panel); connect `EventsService` on init and reload on `game.joined.v1`, `game.player-ready.v1` and `game.started.v1` for this code and on reconnect-to-open (design D8); verify store and page specs for each load outcome, each phase, event filtering by code and type, reconnect reload, and coalesced reloads pass
 
 ## 10. Frontend placement screen (angular-frontend agent)
