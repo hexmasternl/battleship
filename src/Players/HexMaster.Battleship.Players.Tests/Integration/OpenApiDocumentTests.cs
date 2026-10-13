@@ -42,6 +42,16 @@ public class OpenApiDocumentTests : IClassFixture<OpenApiDocumentTests.Factory>
     }
 
     [Fact]
+    public async Task Document_OmitsTheDaprSubscribeRoute()
+    {
+        using var client = _factory.CreateClient();
+
+        using var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
+
+        Assert.False(document.RootElement.GetProperty("paths").TryGetProperty("/dapr/subscribe", out _));
+    }
+
+    [Fact]
     public async Task Document_DescribesTheBearerScheme()
     {
         using var client = _factory.CreateClient();

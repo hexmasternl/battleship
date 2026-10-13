@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
 
 namespace Microsoft.Extensions.Hosting;
@@ -10,7 +11,8 @@ namespace Microsoft.Extensions.Hosting;
 // the API reference can send one. The scheme is added to the components only when the API
 // registered the Bearer authentication scheme, and the requirement only to operations whose
 // endpoint requires authorization and does not allow anonymous access.
-internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider schemes)
+// An API without authentication (Events) has no scheme provider, and gets neither.
+internal sealed class BearerSecuritySchemeTransformer(IServiceProvider services)
     : IOpenApiDocumentTransformer, IOpenApiOperationTransformer
 {
     public const string SchemeName = JwtBearerDefaults.AuthenticationScheme;
@@ -52,5 +54,6 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
     }
 
     private async Task<bool> HasBearerSchemeAsync() =>
-        await schemes.GetSchemeAsync(SchemeName) is not null;
+        services.GetService<IAuthenticationSchemeProvider>() is { } schemes
+        && await schemes.GetSchemeAsync(SchemeName) is not null;
 }

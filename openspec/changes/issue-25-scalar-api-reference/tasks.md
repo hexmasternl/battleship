@@ -8,7 +8,7 @@
 ## 2. Wire every API
 
 - [x] 2.1 Replace `AddOpenApi()` / `MapOpenApi()` with `AddApiReference()` / `MapApiReference()` in the Players, Games and Events `Program.cs`. Verify the solution builds and the existing API tests pass.
-- [ ] 2.2 Exclude `/integration-events` and the Dapr subscribe route from the Events and Players documents (design D3). Verify a test on the Events document: it contains `GET /events` and no `/integration-events` or `/dapr/subscribe` paths.
+- [x] 2.2 Exclude `/integration-events` and the Dapr subscribe route from the Events and Players documents (design D3). Verify a test on the Events document: it contains `GET /events` and no `/integration-events` or `/dapr/subscribe` paths.
 
 ## 3. AppHost and gateway
 
