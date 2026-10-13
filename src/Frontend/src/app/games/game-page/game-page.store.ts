@@ -5,8 +5,11 @@ import { EventsService } from '../../events/events.service';
 import { RealtimeEvent } from '../../events/realtime-event';
 import { RealtimeEventType } from '../../events/realtime-event-types';
 import { GameApiError, isGameApiError } from '../game-api-error';
-import { GameView } from '../game-view';
+import { GameView, ShipView } from '../game-view';
 import { GamesApi } from '../games-api';
+import { FLEET } from '../placement/placement-rules';
+
+const NO_SHIPS: readonly ShipView[] = [];
 
 /** Where the page is with loading its game. */
 export type GamePageStatus = 'loading' | 'loaded' | 'not-found' | 'failed';
@@ -82,6 +85,13 @@ export class GamePageStore {
   readonly phase = computed(() => this.#state().game?.state ?? null);
   readonly me = computed(() => this.#state().game?.me ?? null);
   readonly opponent = computed(() => this.#state().game?.opponent ?? null);
+  /** The caller's ships on the board. */
+  readonly placedShips = computed(() => this.me()?.ships ?? NO_SHIPS);
+  /** The ships of the fleet not yet on the board, in fleet order. */
+  readonly unplacedFleet = computed(() => {
+    const placed = new Set(this.placedShips().map((ship) => ship.kind));
+    return FLEET.filter((ship) => !placed.has(ship.kind));
+  });
 
   constructor() {
     const destroyRef = inject(DestroyRef);

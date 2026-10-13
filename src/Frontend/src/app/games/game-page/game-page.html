@@ -28,9 +28,7 @@
     @case ('loaded') {
       @switch (store.phase()) {
         @case ('new') {
-          <section class="game-page__phase" aria-labelledby="game-page-placement">
-            <h2 id="game-page-placement">Place your fleet</h2>
-          </section>
+          <battle-placement-phase />
         }
         @case ('started') {
           <section class="bs-panel game-page__notice" aria-labelledby="game-page-started">

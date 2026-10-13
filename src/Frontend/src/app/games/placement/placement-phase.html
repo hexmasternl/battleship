@@ -1,0 +1,11 @@
+<section class="placement" aria-labelledby="placement-title">
+  <h2 id="placement-title" class="placement__title">Place your fleet</h2>
+
+  <div class="placement__players"></div>
+
+  <battle-placement-board class="placement__board" [ships]="store.placedShips()" />
+
+  <div class="placement__ships">
+    <battle-ship-list [ships]="store.unplacedFleet()" />
+  </div>
+</section>

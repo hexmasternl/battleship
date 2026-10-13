@@ -1,0 +1,68 @@
+// The board recipe (`.bs-board`, `.bs-cell`, `.bs-ship`) is global, see styles/_game.scss.
+:host {
+  display: block;
+}
+
+.placement-board {
+  margin-inline: auto;
+  touch-action: none;
+}
+
+// The grid and its rows only carry ARIA roles; their children sit in the board's CSS grid.
+.placement-board__grid,
+.placement-board__row {
+  display: contents;
+}
+
+.placement-board__cell {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bs-color-accent-subtle);
+  }
+
+  &:focus-visible {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: calc(-1 * var(--bs-focus-width));
+    z-index: 3;
+  }
+}
+
+.placement-board__ship {
+  padding: 0;
+  pointer-events: auto;
+  cursor: grab;
+
+  &:focus-visible {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: var(--bs-focus-offset);
+  }
+
+  // The active ship: a border in the accent colour, wider than the hull edge.
+  &.is-active {
+    border: var(--bs-focus-width) solid var(--bs-color-accent);
+    box-shadow: var(--bs-glow-primary);
+  }
+}
+
+.placement-board__preview {
+  z-index: 2;
+}
+
+.is-read-only {
+  .placement-board__cell,
+  .placement-board__ship {
+    cursor: default;
+  }
+
+  .placement-board__cell:hover {
+    background: transparent;
+  }
+}
