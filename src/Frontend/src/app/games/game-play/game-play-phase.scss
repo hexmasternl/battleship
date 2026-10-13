@@ -39,3 +39,8 @@
 .play__grid {
   padding-block: var(--bs-space-4);
 }
+
+// While the confirm snackbar is open, room below the grid so it never covers the bottom rows.
+.play.has-target {
+  padding-block-end: calc(var(--bs-space-12) + var(--bs-space-6));
+}

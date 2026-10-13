@@ -27,7 +27,7 @@
 ## 6. Frontend game play view
 
 - [x] 6.1 Add `games/game-play/` with `GamePlayPhase`, `TargetGrid`, `FleetGrid` and `ShotMarker`, render it from `GamePage` for `Started` in place of #17's placeholder, with the "You"/"Opponent" tabs following `myTurn()`, the `aria-live` turn indicator, accessible cell labels and hit markers with a non-colour cue (design D6); verify component specs for the content of each tab, opponent ships never shown, tab selection on open and on turn changes with manual switching in between, and cell labels pass
-- [ ] 6.2 Add `ShotConfirmSnackbar` (Cancel / Shoot, cell name, no auto-dismiss) opened and updated from the store's `target`, plus error snackbars per `FireShotError` (design D6); verify specs for Shoot sending exactly one request, Cancel sending none, the target moving, and no snackbar without the turn or on an already shot cell pass
+- [x] 6.2 Add `ShotConfirmSnackbar` (Cancel / Shoot, cell name, no auto-dismiss) opened and updated from the store's `target`, plus error snackbars per `FireShotError` (design D6); verify specs for Shoot sending exactly one request, Cancel sending none, the target moving, and no snackbar without the turn or on an already shot cell pass
 - [ ] 6.3 Add the marker enter animation with `--bs-duration-base` and `--bs-ease-standard`, none for markers present on first render or after a reload, and none under `prefers-reduced-motion: reduce`; lay the view out mobile first with all values from the central SASS variables (design D6); verify specs for animation classes and reduced motion pass, and `npm run build` succeeds
 
 ## 7. Integration check
