@@ -19,21 +19,15 @@
       (shipDragStarted)="store.dragStart($event)"
       (dragMoved)="dragMoved($event)"
       (dragEnded)="store.dragEnd()"
+      (rotateRequested)="store.rotateActive()"
     />
 
     <div class="placement__selection" aria-live="polite">
       @if (store.activeShip(); as active) {
         @if (active.placed) {
-          <span>{{ active.name }} selected. Tap a cell to move it.</span>
-          <button
-            matIconButton
-            type="button"
-            class="placement__rotate"
-            [attr.aria-label]="active.rotateLabel"
-            (click)="store.rotateActive()"
+          <span
+            >{{ active.name }} selected. Tap a cell to move it, or the rotate icon to turn it.</span
           >
-            <mat-icon aria-hidden="true">rotate_right</mat-icon>
-          </button>
         } @else {
           <span>{{ active.name }} selected. Tap a cell to place it.</span>
         }

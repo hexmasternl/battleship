@@ -42,16 +42,10 @@
 
   <div class="bs-board__ships">
     @for (placed of placedShips(); track placed.kind) {
-      <button
-        type="button"
-        class="bs-ship is-placed placement-board__ship"
-        [class.bs-ship--v]="placed.vertical"
-        [class.is-active]="placed.active"
+      <div
+        class="placement-board__slot"
         [style.grid-column]="placed.area.column"
         [style.grid-row]="placed.area.row"
-        [attr.aria-label]="placed.label"
-        [attr.aria-pressed]="placed.active"
-        [attr.aria-disabled]="readOnly() || null"
         cdkDrag
         [cdkDragData]="placed.kind"
         [cdkDragDisabled]="readOnly()"
@@ -59,8 +53,29 @@
         (cdkDragStarted)="dragStarted(placed.ship)"
         (cdkDragMoved)="dragMoved.emit($event.pointerPosition)"
         (cdkDragEnded)="dragEnded.emit()"
-        (click)="activateShip(placed.kind)"
-      ></button>
+      >
+        <button
+          type="button"
+          class="bs-ship is-placed placement-board__ship"
+          [class.bs-ship--v]="placed.vertical"
+          [class.is-active]="placed.active"
+          [attr.aria-label]="placed.label"
+          [attr.aria-pressed]="placed.active"
+          [attr.aria-disabled]="readOnly() || null"
+          (click)="activateShip(placed.kind)"
+        ></button>
+        @if (placed.active && !readOnly()) {
+          <button
+            type="button"
+            class="placement-board__rotate"
+            [attr.aria-label]="placed.rotateLabel"
+            (pointerdown)="rotatePressed()"
+            (click)="rotateClicked()"
+          >
+            <mat-icon aria-hidden="true">rotate_right</mat-icon>
+          </button>
+        }
+      </div>
     }
     @if (previewShip(); as preview) {
       <div

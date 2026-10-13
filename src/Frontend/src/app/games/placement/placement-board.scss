@@ -35,10 +35,23 @@
   }
 }
 
-.placement-board__ship {
-  padding: 0;
+// A placed ship's place on the board and its drag handle: the hull and, while the ship is active,
+// its rotate control. A drag can start anywhere in it, the rotate control included.
+.placement-board__slot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
   pointer-events: auto;
   cursor: grab;
+}
+
+.placement-board__ship {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  cursor: inherit;
 
   &:focus-visible {
     outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
@@ -53,8 +66,45 @@
 }
 
 // While a ship is dragged, a faint copy marks where it was; an invalid drop leaves it there.
-.placement-board__ship.cdk-drag-placeholder {
+.placement-board__slot.cdk-drag-placeholder {
   opacity: 0.4;
+}
+
+// The rotate control sits on the middle of the active ship. A tap rotates the ship; a hold or a
+// drag that starts on it moves the ship instead.
+.placement-board__rotate {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: var(--bs-space-8);
+  height: var(--bs-space-8);
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: var(--bs-focus-width) solid var(--bs-color-accent);
+  border-radius: var(--bs-radius-full);
+  background: var(--bs-color-bg);
+  color: var(--bs-color-accent);
+  box-shadow: var(--bs-glow-primary);
+  cursor: inherit;
+
+  &:focus-visible {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: var(--bs-focus-offset);
+  }
+
+  mat-icon {
+    width: var(--bs-space-5);
+    height: var(--bs-space-5);
+    font-size: var(--bs-space-5);
+  }
+}
+
+// The ship that follows the pointer during a drag carries no rotate control.
+.cdk-drag-preview .placement-board__rotate {
+  display: none;
 }
 
 .placement-board__preview {
@@ -63,7 +113,7 @@
 
 .is-read-only {
   .placement-board__cell,
-  .placement-board__ship {
+  .placement-board__slot {
     cursor: default;
   }
 

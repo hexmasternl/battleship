@@ -152,7 +152,7 @@ describe('PlacementPhase', () => {
     const { fixture, host, onBoard } = await render(
       gameView({ me: me({ ships: [ship('cruiser', 1, 1)] }) }),
     );
-    const rotate = () => host.querySelector<HTMLButtonElement>('.placement__rotate');
+    const rotate = () => host.querySelector<HTMLButtonElement>('.placement-board__rotate');
     expect(rotate()).toBeNull();
 
     (host.querySelector('.placement-board__ship') as HTMLButtonElement).click();
@@ -228,12 +228,12 @@ describe('PlacementPhase', () => {
 
       const carrier = host.querySelector('.placement-board__ship') as HTMLButtonElement;
       expect(carrier.getAttribute('aria-disabled')).toBe('true');
-      expect(carrier.classList).toContain('cdk-drag-disabled');
+      expect(carrier.closest('.placement-board__slot')?.classList).toContain('cdk-drag-disabled');
       carrier.click();
       cell(host, 'L12').click();
       await fixture.whenStable();
       expect(host.querySelector('.placement-board__ship.is-active')).toBeNull();
-      expect(host.querySelector('.placement__rotate')).toBeNull();
+      expect(host.querySelector('.placement-board__rotate')).toBeNull();
       expect(api.of('placeShip').length).toBe(0);
     });
 

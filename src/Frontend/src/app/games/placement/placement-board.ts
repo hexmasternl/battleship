@@ -1,5 +1,6 @@
 import { CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { ShipKind, ShipView } from '../game-view';
 import { Point, ShipDragStart, grabIndexAt } from './placement-drag';
 import {
@@ -17,6 +18,12 @@ export interface PlacementPreview {
   readonly ship: ShipView;
   readonly valid: boolean;
 }
+
+/**
+ * How long a press on the rotate control may last and still count as a tap. A longer press is a
+ * hold, which belongs to dragging the ship, not to rotating it.
+ */
+export const ROTATE_TAP_MAX_MS = 500;
 
 /** The id of the board's drop list, which the ship list connects to. */
 export const PLACEMENT_BOARD_DROP_LIST = 'placement-board';
@@ -46,7 +53,7 @@ export function gridArea(ship: ShipView): { column: string; row: string } {
  */
 @Component({
   selector: 'battle-placement-board',
-  imports: [CdkDrag, CdkDropList],
+  imports: [CdkDrag, CdkDropList, MatIconModule],
   templateUrl: './placement-board.html',
   styleUrl: './placement-board.scss',
   host: { '(keydown.escape)': 'cleared.emit()' },
@@ -72,6 +79,8 @@ export class PlacementBoard {
   readonly dragMoved = output<Point>();
   /** A drag of a placed ship ended. */
   readonly dragEnded = output<void>();
+  /** The rotate control on the active ship was tapped (not held, not dragged). */
+  readonly rotateRequested = output<void>();
 
   protected readonly dropListId = PLACEMENT_BOARD_DROP_LIST;
   /**
@@ -79,6 +88,13 @@ export class PlacementBoard {
    * already hidden behind the drag preview and can no longer be measured. Not rendered.
    */
   #grabIndex = 0;
+  /**
+   * When the pointer went down on the rotate control, and whether the ship was dragged since. A
+   * hold or a drag that starts on the control moves the ship and must not rotate it on release.
+   * Not rendered.
+   */
+  #rotatePressedAt: number | null = null;
+  #draggedSincePress = false;
 
   /** The cell that holds the roving tab stop. UI state of this component only. */
   protected readonly focused = signal<Cell>({ column: 0, row: 0 });
@@ -120,6 +136,7 @@ export class PlacementBoard {
         area: gridArea(ship),
         vertical: ship.orientation === 'vertical',
         active: ship.kind === this.activeKind(),
+        rotateLabel: `Rotate ${nameOf(ship.kind).toLowerCase()}`,
         label: `${nameOf(ship.kind)}, ${cellLabel(cells[0])} to ${cellLabel(cells[cells.length - 1])}, ${ship.orientation}`,
       };
     }),
@@ -165,7 +182,27 @@ export class PlacementBoard {
     );
   }
 
+  protected rotatePressed(): void {
+    this.#rotatePressedAt = Date.now();
+    this.#draggedSincePress = false;
+  }
+
+  /**
+   * A tap on the rotate control rotates the ship. A press held longer than a tap, or one that
+   * turned into a drag, does not. Keyboard activation (no pointer press) always rotates.
+   */
+  protected rotateClicked(): void {
+    const pressedAt = this.#rotatePressedAt;
+    const dragged = this.#draggedSincePress;
+    this.#rotatePressedAt = null;
+    this.#draggedSincePress = false;
+    if (this.readOnly() || dragged) return;
+    if (pressedAt !== null && Date.now() - pressedAt > ROTATE_TAP_MAX_MS) return;
+    this.rotateRequested.emit();
+  }
+
   protected dragStarted(ship: ShipView): void {
+    this.#draggedSincePress = true;
     this.shipDragStarted.emit({
       kind: ship.kind,
       orientation: ship.orientation,

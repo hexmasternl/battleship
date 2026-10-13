@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { axe } from 'vitest-axe';
 import { ship } from '../../../testing/game-views';
 import { ShipView } from '../game-view';
-import { PlacementBoard, cellFromPoint, neighbour } from './placement-board';
+import { PlacementBoard, ROTATE_TAP_MAX_MS, cellFromPoint, neighbour } from './placement-board';
 import { Cell } from './placement-rules';
 
 describe('PlacementBoard', () => {
@@ -61,10 +61,11 @@ describe('PlacementBoard', () => {
       'Cruiser, C4 to E4, horizontal',
       'Destroyer, A1 to A2, vertical',
     ]);
-    expect(ships[0].style.gridColumn).toBe('4 / span 3');
-    expect(ships[0].style.gridRow).toBe('5');
+    const slots = Array.from(host.querySelectorAll<HTMLElement>('.placement-board__slot'));
+    expect(slots[0].style.gridColumn).toBe('4 / span 3');
+    expect(slots[0].style.gridRow).toBe('5');
     expect(ships[1].classList).toContain('bs-ship--v');
-    expect(ships[1].style.gridRow).toBe('2 / span 2');
+    expect(slots[1].style.gridRow).toBe('2 / span 2');
   });
 
   it('keeps one cell in the tab order and moves it with the arrow keys', async () => {
@@ -100,6 +101,67 @@ describe('PlacementBoard', () => {
     expect(activated).toEqual([]);
     expect(shipsActivated).toEqual([]);
     expect(cell('F6').getAttribute('aria-disabled')).toBe('true');
+  });
+
+  describe('rotate control', () => {
+    async function renderActive(readOnly = false) {
+      const rendered = await render([ship('cruiser', 2, 3), ship('destroyer', 0, 0)], readOnly);
+      rendered.fixture.componentRef.setInput('activeKind', 'cruiser');
+      await rendered.fixture.whenStable();
+      let rotations = 0;
+      rendered.fixture.componentInstance.rotateRequested.subscribe(() => rotations++);
+      const rotate = () =>
+        rendered.host.querySelector<HTMLButtonElement>('.placement-board__rotate');
+      return { ...rendered, rotate, rotations: () => rotations };
+    }
+
+    afterEach(() => vi.useRealTimers());
+
+    it('sits on the active ship only', async () => {
+      const { host, rotate } = await renderActive();
+      expect(host.querySelectorAll('.placement-board__rotate').length).toBe(1);
+      expect(
+        rotate()?.closest('.placement-board__slot')?.querySelector('.is-active'),
+      ).not.toBeNull();
+      expect(rotate()?.getAttribute('aria-label')).toBe('Rotate cruiser');
+    });
+
+    it('is absent while read only', async () => {
+      const { rotate } = await renderActive(true);
+      expect(rotate()).toBeNull();
+    });
+
+    it('requests a rotation on a tap and on keyboard activation', async () => {
+      const { rotate, rotations } = await renderActive();
+      rotate()?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      rotate()?.click();
+      expect(rotations()).toBe(1);
+
+      rotate()?.click();
+      expect(rotations()).toBe(2);
+    });
+
+    it('does not rotate when the press is held', async () => {
+      const { rotate, rotations } = await renderActive();
+      vi.useFakeTimers({ toFake: ['Date'] });
+      rotate()?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      vi.advanceTimersByTime(ROTATE_TAP_MAX_MS + 1);
+      rotate()?.click();
+      expect(rotations()).toBe(0);
+    });
+
+    it('does not rotate when the press turned into a drag', async () => {
+      const { fixture, rotate, rotations } = await renderActive();
+      const started: string[] = [];
+      fixture.componentInstance.shipDragStarted.subscribe((s) => started.push(s.kind));
+      rotate()?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      (fixture.componentInstance as unknown as { dragStarted(s: ShipView): void }).dragStarted(
+        ship('cruiser', 2, 3),
+      );
+      rotate()?.click();
+      expect(started).toEqual(['cruiser']);
+      expect(rotations()).toBe(0);
+    });
   });
 
   it('has no accessibility violations', async () => {

@@ -36,7 +36,7 @@
   align-content: start;
 }
 
-// The line under the board naming the active ship, with its rotate control.
+// The line under the board naming the active ship.
 .placement__selection {
   min-height: 48px;
   display: flex;
@@ -54,10 +54,6 @@
   margin: 0;
   font-size: var(--bs-text-sm);
   color: var(--bs-color-text-dim);
-}
-
-.placement__rotate {
-  color: var(--bs-color-accent);
 }
 
 .placement__ships {
