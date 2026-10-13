@@ -29,7 +29,7 @@
 
 ## 7. Place ship slice and endpoint
 
-- [ ] 7.1 Add `PlaceShipRequest`, `PlaceShipCommand`/`PlaceShipCommandHandler` using `IGameUpdater` and returning the caller's view, with the `games.place-ship` activity tagged `ship.kind` (design D5); verify Moq-based handler tests for success, not found, not a player, and a refusal propagating without a write pass
+- [x] 7.1 Add `PlaceShipRequest`, `PlaceShipCommand`/`PlaceShipCommandHandler` using `IGameUpdater` and returning the caller's view, with the `games.place-ship` activity tagged `ship.kind` (design D5); verify Moq-based handler tests for success, not found, not a player, and a refusal propagating without a write pass
 - [ ] 7.2 Add the placement problem types (`placement-out-of-board`, `placement-overlap`, `player-ready`, `fleet-incomplete`) to `GameProblemTypes` and `PUT /games/{code}/ships/{kind}` to `GamesEndpoints` with case-insensitive kind and orientation and `400` validation for unknown kind, unknown orientation and missing or non-integer column or row (design D4 table); verify endpoint tests for `401`, `404`, `200` with the view, each `400` and `409` problem type, and `Carrier` in the route accepted pass
 
 ## 8. Ready slice and endpoint
