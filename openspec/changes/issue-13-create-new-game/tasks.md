@@ -8,7 +8,7 @@
 ## 2. Game domain model
 
 - [x] 2.1 Add `GameState`, `Coordinate`, `IGame`, `IPlayer` to `Games.Abstractions` and `GameCode` (validated `^[A-Z0-9]{8}$`) plus `IGameCodeGenerator`/`GameCodeGenerator` (`RandomNumberGenerator.GetItems`) to the module (design D2); verify unit tests for code validation and generator format and alphabet pass
-- [ ] 2.2 Add `Game : DomainModel<Guid>, IGame` and `Player : IPlayer` with `Create`, `GiveFirstTurnTo`, `SwitchTurn`, `Touch` and `Reconcile` (design D2); verify unit tests for the initial state, the turn rule (switch flips both, refusal when the other holds the turn, refusal while `New`), `LastActivityOn` on every mutation, and a `Reconcile` round trip pass
+- [x] 2.2 Add `Game : DomainModel<Guid>, IGame` and `Player : IPlayer` with `Create`, `GiveFirstTurnTo`, `SwitchTurn`, `Touch` and `Reconcile` (design D2); verify unit tests for the initial state, the turn rule (switch flips both, refusal when the other holds the turn, refusal while `New`), `LastActivityOn` on every mutation, and a `Reconcile` round trip pass
 
 ## 3. Persistence
 
