@@ -8,7 +8,7 @@
 ## 2. Strategies and placement (no HTTP)
 
 - [x] 2.1 Add `BotIntelligence` (four presets), `IShotStrategy` and the `Random` strategy. Verify with seeded tests that the strategy never repeats a cell and that after 143 shots it picks the last free cell.
-- [ ] 2.2 Add `HuntAndTarget` (unresolved hits, line extension). Verify with tests that a single hit leads to a neighbour, that two hits in a row lead to a cell extending the line, and that a hit whose neighbours are all shot returns to hunting.
+- [x] 2.2 Add `HuntAndTarget` (unresolved hits, line extension). Verify with tests that a single hit leads to a neighbour, that two hits in a row lead to a cell extending the line, and that a hit whose neighbours are all shot returns to hunting.
 - [ ] 2.3 Add `HuntWithParity`. Verify with tests that hunting shots satisfy `(column + row) % 2 == 0`, that the strategy falls back when parity cells run out, and that target mode is the same as `HuntAndTarget`.
 - [ ] 2.4 Add `ProbabilityDensity` (placement counting with hit weighting). Verify with tests that on an empty board it prefers centre cells over corners, that it never picks a shot cell, and that after a hit it picks an adjacent cell.
 - [ ] 2.5 Add `RandomFleet.Create(Random)`. Verify with tests that 1,000 seeded fleets all lie on the 12×12 board, never overlap, contain exactly the five `Fleet` kinds, and that two seeds give different fleets.
