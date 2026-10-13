@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace HexMaster.Battleship.Players.Data.Entities;
+namespace HexMaster.Battleship.Players.Data.TableStorage.Entities;
 
 // A row of the users table: partitioned by the first two characters of the user id, keyed by the id.
 public sealed class UserEntity : ITableEntity

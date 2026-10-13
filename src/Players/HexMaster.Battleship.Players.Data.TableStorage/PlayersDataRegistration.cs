@@ -1,5 +1,5 @@
 using HexMaster.Battleship.Players.Abstractions.Repositories;
-using HexMaster.Battleship.Players.Data.Repositories;
+using HexMaster.Battleship.Players.Data.TableStorage.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.Hosting;
