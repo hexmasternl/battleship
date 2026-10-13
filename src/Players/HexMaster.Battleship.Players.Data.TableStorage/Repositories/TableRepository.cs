@@ -1,6 +1,6 @@
 using Azure.Data.Tables;
 
-namespace HexMaster.Battleship.Players.Data.Repositories;
+namespace HexMaster.Battleship.Players.Data.TableStorage.Repositories;
 
 // Hands out the repository's table, creating it on first use so an empty storage account needs no
 // manual provisioning. Concurrent first calls may both create it; CreateIfNotExists is idempotent.

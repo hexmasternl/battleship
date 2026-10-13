@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using HexMaster.Battleship.Players.Abstractions.DataTransferObjects;
-using HexMaster.Battleship.Players.Data.Repositories;
+using HexMaster.Battleship.Players.Data.TableStorage.Repositories;
 using HexMaster.Battleship.Players.Tests.Storage;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
