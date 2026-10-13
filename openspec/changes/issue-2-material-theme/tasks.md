@@ -14,7 +14,7 @@
 
 ## 3. Web fonts
 
-- [ ] 3.1 Replace the Roboto link in `src/Frontend/src/index.html` with the Google Fonts request for Quantico 400/700, Courier Prime 400/700 and 400 italic, and Bitcount Single weight 200 with `display=swap`, keep the preconnect and Material Symbols links, and verify in the browser network panel that Quantico, Courier Prime and Bitcount Single are requested and Roboto is not
+- [x] 3.1 Replace the Roboto link in `src/Frontend/src/index.html` with the Google Fonts request for Quantico 400/700, Courier Prime 400/700 and 400 italic, and Bitcount Single weight 200 with `display=swap`, keep the preconnect and Material Symbols links, and verify in the browser network panel that Quantico, Courier Prime and Bitcount Single are requested and Roboto is not
 - [ ] 3.2 Block web fonts in devtools and verify headings fall back to the Quantico stack and body to the Courier Prime stack with all text readable
 
 ## 4. Visual verification and integration
