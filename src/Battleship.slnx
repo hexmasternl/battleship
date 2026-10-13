@@ -8,6 +8,10 @@
     <Project Path="Core/HexMaster.Battleship.Core/HexMaster.Battleship.Core.csproj" />
     <Project Path="Core/HexMaster.Battleship.Core.Tests/HexMaster.Battleship.Core.Tests.csproj" />
   </Folder>
+  <Folder Name="/DevTools/">
+    <Project Path="DevTools/HexMaster.Battleship.DevBot/HexMaster.Battleship.DevBot.csproj" />
+    <Project Path="DevTools/HexMaster.Battleship.DevBot.Tests/HexMaster.Battleship.DevBot.Tests.csproj" />
+  </Folder>
   <Folder Name="/Events/">
     <Project Path="Events/HexMaster.Battleship.Events.Abstractions/HexMaster.Battleship.Events.Abstractions.csproj" />
     <Project Path="Events/HexMaster.Battleship.Events.Api/HexMaster.Battleship.Events.Api.csproj" />

@@ -3,7 +3,7 @@
 ## 1. Spike and scaffolding
 
 - [ ] 1.1 Spike the custom resource: in the AppHost, add a throw-away `BattleshipBotResource : ProjectResource` for an empty worker with `WithDaprSidecar`, `WithIconName("Bot")`, `ExcludeFromManifest()` and a property published through `ResourceNotificationService`. Verify with `aspire start` and `aspire describe` that the resource runs with its sidecar, shows the icon and keeps the custom property for 30 seconds. Record the outcome in `design.md` D2 and choose either the derived type or the parent and child fallback.
-- [ ] 1.2 Create `src/DevTools/HexMaster.Battleship.DevBot` (worker plus Minimal API host, net10.0, ServiceDefaults, references to `Games.Abstractions` and `IntegrationEvents`) and `src/DevTools/HexMaster.Battleship.DevBot.Tests` (xUnit, Moq, Bogus), and add both to `src/Battleship.slnx`. Verify that `dotnet build src/Battleship.slnx` succeeds and the empty test project runs.
+- [x] 1.2 Create `src/DevTools/HexMaster.Battleship.DevBot` (worker plus Minimal API host, net10.0, ServiceDefaults, references to `Games.Abstractions` and `IntegrationEvents`) and `src/DevTools/HexMaster.Battleship.DevBot.Tests` (xUnit, Moq, Bogus), and add both to `src/Battleship.slnx`. Verify that `dotnet build src/Battleship.slnx` succeeds and the empty test project runs.
 
 ## 2. Strategies and placement (no HTTP)
 
