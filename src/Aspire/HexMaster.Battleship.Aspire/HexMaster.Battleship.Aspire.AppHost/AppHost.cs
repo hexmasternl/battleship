@@ -1,6 +1,13 @@
 using CommunityToolkit.Aspire.Hosting.Dapr;
+using HexMaster.Battleship.Aspire.AppHost;
 
 var builder = DistributedApplication.CreateBuilder(args);
+
+// Fail fast with a clear message instead of restarting sidecars when Dapr is missing.
+if (builder.ExecutionContext.IsRunMode)
+{
+    DaprPrerequisites.EnsureInstalled();
+}
 
 // Message broker. The credentials are AppHost parameters: the username defaults to
 // "guest", the password is generated on first run and persisted in user secrets.
