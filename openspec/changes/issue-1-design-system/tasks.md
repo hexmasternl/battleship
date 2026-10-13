@@ -8,7 +8,7 @@
 
 ## 2. Reference document
 
-- [ ] 2.1 Create `docs/design-system.md` with the Introduction, Colour (bases, scales with hex values and derivation formula, semantic roles, contrast table from 1.3), Typography, Spacing and radius, Breakpoints, Effects and Motion sections, each listing token name and value, and verify every token from 1.2 appears in it
+- [x] 2.1 Create `docs/design-system.md` with the Introduction, Colour (bases, scales with hex values and derivation formula, semantic roles, contrast table from 1.3), Typography, Spacing and radius, Breakpoints, Effects and Motion sections, each listing token name and value, and verify every token from 1.2 appears in it
 - [ ] 2.2 Add the Components section (buttons, inputs, cards and panels, status messages, each with all states and the effect token each state uses), the Game elements section (grid, ships, placing states, cell states with their non-colour cues) and the Instruments section (radar, sonar, compass, RPM gauge), and verify each element lists the tokens it consumes
 - [ ] 2.3 Add the "Maintaining this document" section with the scale-generation formula, the contrast command and the token-diff command from design.md, and verify both commands run as written from the repository root
 
