@@ -114,7 +114,7 @@ public class UsersApiTests : IClassFixture<UsersApiFactory>
     {
         // An empty value also overrides a key a developer keeps in the Users API user secrets.
         using var factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder => builder.UseSetting("Players:Tokens:SigningKey", string.Empty));
+            .WithWebHostBuilder(builder => builder.UseSetting("Users:Tokens:SigningKey", string.Empty));
 
         // The host reports every failed startup validation together, wrapped in one AggregateException.
         var exception = Assert.ThrowsAny<Exception>(() => factory.CreateClient());
@@ -124,7 +124,7 @@ public class UsersApiTests : IClassFixture<UsersApiFactory>
         Assert.All(failures, failure =>
         {
             Assert.IsType<OptionsValidationException>(failure);
-            Assert.Contains("Players:Tokens:SigningKey", failure.Message);
+            Assert.Contains("Users:Tokens:SigningKey", failure.Message);
         });
     }
 

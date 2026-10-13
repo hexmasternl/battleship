@@ -18,7 +18,7 @@ public sealed class GamesApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseSetting("Players:Tokens:SigningKey", TestTokens.SigningKey);
+        builder.UseSetting("Users:Tokens:SigningKey", TestTokens.SigningKey);
         builder.UseSetting($"ConnectionStrings:{Microsoft.Extensions.Hosting.GamesDataRegistration.TablesConnectionName}", "UseDevelopmentStorage=true");
         builder.ConfigureTestServices(services =>
         {

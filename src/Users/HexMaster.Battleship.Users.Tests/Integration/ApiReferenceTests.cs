@@ -44,7 +44,7 @@ public class ApiReferenceTests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment(environment);
-            builder.UseSetting("Players:Tokens:SigningKey", TokenOptionsFactory.SigningKey);
+            builder.UseSetting("Users:Tokens:SigningKey", TokenOptionsFactory.SigningKey);
             builder.ConfigureTestServices(services =>
             {
                 services.AddSingleton(Mock.Of<IUserRepository>());

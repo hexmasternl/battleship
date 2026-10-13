@@ -11,7 +11,7 @@ public sealed class UsersApiFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseSetting("Players:Tokens:SigningKey", TokenOptionsFactory.SigningKey);
+        builder.UseSetting("Users:Tokens:SigningKey", TokenOptionsFactory.SigningKey);
         builder.UseSetting($"ConnectionStrings:{Microsoft.Extensions.Hosting.UsersDataRegistration.TablesConnectionName}", Azurite.ConnectionString);
     }
 }

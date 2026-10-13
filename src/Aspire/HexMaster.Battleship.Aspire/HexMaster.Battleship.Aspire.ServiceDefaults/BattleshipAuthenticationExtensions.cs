@@ -7,8 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.Extensions.Hosting;
 
-// Validates the access tokens the Players service issues, for any Battleship API. Reads the same
-// Players:Tokens section the Players service signs with, and stops the host at startup when the
+// Validates the access tokens the Users service issues, for any Battleship API. Reads the same
+// Users:Tokens section the Users service signs with, and stops the host at startup when the
 // signing key is missing or too short. Endpoints opt in with RequireAuthorization(); nothing is
 // protected by this registration alone. WebApplication adds the authentication and authorization
 // middleware itself once these services exist.
@@ -46,17 +46,17 @@ public static class BattleshipAuthenticationExtensions
     }
 }
 
-// The validating side of Players:Tokens. Defaults match the Players service's token options.
+// The validating side of Users:Tokens. Defaults match the Users service's token options.
 public sealed class BearerTokenValidationOptions
 {
-    public const string ConfigurationSection = "Players:Tokens";
+    public const string ConfigurationSection = "Users:Tokens";
     public const string SigningKeyConfigurationKey = ConfigurationSection + ":SigningKey";
     public const int MinimumSigningKeyBytes = 32;
     public static readonly TimeSpan MaximumClockSkew = TimeSpan.FromSeconds(30);
 
     public string SigningKey { get; set; } = string.Empty;
 
-    public string Issuer { get; set; } = "battleship-players";
+    public string Issuer { get; set; } = "battleship-users";
 
     public string Audience { get; set; } = "battleship";
 

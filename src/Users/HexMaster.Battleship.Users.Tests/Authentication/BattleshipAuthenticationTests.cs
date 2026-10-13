@@ -43,6 +43,19 @@ public class BattleshipAuthenticationTests
     }
 
     [Fact]
+    public async Task TokenWithThePreRenameIssuer_IsRejected()
+    {
+        var options = TokenOptionsFactory.Create();
+        options.Issuer = "battleship-players";
+        var token = Issue(options, UserFactory.Stored(), DateTimeOffset.UtcNow);
+        await using var app = await StartAsync(options.SigningKey);
+
+        using var response = await SendAsync(app, "/protected", token);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task TamperedToken_IsRejected()
     {
         var options = TokenOptionsFactory.Create();
@@ -113,7 +126,7 @@ public class BattleshipAuthenticationTests
     {
         var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => StartAsync(signingKey));
 
-        Assert.Contains("Players:Tokens:SigningKey", exception.Message);
+        Assert.Contains("Users:Tokens:SigningKey", exception.Message);
         Assert.Contains(reason, exception.Message);
     }
 
@@ -126,8 +139,8 @@ public class BattleshipAuthenticationTests
         builder.WebHost.UseTestServer();
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Players:Tokens:SigningKey"] = signingKey,
-            ["Players:Tokens:ClockSkew"] = clockSkew,
+            ["Users:Tokens:SigningKey"] = signingKey,
+            ["Users:Tokens:ClockSkew"] = clockSkew,
         });
         builder.AddBattleshipAuthentication();
 

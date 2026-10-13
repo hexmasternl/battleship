@@ -83,7 +83,7 @@ public class OpenApiDocumentTests : IClassFixture<OpenApiDocumentTests.Factory>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.UseSetting("Players:Tokens:SigningKey", TokenOptionsFactory.SigningKey);
+            builder.UseSetting("Users:Tokens:SigningKey", TokenOptionsFactory.SigningKey);
             builder.ConfigureTestServices(services =>
             {
                 services.AddSingleton(Mock.Of<IUserRepository>());

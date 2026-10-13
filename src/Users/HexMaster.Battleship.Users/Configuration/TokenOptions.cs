@@ -2,18 +2,18 @@ using System.Text;
 
 namespace HexMaster.Battleship.Users.Configuration;
 
-// How the Users service signs tokens and how long they live. Bound from Players:Tokens; the
+// How the Users service signs tokens and how long they live. Bound from Users:Tokens; the
 // shared bearer authentication in ServiceDefaults validates tokens against the same section.
 public sealed class TokenOptions
 {
-    public const string ConfigurationSection = "Players:Tokens";
+    public const string ConfigurationSection = "Users:Tokens";
     public const string SigningKeyConfigurationKey = ConfigurationSection + ":SigningKey";
     public const int MinimumSigningKeyBytes = 32;
     public static readonly TimeSpan MaximumClockSkew = TimeSpan.FromSeconds(30);
 
     public string SigningKey { get; set; } = string.Empty;
 
-    public string Issuer { get; set; } = "battleship-players";
+    public string Issuer { get; set; } = "battleship-users";
 
     public string Audience { get; set; } = "battleship";
 

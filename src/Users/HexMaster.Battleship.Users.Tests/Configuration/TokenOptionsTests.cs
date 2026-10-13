@@ -15,7 +15,7 @@ public class TokenOptionsTests
     {
         var options = new TokenOptions();
 
-        Assert.Equal("battleship-players", options.Issuer);
+        Assert.Equal("battleship-users", options.Issuer);
         Assert.Equal("battleship", options.Audience);
         Assert.Equal(TimeSpan.FromMinutes(15), options.AccessTokenLifetime);
         Assert.Equal(TimeSpan.FromDays(90), options.RefreshTokenLifetime);
@@ -30,7 +30,7 @@ public class TokenOptionsTests
         var result = _validator.Validate(null, TokenOptionsFactory.Create(signingKey));
 
         Assert.True(result.Failed);
-        Assert.Contains("Players:Tokens:SigningKey", result.FailureMessage);
+        Assert.Contains("Users:Tokens:SigningKey", result.FailureMessage);
     }
 
     [Fact]
@@ -96,8 +96,8 @@ public class TokenOptionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Players:Tokens:SigningKey"] = new string('k', 16),
-                ["Players:Tokens:AccessTokenLifetime"] = "00:05:00",
+                ["Users:Tokens:SigningKey"] = new string('k', 16),
+                ["Users:Tokens:AccessTokenLifetime"] = "00:05:00",
             })
             .Build();
         var services = new ServiceCollection()
@@ -107,6 +107,6 @@ public class TokenOptionsTests
 
         var exception = Assert.Throws<OptionsValidationException>(
             () => services.GetRequiredService<IOptions<TokenOptions>>().Value);
-        Assert.Contains("Players:Tokens:SigningKey", exception.Message);
+        Assert.Contains("Users:Tokens:SigningKey", exception.Message);
     }
 }
