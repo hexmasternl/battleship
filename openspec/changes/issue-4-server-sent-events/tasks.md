@@ -20,7 +20,7 @@
 
 ## 4. Aspire hosting
 
-- [ ] 4.1 Register the Events API in `AppHost.cs` with the Dapr sidecar and `pubsub` component reference following the pattern merged from `issue-3-dapr-rabbitmq-pubsub`, run the AppHost, and verify the dashboard shows `hexmaster-battleship-events-api` healthy with its sidecar
+- [x] 4.1 Register the Events API in `AppHost.cs` with the Dapr sidecar and `pubsub` component reference following the pattern merged from `issue-3-dapr-rabbitmq-pubsub`, run the AppHost, and verify the dashboard shows `hexmaster-battleship-events-api` healthy with its sidecar
 - [ ] 4.2 Publish an envelope with `dapr publish --publish-app-id hexmaster-battleship-events-api --pubsub pubsub --topic integration-events --data '<envelope>'` while a browser or `curl -N` holds `/events?playerId=A` open, verify the event arrives, and record the command, the single-instance limitation and the `Events:*` configuration keys in `README.md`
 
 ## 5. Frontend events service
