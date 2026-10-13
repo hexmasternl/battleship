@@ -13,7 +13,7 @@
 ## 3. AppHost and gateway
 
 - [ ] 3.1 Add an "API reference" dashboard URL to each API resource through a shared helper, using the path constant (design D4). Verify `aspire run` shows the link on all three API resources and each link opens its reference.
-- [ ] 3.2 Add `scalar` to `GatewayRoutes.ReservedPrefixes` (design D5). Verify a new `GatewayRoutesTests` case: a module declaring `scalar` is rejected with the reserved-prefix message.
+- [x] 3.2 Add `scalar` to `GatewayRoutes.ReservedPrefixes` (design D5). Verify a new `GatewayRoutesTests` case: a module declaring `scalar` is rejected with the reserved-prefix message.
 
 ## 4. Documentation
 
