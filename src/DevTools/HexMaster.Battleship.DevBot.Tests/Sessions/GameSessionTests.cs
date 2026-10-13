@@ -130,7 +130,7 @@ public sealed class GameSessionTests
         await session.ReconcileAsync(CancellationToken.None);
 
         var invocation = Assert.Single(client.Invocations, i => i.Method.Name == nameof(IGamesClient.FireAsync));
-        var at = (Coordinate)invocation.Arguments[1];
+        var at = (Coordinate)invocation.Arguments[1]!;
         Assert.Contains(at, new Coordinate[] { new(4, 5), new(6, 5), new(5, 4), new(5, 6) });
         Assert.False(session.IsEnded);
     }
@@ -227,6 +227,6 @@ public sealed class GameSessionTests
     [
         .. client.Invocations
             .Where(i => i.Method.Name == nameof(IGamesClient.PlaceShipAsync))
-            .Select(i => (ShipPlacement)i.Arguments[1]),
+            .Select(i => (ShipPlacement)i.Arguments[1]!),
     ];
 }
