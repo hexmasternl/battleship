@@ -1,6 +1,6 @@
 // Battleship design system component recipes.
-// Buttons (docs/design-system.md section 7.1) and cards and panels (section 7.3), built from the
-// `--bs-*` tokens in _tokens.scss. Every value is a token reference so a theme change stays a
+// Buttons (docs/design-system.md section 7.1), inputs (7.2), cards and panels (7.3) and status
+// messages (7.4), built from the `--bs-*` tokens in _tokens.scss. Every value is a token reference so a theme change stays a
 // one-block edit; nothing here is a literal colour, size or duration.
 
 // ---- 7.1 Buttons ------------------------------------------------------------------------------
@@ -163,11 +163,108 @@
   }
 }
 
+// ---- 7.2 Inputs -------------------------------------------------------------------------------
+// `.bs-field` wraps a label, a `.bs-input` and an optional `.bs-field__hint`. The error state
+// follows `aria-invalid="true"`, so the visible state and the announced state cannot disagree.
+.bs-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bs-space-2);
+}
+
+.bs-field__label {
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-sm);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+}
+
+.bs-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--bs-space-3);
+  font-family: var(--bs-font-body);
+  font-size: var(--bs-text-md);
+  color: var(--bs-color-text);
+  background: var(--bs-color-surface-raised);
+  border: 1px solid var(--bs-color-border-strong);
+  border-radius: var(--bs-radius-sm);
+  box-shadow: var(--bs-shadow-1);
+  transition:
+    border-color var(--bs-duration-fast) var(--bs-ease-standard),
+    box-shadow var(--bs-duration-fast) var(--bs-ease-standard);
+
+  &::placeholder {
+    color: var(--bs-color-text-dim-raised);
+  }
+
+  &:focus-visible {
+    border-color: var(--bs-color-accent);
+    box-shadow: var(--bs-glow-primary);
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: var(--bs-focus-offset);
+  }
+
+  &[aria-invalid='true'],
+  &.is-error {
+    border-color: var(--bs-color-danger);
+    box-shadow: var(--bs-glow-danger);
+  }
+
+  &:disabled {
+    color: var(--bs-color-text-dim);
+    background: var(--bs-color-surface);
+    border-color: var(--bs-color-border);
+    box-shadow: none;
+  }
+}
+
+.bs-field__hint {
+  margin: 0;
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text-dim-raised);
+}
+
+// The warning glyph is decorative (empty alternative text); the message carries the meaning.
+.bs-field__hint--error {
+  color: var(--bs-color-danger);
+
+  &::before {
+    content: '\26A0\FE0E\00A0' / '';
+  }
+}
+
+// ---- 7.4 Status messages ----------------------------------------------------------------------
+// `.bs-status` plus one variant: a 3px left rule and a leading glyph, so the kind reads without
+// relying on colour. The glyph is decorative (empty alternative text).
+.bs-status {
+  margin: 0;
+  padding: var(--bs-space-3) var(--bs-space-4);
+  font-family: var(--bs-font-body);
+  color: var(--bs-color-text);
+  border-left: 3px solid var(--bs-color-border-strong);
+  border-radius: var(--bs-radius-sm);
+}
+
+.bs-status--danger {
+  background: var(--bs-color-danger-surface);
+  border-left-color: var(--bs-color-danger);
+
+  &::before {
+    content: '\2297\00A0' / '';
+    color: var(--bs-color-danger);
+  }
+}
+
 // ---- Reduced motion ---------------------------------------------------------------------------
 // Transitions drop to the fast duration; loops elsewhere stop (each component owns its own loop).
 @media (prefers-reduced-motion: reduce) {
   .bs-btn,
-  .bs-card {
+  .bs-card,
+  .bs-input {
     transition-duration: var(--bs-duration-fast);
   }
 }

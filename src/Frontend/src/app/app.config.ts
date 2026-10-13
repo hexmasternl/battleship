@@ -4,6 +4,7 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
 import { apiGatewayInterceptor } from './core/api-gateway.interceptor';
 import { provideBackendConfig } from './core/backend-config';
+import { authInterceptor } from './core/session/auth.interceptor';
 import { EVENT_SOURCE_FACTORY, EVENTS_API_URL } from './events/events.tokens';
 
 export const appConfig: ApplicationConfig = {
@@ -11,8 +12,11 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     // Reads the gateway URL from the runtime config.json before the first backend request.
     provideBackendConfig(),
-    // Requests written as /api/<module>/... go to the gateway; see core/api-gateway.interceptor.ts.
-    provideHttpClient(withInterceptors([apiGatewayInterceptor])),
+    // Requests written as /api/<module>/... carry the player's access token (renewed when needed)
+    // and go to the gateway. The order matters: the auth interceptor matches on the /api prefix
+    // that the gateway interceptor rewrites. See core/session/auth.interceptor.ts and
+    // core/api-gateway.interceptor.ts.
+    provideHttpClient(withInterceptors([authInterceptor, apiGatewayInterceptor])),
     // Route `data` keys (such as the coming-soon page's `feature`) bind straight to component inputs.
     provideRouter(routes, withComponentInputBinding()),
     // The Events API as the Aspire AppHost serves it in development (see README, "Real-time events").

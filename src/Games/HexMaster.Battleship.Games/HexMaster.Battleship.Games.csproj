@@ -1,9 +1,23 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\HexMaster.Battleship.Core\HexMaster.Battleship.Core.csproj" />
+    <ProjectReference Include="..\..\Core\HexMaster.Battleship.IntegrationEvents\HexMaster.Battleship.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Games.Abstractions\HexMaster.Battleship.Games.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HexMaster.Battleship.Games.Tests" />
+  </ItemGroup>
 
 </Project>

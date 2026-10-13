@@ -1,0 +1,9 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Instrument backend services with OpenTelemetry traces, metrics and structured logs (ADR 0008)
+affected_areas:
+  - aspire
+  - core
+  - players
+  - games
+  - events

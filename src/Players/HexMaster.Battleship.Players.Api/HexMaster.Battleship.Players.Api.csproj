@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>bd45b2c6-8a98-4730-b835-b6fa9979b008</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\HexMaster.Battleship.Aspire\HexMaster.Battleship.Aspire.ServiceDefaults\HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Players\HexMaster.Battleship.Players.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Players.Data\HexMaster.Battleship.Players.Data.csproj" />
   </ItemGroup>
 
 </Project>

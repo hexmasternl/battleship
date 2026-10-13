@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 24
+url: https://github.com/hexmasternl/battleship/issues/24
+title: Instrument backend services with OpenTelemetry traces, metrics and structured logs (ADR 0008)
+linked: 2026-10-13
