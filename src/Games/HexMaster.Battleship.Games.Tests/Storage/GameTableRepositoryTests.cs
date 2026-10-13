@@ -31,18 +31,21 @@ public class GameTableRepositoryTests
         Assert.Equal(game.PlayerOne.PlayerId, stored.PlayerOne.PlayerId);
         Assert.Equal(game.PlayerOne.PlayerName, stored.PlayerOne.PlayerName);
         Assert.False(stored.PlayerOne.HasTurn);
-        Assert.Empty(stored.PlayerOne.ShipCoordinates);
-        Assert.Empty(stored.PlayerOne.ShotCoordinates);
+        Assert.False(stored.PlayerOne.IsReady);
+        Assert.Empty(stored.PlayerOne.Ships);
+        Assert.Empty(stored.PlayerOne.Shots);
         Assert.Equal(Now, stored.PlayerOne.LastActivityOn);
         Assert.Null(stored.PlayerTwo);
     }
 
     [AzuriteFact]
-    public async Task StartedGame_RoundTripsPlayersAndCoordinates()
+    public async Task StartedGame_RoundTripsPlayersShipsAndShots()
     {
         var repository = new GameTableRepository(Azurite.CreateClient());
-        var playerOne = GameFactory.Player(hasTurn: true, ships: [new(0, 0), new(0, 1)], shots: [new(4, 7)], lastActivityOn: Now);
-        var playerTwo = GameFactory.Player(ships: [new(9, 9)], lastActivityOn: Now.AddMinutes(1));
+        var playerOne = GameFactory.Player(
+            hasTurn: true, isReady: true, ships: GameFactory.FullFleet(), shots: [new(4, 7, true)], lastActivityOn: Now);
+        var playerTwo = GameFactory.Player(
+            isReady: true, ships: GameFactory.FullFleet(), shots: [new(9, 9, false)], lastActivityOn: Now.AddMinutes(1));
         var game = Game.Reconcile(Guid.NewGuid(), GameFactory.Code(), GameState.Started, playerOne, playerTwo, Now.AddMinutes(1));
 
         Assert.True(await repository.TryAddAsync(game, CancellationToken.None));
@@ -51,10 +54,12 @@ public class GameTableRepositoryTests
         Assert.NotNull(stored);
         Assert.Equal(GameState.Started, stored.GameState);
         Assert.True(stored.PlayerOne.HasTurn);
-        Assert.Equal(playerOne.ShipCoordinates, stored.PlayerOne.ShipCoordinates);
-        Assert.Equal(playerOne.ShotCoordinates, stored.PlayerOne.ShotCoordinates);
+        Assert.True(stored.PlayerOne.IsReady);
+        Assert.Equal(playerOne.Ships, stored.PlayerOne.Ships);
+        Assert.Equal(playerOne.Shots, stored.PlayerOne.Shots);
         Assert.Equal(playerTwo.PlayerId, stored.PlayerTwo!.PlayerId);
-        Assert.Equal(playerTwo.ShipCoordinates, stored.PlayerTwo.ShipCoordinates);
+        Assert.Equal(playerTwo.Ships, stored.PlayerTwo.Ships);
+        Assert.Equal(playerTwo.Shots, stored.PlayerTwo.Shots);
         Assert.Equal(Now.AddMinutes(1), stored.PlayerTwo.LastActivityOn);
     }
 

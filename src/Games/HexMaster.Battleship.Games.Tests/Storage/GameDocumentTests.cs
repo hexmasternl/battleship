@@ -13,7 +13,8 @@ public class GameDocumentTests
     [Fact]
     public void Document_RoundTripsAGame()
     {
-        var playerOne = GameFactory.Player(hasTurn: true, ships: [new(1, 2)], shots: [new(3, 4)], lastActivityOn: Now);
+        var playerOne = GameFactory.Player(
+            hasTurn: true, isReady: true, ships: GameFactory.FullFleet(), shots: [new(3, 4, true)], lastActivityOn: Now);
         var playerTwo = GameFactory.Player(lastActivityOn: Now.AddSeconds(5));
         var game = Game.Reconcile(Guid.NewGuid(), GameFactory.Code(), GameState.Started, playerOne, playerTwo, Now.AddSeconds(5));
 
@@ -28,8 +29,9 @@ public class GameDocumentTests
         Assert.Equal(game.PlayerOne.PlayerName, restored.PlayerOne.PlayerName);
         Assert.True(restored.PlayerOne.HasTurn);
         Assert.Equal(Now, restored.PlayerOne.LastActivityOn);
-        Assert.Equal(game.PlayerOne.ShipCoordinates, restored.PlayerOne.ShipCoordinates);
-        Assert.Equal(game.PlayerOne.ShotCoordinates, restored.PlayerOne.ShotCoordinates);
+        Assert.True(restored.PlayerOne.IsReady);
+        Assert.Equal(game.PlayerOne.Ships, restored.PlayerOne.Ships);
+        Assert.Equal(game.PlayerOne.Shots, restored.PlayerOne.Shots);
         Assert.Equal(playerTwo.PlayerId, restored.PlayerTwo!.PlayerId);
     }
 

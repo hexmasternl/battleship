@@ -56,18 +56,42 @@ public sealed record PlayerDocument(
     Guid PlayerId,
     string PlayerName,
     bool HasTurn,
-    IReadOnlyList<Coordinate> ShipCoordinates,
-    IReadOnlyList<Coordinate> ShotCoordinates,
+    bool IsReady,
+    IReadOnlyList<ShipDocument> Ships,
+    IReadOnlyList<ShotDocument> Shots,
     DateTimeOffset LastActivityOn)
 {
     public static PlayerDocument From(IPlayer player) => new(
         player.PlayerId,
         player.PlayerName,
         player.HasTurn,
-        player.ShipCoordinates,
-        player.ShotCoordinates,
+        player.IsReady,
+        [.. player.Ships.Select(ShipDocument.From)],
+        [.. player.Shots.Select(ShotDocument.From)],
         player.LastActivityOn);
 
-    public Player ToPlayer() =>
-        Player.Reconcile(PlayerId, PlayerName, HasTurn, ShipCoordinates ?? [], ShotCoordinates ?? [], LastActivityOn);
+    public Player ToPlayer() => Player.Reconcile(
+        PlayerId,
+        PlayerName,
+        HasTurn,
+        IsReady,
+        (Ships ?? []).Select(s => s.ToPlacement()),
+        (Shots ?? []).Select(s => s.ToShot()),
+        LastActivityOn);
+}
+
+// A placed ship: its kind, origin cell and orientation. Its cells are derived, never stored.
+public sealed record ShipDocument(ShipKind Kind, int Column, int Row, Orientation Orientation)
+{
+    public static ShipDocument From(ShipPlacement placement) =>
+        new(placement.Kind, placement.Origin.Column, placement.Origin.Row, placement.Orientation);
+
+    public ShipPlacement ToPlacement() => new(Kind, new Coordinate(Column, Row), Orientation);
+}
+
+public sealed record ShotDocument(int Column, int Row, bool Hit)
+{
+    public static ShotDocument From(Shot shot) => new(shot.Column, shot.Row, shot.Hit);
+
+    public Shot ToShot() => new(Column, Row, Hit);
 }

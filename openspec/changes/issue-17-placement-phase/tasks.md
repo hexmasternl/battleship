@@ -2,12 +2,12 @@
 
 ## 1. Prerequisites
 
-- [ ] 1.1 Confirm `issue-13-create-new-game` and `issue-16-join-game` are merged into `development` (`Game`, `Player`, `GameCode`, `IGameRepository`, `GameTableRepository`, `Game.IsPlayer`, `IGameUpdater`, `GameProblemTypes`, `GamesEndpoints`, `GamesApi`, the `games/:gameCode` placeholder route); stop and report if either is missing; map the names in design.md onto the merged code where they differ; verify `dotnet build src/Battleship.slnx`, `dotnet test src/Battleship.slnx` and the frontend tests pass before any change
+- [x] 1.1 Confirm `issue-13-create-new-game` and `issue-16-join-game` are merged into `development` (`Game`, `Player`, `GameCode`, `IGameRepository`, `GameTableRepository`, `Game.IsPlayer`, `IGameUpdater`, `GameProblemTypes`, `GamesEndpoints`, `GamesApi`, the `games/:gameCode` placeholder route); stop and report if either is missing; map the names in design.md onto the merged code where they differ; verify `dotnet build src/Battleship.slnx`, `dotnet test src/Battleship.slnx` and the frontend tests pass before any change
 
 ## 2. Ship and board model
 
 - [x] 2.1 Add `ShipKind`, `Orientation`, `Fleet` (kinds and lengths 5, 4, 3, 3, 2), `Board` (size 12, `Contains`), `ShipPlacement` with derived `Cells`, and `Shot(Column, Row, Hit)` to `Games.Abstractions` (design D2); verify unit tests for the fleet composition, horizontal and vertical cells, and board bounds pass
-- [ ] 2.2 Replace `IPlayer`'s flat ship and shot coordinates with `IsReady`, `Ships` and `Shots` and update `Player`, `Game.Create`, `Game.Join` and `Game.Reconcile` accordingly; verify the existing #13/#16 domain tests, adjusted to the new shape, pass and a new game has a player one that is not ready with no ships and no shots
+- [x] 2.2 Replace `IPlayer`'s flat ship and shot coordinates with `IsReady`, `Ships` and `Shots` and update `Player`, `Game.Create`, `Game.Join` and `Game.Reconcile` accordingly; verify the existing #13/#16 domain tests, adjusted to the new shape, pass and a new game has a player one that is not ready with no ships and no shots
 
 ## 3. Placement and ready in the domain
 

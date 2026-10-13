@@ -11,8 +11,9 @@ public sealed class Player : IPlayer
         Guid playerId,
         string playerName,
         bool hasTurn,
-        IReadOnlyList<Coordinate> shipCoordinates,
-        IReadOnlyList<Coordinate> shotCoordinates,
+        bool isReady,
+        IReadOnlyList<ShipPlacement> ships,
+        IReadOnlyList<Shot> shots,
         DateTimeOffset lastActivityOn)
     {
         if (playerId == Guid.Empty)
@@ -25,11 +26,17 @@ public sealed class Player : IPlayer
             throw new DomainException("A player needs a name.");
         }
 
+        if (ships.DistinctBy(s => s.Kind).Count() != ships.Count)
+        {
+            throw new DomainException("A player places each ship kind at most once.");
+        }
+
         PlayerId = playerId;
         PlayerName = playerName.Trim();
         HasTurn = hasTurn;
-        ShipCoordinates = shipCoordinates;
-        ShotCoordinates = shotCoordinates;
+        IsReady = isReady;
+        Ships = ships;
+        Shots = shots;
         LastActivityOn = lastActivityOn;
     }
 
@@ -39,27 +46,30 @@ public sealed class Player : IPlayer
 
     public bool HasTurn { get; internal set; }
 
-    public IReadOnlyList<Coordinate> ShipCoordinates { get; }
+    public bool IsReady { get; internal set; }
 
-    public IReadOnlyList<Coordinate> ShotCoordinates { get; }
+    public IReadOnlyList<ShipPlacement> Ships { get; internal set; }
+
+    public IReadOnlyList<Shot> Shots { get; }
 
     public DateTimeOffset LastActivityOn { get; internal set; }
 
-    // A player entering a game: no turn, no ships, no shots, active now.
+    // A player entering a game: no turn, not ready, no ships, no shots, active now.
     internal static Player Create(Guid playerId, string playerName, DateTimeOffset now) =>
-        new(playerId, playerName, false, [], [], now);
+        new(playerId, playerName, false, false, [], [], now);
 
     public static Player Reconcile(
         Guid playerId,
         string playerName,
         bool hasTurn,
-        IEnumerable<Coordinate> shipCoordinates,
-        IEnumerable<Coordinate> shotCoordinates,
+        bool isReady,
+        IEnumerable<ShipPlacement> ships,
+        IEnumerable<Shot> shots,
         DateTimeOffset lastActivityOn)
     {
-        ArgumentNullException.ThrowIfNull(shipCoordinates);
-        ArgumentNullException.ThrowIfNull(shotCoordinates);
+        ArgumentNullException.ThrowIfNull(ships);
+        ArgumentNullException.ThrowIfNull(shots);
 
-        return new Player(playerId, playerName, hasTurn, [.. shipCoordinates], [.. shotCoordinates], lastActivityOn);
+        return new Player(playerId, playerName, hasTurn, isReady, [.. ships], [.. shots], lastActivityOn);
     }
 }

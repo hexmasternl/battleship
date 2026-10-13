@@ -25,8 +25,9 @@ public class GameTests
         Assert.Equal(DomainModelState.New, game.State);
         Assert.Equal(playerId, game.PlayerOne.PlayerId);
         Assert.Equal("Admiral Nelson", game.PlayerOne.PlayerName);
-        Assert.Empty(game.PlayerOne.ShipCoordinates);
-        Assert.Empty(game.PlayerOne.ShotCoordinates);
+        Assert.False(game.PlayerOne.IsReady);
+        Assert.Empty(game.PlayerOne.Ships);
+        Assert.Empty(game.PlayerOne.Shots);
         Assert.Null(game.PlayerTwo);
     }
 
@@ -223,9 +224,9 @@ public class GameTests
     {
         var id = Guid.NewGuid();
         var code = GameFactory.Code();
-        var ships = new[] { GameFactory.Coordinate(), GameFactory.Coordinate() };
-        var shots = new[] { GameFactory.Coordinate() };
-        var playerOne = GameFactory.Player(hasTurn: true, ships: ships, shots: shots, lastActivityOn: Now);
+        var ships = GameFactory.FullFleet();
+        var shots = new[] { GameFactory.Shot(hit: true), GameFactory.Shot(hit: false) };
+        var playerOne = GameFactory.Player(hasTurn: true, isReady: true, ships: ships, shots: shots, lastActivityOn: Now);
         var playerTwo = GameFactory.Player(lastActivityOn: Later);
 
         var game = Game.Reconcile(id, code, GameState.Started, playerOne, playerTwo, Later);
@@ -237,20 +238,32 @@ public class GameTests
         Assert.Equal(Later, game.LastActivityOn);
         Assert.Same(playerOne, game.PlayerOne);
         Assert.Same(playerTwo, game.PlayerTwo);
-        Assert.Equal(ships, game.PlayerOne.ShipCoordinates);
-        Assert.Equal(shots, game.PlayerOne.ShotCoordinates);
+        Assert.True(game.PlayerOne.IsReady);
+        Assert.Equal(ships, game.PlayerOne.Ships);
+        Assert.Equal(shots, game.PlayerOne.Shots);
         Assert.Equal(Now, game.PlayerOne.LastActivityOn);
     }
 
     [Fact]
-    public void Player_ReconcileCopiesTheCoordinates()
+    public void Player_ReconcileCopiesTheShipsAndShots()
     {
-        var ships = new List<Coordinate> { GameFactory.Coordinate() };
+        var ships = new List<ShipPlacement> { GameFactory.FullFleet()[0] };
+        var shots = new List<Shot> { GameFactory.Shot() };
 
-        var player = GameFactory.Player(ships: ships);
-        ships.Add(GameFactory.Coordinate());
+        var player = GameFactory.Player(ships: ships, shots: shots);
+        ships.Add(GameFactory.FullFleet()[1]);
+        shots.Add(GameFactory.Shot());
 
-        Assert.Single(player.ShipCoordinates);
+        Assert.Single(player.Ships);
+        Assert.Single(player.Shots);
+    }
+
+    [Fact]
+    public void Player_RefusesTwoShipsOfTheSameKind()
+    {
+        var carrier = GameFactory.FullFleet()[0];
+
+        Assert.Throws<DomainException>(() => GameFactory.Player(ships: [carrier, carrier with { Origin = new(0, 11) }]));
     }
 
     [Fact]
