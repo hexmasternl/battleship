@@ -8,7 +8,7 @@
 ## 2. Routing core
 
 - [x] 2.1 Implement `ConnectionRegistry` (register, unregister, connections for a player, all connections) and `AddEventsCore()` in the Events project, and verify xUnit tests cover one player with two connections and removal
-- [ ] 2.2 Implement `EventRouter` with the per-process sequence counter and the `player`, `game` and `all` rules, removing a connection whose channel is completed and continuing with the others, and verify xUnit tests cover the four routing scenarios of the `realtime-events` spec and the one-broken-connection scenario
+- [x] 2.2 Implement `EventRouter` with the per-process sequence counter and the `player`, `game` and `all` rules, removing a connection whose channel is completed and continuing with the others, and verify xUnit tests cover the four routing scenarios of the `realtime-events` spec and the one-broken-connection scenario
 - [ ] 2.3 Implement `ReplayBuffer` (capacity 1000, max age 2 minutes, both from `Events:Replay` configuration) with replay filtered by player id and sequence greater than the presented id, falling through to live-only when the id is older than the buffer, and verify xUnit tests cover replay in order, no leak of another player's events, the fallen-out id and overflow
 
 ## 3. Stream endpoint and subscription

@@ -1,4 +1,5 @@
 using HexMaster.Battleship.Events.Connections;
+using HexMaster.Battleship.Events.Routing;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +12,7 @@ public static class EventsCoreRegistration
     public static IServiceCollection AddEventsCore(this IServiceCollection services)
     {
         services.AddSingleton<IConnectionRegistry, ConnectionRegistry>();
+        services.AddSingleton<IEventRouter, EventRouter>();
 
         return services;
     }
