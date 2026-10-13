@@ -18,7 +18,7 @@ Every event delivered to clients SHALL be an envelope with a unique id, an event
 - **THEN** the Events service rejects it, records a warning with the event id and type, and delivers nothing
 
 ### Requirement: Clients subscribe through a server-sent events stream
-The Events service SHALL expose a stream endpoint that, for a request identifying the connecting player, responds with content type `text/event-stream`, keeps the connection open until the client disconnects, and writes each delivered event as a server-sent events message with an `id` field set to the envelope id, an `event` field set to the envelope type and a `data` field holding the envelope payload as JSON on a single line.
+The Events service SHALL expose a stream endpoint that, for a request identifying the connecting player, responds with content type `text/event-stream`, keeps the connection open until the client disconnects, and writes each delivered event as a server-sent events message with an `id` field set to a sequence number the service assigns to each routed event in increasing order (so a reconnecting client's last event id orders the replay), an `event` field set to the envelope type and a `data` field holding the envelope payload as JSON on a single line.
 
 #### Scenario: Stream opens for an identified player
 - **WHEN** a client requests the stream endpoint and identifies itself as a player

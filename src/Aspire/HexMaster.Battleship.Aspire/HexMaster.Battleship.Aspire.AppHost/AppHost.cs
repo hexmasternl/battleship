@@ -57,4 +57,12 @@ builder.AddProject<Projects.HexMaster_Battleship_Players_Api>("hexmaster-battles
         .WithReference(pubsub))
     .WaitFor(messaging);
 
+// Pushes integration events to browsers over server-sent events. Routing state lives in the
+// process, so the service runs as a single instance.
+builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("hexmaster-battleship-events-api")
+    .WithDaprSidecar(sidecar => sidecar
+        .WithOptions(new DaprSidecarOptions { AppId = "events-api" })
+        .WithReference(pubsub))
+    .WaitFor(messaging);
+
 builder.Build().Run();
