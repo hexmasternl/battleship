@@ -265,9 +265,50 @@ describe('PlayerSession', () => {
       expect(await answer).toBe(true);
     });
   });
+
+  describe('renew', () => {
+    it('refreshes the pair and resolves true', async () => {
+      storeRefreshToken('refresh-0');
+
+      const renewed = store.renew();
+      backend.expectOne(REFRESH_URL).flush(pair(1));
+
+      expect(await renewed).toBe(true);
+      expect(session.getItem(ACCESS_TOKEN_KEY)).toBe('access-1');
+    });
+
+    it('shares the refresh in flight with restore and other renewals', async () => {
+      storeRefreshToken('refresh-0');
+
+      const restored = store.restore();
+      const first = store.renew();
+      const second = store.renew();
+      backend.expectOne(REFRESH_URL).flush(pair(1));
+
+      await restored;
+      expect(await first).toBe(true);
+      expect(await second).toBe(true);
+    });
+
+    it('resolves false and clears the tokens when the refresh is refused', async () => {
+      storeRefreshToken('refresh-0');
+
+      const renewed = store.renew();
+      backend.expectOne(REFRESH_URL).flush(null, { status: 401, statusText: 'Unauthorized' });
+
+      expect(await renewed).toBe(false);
+      expect(local.getItem(REFRESH_TOKEN_KEY)).toBeNull();
+    });
+  });
 });
 
 describe('isExpired', () => {
+  it('counts a token expiring within the margin as expired', () => {
+    const token = { value: 'x', expiresAt: '2026-10-13T10:00:20Z' };
+    expect(isExpired(token, NOW)).toBe(false);
+    expect(isExpired(token, NOW, 30_000)).toBe(true);
+  });
+
   it('compares the expiry instant with now', () => {
     expect(isExpired({ value: 'x', expiresAt: '2026-10-13T10:00:01Z' }, NOW)).toBe(false);
     expect(isExpired({ value: 'x', expiresAt: '2026-10-13T10:00:00Z' }, NOW)).toBe(true);

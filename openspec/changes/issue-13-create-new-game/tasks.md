@@ -22,7 +22,7 @@
 
 ## 5. Frontend authenticated requests
 
-- [ ] 5.1 Add `PlayerSession.renew()` sharing the in-flight refresh, and `core/session/auth.interceptor.ts` attaching the bearer token to `/api/` requests except the token endpoints, renewing within 30 s of expiry and retrying once on `401` via an `HttpContextToken`; register it with the gateway interceptor in `app.config.ts` (design D5); verify `HttpTestingController` specs for header present, skip list, renewal before send, one shared renewal for two requests, single retry and no second retry pass
+- [x] 5.1 Add `PlayerSession.renew()` sharing the in-flight refresh, and `core/session/auth.interceptor.ts` attaching the bearer token to `/api/` requests except the token endpoints, renewing within 30 s of expiry and retrying once on `401` via an `HttpContextToken`; register it with the gateway interceptor in `app.config.ts` (design D5); verify `HttpTestingController` specs for header present, skip list, renewal before send, one shared renewal for two requests, single retry and no second retry pass
 
 ## 6. Frontend create-game flow
 

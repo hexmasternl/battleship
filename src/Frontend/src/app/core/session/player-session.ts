@@ -21,10 +21,13 @@ export const SESSION_CLOCK = new InjectionToken<() => number>('SESSION_CLOCK', {
   factory: () => () => Date.now(),
 });
 
-/** Whether a stored token's expiry instant has passed. An unreadable instant counts as expired. */
-export function isExpired(token: StoredToken, now: number): boolean {
+/**
+ * Whether a stored token's expiry instant has passed, or will pass within `marginMs`. An
+ * unreadable instant counts as expired.
+ */
+export function isExpired(token: StoredToken, now: number, marginMs = 0): boolean {
   const expiresAt = Date.parse(token.expiresAt);
-  return Number.isNaN(expiresAt) || expiresAt <= now;
+  return Number.isNaN(expiresAt) || expiresAt <= now + marginMs;
 }
 
 /**
@@ -70,6 +73,16 @@ export class PlayerSession {
       this.#restoring = null;
     });
     return this.#restoring;
+  }
+
+  /**
+   * Renews the token pair because the access token expired or was refused. Shares a refresh in
+   * flight with every other caller, exactly like `restore()`, and follows the same rules when the
+   * refresh is refused. Never rejects; resolves whether the visitor is a known player afterwards.
+   */
+  async renew(): Promise<boolean> {
+    await this.restore();
+    return this.isKnown();
   }
 
   /**
