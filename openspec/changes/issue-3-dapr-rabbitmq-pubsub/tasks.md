@@ -21,4 +21,4 @@
 ## 4. End-to-end verification
 
 - [x] 4.1 Add `Aspire.Hosting.Testing` to the Games test project and write an integration test (trait `Integration`) that starts the AppHost, waits for `messaging`, both APIs and both sidecars to be healthy, posts to the Players smoke endpoint and polls the Games received endpoint for up to thirty seconds, and verify `dotnet test src/Battleship.slnx --filter Category=Integration` passes and `dotnet test src/Battleship.slnx --filter Category!=Integration` still passes without Docker
-- [ ] 4.2 Run the full `dotnet build` and `dotnet test` for `src/Battleship.slnx`, run the AppHost once more from a clean `aspire run`, and verify the dashboard shows `messaging`, the two APIs and their sidecars healthy with no errors in the sidecar logs
+- [x] 4.2 Run the full `dotnet build` and `dotnet test` for `src/Battleship.slnx`, run the AppHost once more from a clean `aspire run`, and verify the dashboard shows `messaging`, the two APIs and their sidecars healthy with no errors in the sidecar logs
