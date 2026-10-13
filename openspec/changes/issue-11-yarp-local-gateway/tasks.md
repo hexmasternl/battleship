@@ -22,7 +22,7 @@
 
 - [x] 4.1 Add `scripts/aspire-start.mjs` and the `start:aspire` npm script that writes `public/config.json` from `BACKEND_GATEWAY_URL` and runs `ng serve --port $PORT`. Git-ignore `public/config.json`, and verify that running it without the variable exits non-zero with a clear message.
 - [x] 4.2 Add the `BackendConfig` service, which loads `/config.json` with `provideAppInitializer` into a read-only signal and logs a clear error when the file or key is missing. Add unit tests for the loaded, missing-file and missing-key cases, and verify `ng test` passes.
-- [ ] 4.3 Add `apiGatewayInterceptor` and register `provideHttpClient(withInterceptors([apiGatewayInterceptor]))` in `app.config.ts`. Add unit tests covering `/api/players/me?x=1` rewritten to `<base>/players/me?x=1`, a non-api URL left untouched, an absolute URL left untouched, and a missing base URL producing an error without sending a request. Verify `ng test` passes.
+- [x] 4.3 Add `apiGatewayInterceptor` and register `provideHttpClient(withInterceptors([apiGatewayInterceptor]))` in `app.config.ts`. Add unit tests covering `/api/players/me?x=1` rewritten to `<base>/players/me?x=1`, a non-api URL left untouched, an absolute URL left untouched, and a missing base URL producing an error without sending a request. Verify `ng test` passes.
 - [ ] 4.4 Document in `src/Frontend/README.md` how backend calls work (`/api/<module>/...`, runtime config, starting through Aspire), and verify the documented command runs.
 
 ## 5. Frontend in the AppHost
