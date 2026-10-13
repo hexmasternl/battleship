@@ -31,10 +31,7 @@
           <battle-placement-phase />
         }
         @case ('started') {
-          <section class="bs-panel game-page__notice" aria-labelledby="game-page-started">
-            <h2 id="game-page-started">The game has started</h2>
-            <p>Both fleets are in position. The battle station is still being fitted out.</p>
-          </section>
+          <battle-game-play-phase />
         }
         @default {
           <section class="bs-panel game-page__notice" aria-labelledby="game-page-over">

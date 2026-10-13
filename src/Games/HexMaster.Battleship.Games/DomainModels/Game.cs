@@ -167,6 +167,48 @@ public sealed class Game : DomainModel<Guid>, IGame
         return ReadyOutcome.ReadyAndStarted;
     }
 
+    // Fires the player's shot at the opponent's board. Refused, without any change, when the game is
+    // not started, the player does not have the turn or already fired at that cell. A recorded shot,
+    // hit or miss, always passes the turn to the opponent.
+    public ShotOutcome FireShot(Guid playerId, Coordinate at, DateTimeOffset now)
+    {
+        var shooter = PlayerWithId(playerId);
+
+        if (GameState != GameState.Started)
+        {
+            throw new ShotRefusedException(GameCode, ShotRefusedReason.GameNotStarted,
+                $"Shots can only be fired in a started game; game {GameCode} is {GameState}.");
+        }
+
+        if (!shooter.HasTurn)
+        {
+            throw new ShotRefusedException(GameCode, ShotRefusedReason.NotYourTurn,
+                "The other player has the turn.");
+        }
+
+        // The endpoint refuses an off-board cell first; this only guards other callers.
+        if (!Board.Contains(at))
+        {
+            throw new DomainException($"Column {at.Column}, row {at.Row} is not on the board.");
+        }
+
+        if (shooter.Shots.Any(s => s.Column == at.Column && s.Row == at.Row))
+        {
+            throw new ShotRefusedException(GameCode, ShotRefusedReason.CellAlreadyShot,
+                $"You already fired at column {at.Column}, row {at.Row}.");
+        }
+
+        var opponent = shooter == _playerOne ? _playerTwo! : _playerOne;
+        var hit = opponent.Ships.SelectMany(s => s.Cells).Contains(at);
+
+        IReadOnlyList<Shot> shots = [.. shooter.Shots, new Shot(at.Column, at.Row, hit)];
+        Change(shooter.Shots, shots, v => shooter.Shots = v);
+        SwitchTurn(now);
+        Touch(now, shooter);
+
+        return new ShotOutcome(at, hit);
+    }
+
     private void Start(IFirstTurnPicker picker, DateTimeOffset now)
     {
         Change(GameState, GameState.Started, v => GameState = v);

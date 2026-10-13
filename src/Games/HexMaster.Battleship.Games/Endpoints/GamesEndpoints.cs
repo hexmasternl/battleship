@@ -6,6 +6,7 @@ using HexMaster.Battleship.Games.Abstractions.DomainModels;
 using HexMaster.Battleship.Games.DomainModels;
 using HexMaster.Battleship.Games.Exceptions;
 using HexMaster.Battleship.Games.Features.CreateGame;
+using HexMaster.Battleship.Games.Features.FireShot;
 using HexMaster.Battleship.Games.Features.GetGame;
 using HexMaster.Battleship.Games.Features.JoinGame;
 using HexMaster.Battleship.Games.Features.MarkReady;
@@ -59,7 +60,94 @@ public static class GamesEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{code}/shots", FireShot)
+            .WithName("FireShot")
+            .WithSummary("Fires the caller's shot at a cell of the opponent's board and returns whether it hit.")
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         return app;
+    }
+
+    // The shooter is whoever the access token names. A cell off the 12x12 board is a validation
+    // problem; the game rules (started, turn, repeated cell) answer 409 with their own problem type.
+    private static async Task<Results<Ok<FireShotResponse>, ValidationProblem, ProblemHttpResult>> FireShot(
+        string code,
+        FireShotRequest request,
+        ClaimsPrincipal principal,
+        ICommandHandler<FireShotCommand, FireShotResult> handler,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetPlayerId(principal, out var playerId))
+        {
+            return UnidentifiedPlayer();
+        }
+
+        var normalized = code.ToUpperInvariant();
+        if (!GameCode.TryParse(normalized, out var gameCode))
+        {
+            return GameNotFound(normalized);
+        }
+
+        if (!TryReadCell(request, out var at, out var errors))
+        {
+            return TypedResults.ValidationProblem(errors);
+        }
+
+        try
+        {
+            var result = await handler.Handle(new FireShotCommand(gameCode, playerId, at), cancellationToken);
+            return result.Shot is { } shot ? TypedResults.Ok(shot) : GameNotFound(gameCode.Value);
+        }
+        catch (ShotRefusedException refused)
+        {
+            return refused.Reason switch
+            {
+                ShotRefusedReason.NotYourTurn =>
+                    Conflict(GameProblemTypes.NotYourTurn, "It is not your turn.", refused.Message),
+                ShotRefusedReason.CellAlreadyShot =>
+                    Conflict(GameProblemTypes.CellAlreadyShot, "You already fired at that cell.", refused.Message),
+                _ => Conflict(GameProblemTypes.GameNotStarted, "The game is not being played.", refused.Message),
+            };
+        }
+        catch (GameUpdateConflictException conflict)
+        {
+            return Conflict(GameProblemTypes.GameUpdateConflict, "The game was changed by another request. Try again.", conflict.Message);
+        }
+    }
+
+    private static bool TryReadCell(FireShotRequest? request, out Coordinate at, out Dictionary<string, string[]> errors)
+    {
+        errors = [];
+        at = default;
+
+        if (request?.Column is not { } column)
+        {
+            errors["column"] = ["The column is required."];
+        }
+        else if (column is < 0 or >= Board.Size)
+        {
+            errors["column"] = [$"The column must be from 0 to {Board.Size - 1}."];
+        }
+
+        if (request?.Row is not { } row)
+        {
+            errors["row"] = ["The row is required."];
+        }
+        else if (row is < 0 or >= Board.Size)
+        {
+            errors["row"] = [$"The row must be from 0 to {Board.Size - 1}."];
+        }
+
+        if (errors.Count > 0)
+        {
+            return false;
+        }
+
+        at = new Coordinate(request!.Column!.Value, request.Row!.Value);
+        return true;
     }
 
     // Takes no body. Getting ready again answers 200 with the same view, in any game state.

@@ -14,7 +14,8 @@ Every event is wrapped in the integration event envelope from `HexMaster.Battles
 | `game.joined.v1` | `GameJoinedEvent` (second player joined) | `gameId`, `gameCode`, `playerId`, `playerName` |
 | `game.player-ready.v1` | `GamePlayerReadyEvent` (fleet placed, player ready) | `gameId`, `gameCode`, `playerId` |
 | `game.started.v1` | `GameStartedEvent` | `gameId`, `gameCode`, `playerWithTurnId` |
-| `game.shot-fired.v1` | `GameShotFiredEvent` | `gameId`, `gameCode`, `playerId`, `column`, `row` |
+| `game.shot-fired.v1` | `GameShotFiredEvent` | `gameId`, `gameCode`, `playerId` (the shooter), `column`, `row`, `hit` |
+| `game.turn-changed.v1` | `GameTurnChangedEvent` (the turn passed after a shot) | `gameId`, `gameCode`, `playerWithTurnId` |
 | `game.ended.v1` | `GameEndedEvent` | `gameId`, `gameCode`, `reason` (`completed`, `abandoned-by-player`, `ended-by-server`), optional `winnerId` |
 
 `IntegrationEventCatalog.Events` is the authoritative list. A unit test fails when an `IIntegrationEvent` is missing from it.

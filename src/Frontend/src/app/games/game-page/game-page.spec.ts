@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { axe } from 'vitest-axe';
 import { FakeEventsService, provideFakeEvents } from '../../../testing/fake-events';
 import { FakeGamesApi, flushPromises, provideFakeGamesApi } from '../../../testing/fake-games-api';
-import { GAME_CODE, gameView } from '../../../testing/game-views';
+import { GAME_CODE, OPPONENT_ID, gameView, me, opponent } from '../../../testing/game-views';
 import { GameView } from '../game-view';
 import { GamePage } from './game-page';
 
@@ -47,10 +47,11 @@ describe('GamePage', () => {
     expect(heading()).toBe('Place your fleet');
   });
 
-  it('shows the game started panel and no placement for a started game', async () => {
+  it('shows the game play view and no placement for a started game', async () => {
     const { host, answer, heading } = await render();
     await answer(gameView({ state: 'started' }));
-    expect(heading()).toBe('The game has started');
+    expect(heading()).toBe('Battle');
+    expect(host.querySelector('battle-game-play-phase')).not.toBeNull();
     expect(host.textContent).not.toContain('Place your fleet');
   });
 
@@ -85,12 +86,37 @@ describe('GamePage', () => {
     expect(heading()).toBe('Place your fleet');
   });
 
-  it('switches to the started phase after a game started event for this game', async () => {
-    const { answer, heading } = await render();
+  it('switches to the game play view with the turn after a game started event', async () => {
+    const { host, answer, heading } = await render();
     await answer(gameView());
     events.emit('game.started.v1', { gameCode: GAME_CODE });
-    await answer(gameView({ state: 'started' }));
-    expect(heading()).toBe('The game has started');
+    await answer(gameView({ state: 'started', me: me({ hasTurn: true }), opponent: opponent() }));
+    expect(heading()).toBe('Battle');
+    expect(host.querySelector('[role="status"]')?.textContent?.trim()).toBe('Your turn');
+  });
+
+  it('draws an opponent shot from the event stream on the Opponent board', async () => {
+    const { fixture, host, answer } = await render();
+    await answer(gameView({ state: 'started', me: me({ hasTurn: false }), opponent: opponent() }));
+    events.emit('game.shot-fired.v1', {
+      gameCode: GAME_CODE,
+      playerId: OPPONENT_ID,
+      column: 1,
+      row: 1,
+      hit: false,
+    });
+    events.emit('game.shot-fired.v1', {
+      gameCode: 'ZZZZ9999',
+      playerId: OPPONENT_ID,
+      column: 2,
+      row: 2,
+      hit: true,
+    });
+    await fixture.whenStable();
+    expect(
+      host.querySelector('[role="cell"][aria-label="B2, miss"] battle-shot-marker'),
+    ).not.toBeNull();
+    expect(host.querySelector('[role="cell"][aria-label="C3, hit"]')).toBeNull();
   });
 
   it('has no accessibility violations while loading and once loaded', async () => {

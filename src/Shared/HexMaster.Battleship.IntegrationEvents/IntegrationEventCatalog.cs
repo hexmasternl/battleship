@@ -16,6 +16,7 @@ public static class IntegrationEventCatalog
         Describe<GamePlayerReadyEvent>(),
         Describe<GameStartedEvent>(),
         Describe<GameShotFiredEvent>(),
+        Describe<GameTurnChangedEvent>(),
         Describe<GameEndedEvent>()
     ];
 

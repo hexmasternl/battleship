@@ -10,8 +10,11 @@ public sealed class GamesMetrics
     public const string UpdateConflictsName = "games.update.conflicts";
     public const string PlayersReadyName = "games.player-ready";
     public const string GamesStartedName = "games.started";
+    public const string ShotsFiredName = "games.shots.fired";
+    public const string HitTag = "hit";
 
     private readonly Counter<long> _gamesCreated;
+    private readonly Counter<long> _shotsFired;
     private readonly Counter<long> _gamesJoined;
     private readonly Counter<long> _updateConflicts;
     private readonly Counter<long> _playersReady;
@@ -29,7 +32,10 @@ public sealed class GamesMetrics
         _playersReady = meter.CreateCounter<long>(
             PlayersReadyName, unit: "{player}", description: "Players who placed their fleet and became ready.");
         _gamesStarted = meter.CreateCounter<long>(GamesStartedName, unit: "{game}", description: "Games started by two ready players.");
+        _shotsFired = meter.CreateCounter<long>(ShotsFiredName, unit: "{shot}", description: "Shots recorded, tagged hit or miss.");
     }
+
+    public void ShotFired(bool hit) => _shotsFired.Add(1, new KeyValuePair<string, object?>(HitTag, hit));
 
     public void PlayerReady() => _playersReady.Add(1);
 
