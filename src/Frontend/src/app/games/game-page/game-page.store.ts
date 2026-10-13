@@ -45,6 +45,8 @@ export interface GamePageState {
   readonly drag: ShipDrag | null;
   /** Placement changes sent to the server and not yet answered. */
   readonly pendingSaves: number;
+  /** The ready request is in flight. */
+  readonly readying: boolean;
 }
 
 const initialState: GamePageState = {
@@ -54,6 +56,7 @@ const initialState: GamePageState = {
   activeKind: null,
   drag: null,
   pendingSaves: 0,
+  readying: false,
 };
 
 /** The events after which the page reloads its game. */
@@ -76,9 +79,19 @@ export function isReloadEventFor(event: RealtimeEvent, code: string): boolean {
   );
 }
 
-/** Whether the caller may still change their fleet: the game is new and they are not ready. */
+/**
+ * Whether the caller may still change their fleet: the game is new, they are not ready and no
+ * ready request is on its way.
+ */
 export function isEditable(state: GamePageState): boolean {
-  return state.game?.state === 'new' && !state.game.me.ready;
+  return state.game?.state === 'new' && !state.game.me.ready && !state.readying;
+}
+
+/** Whether the caller may declare ready: all five ships placed and saved, not ready yet. */
+export function canDeclareReady(state: GamePageState): boolean {
+  return (
+    isEditable(state) && state.pendingSaves === 0 && state.game?.me.ships.length === FLEET.length
+  );
 }
 
 /** A game was requested for `code`: the page shows its loading state. */
@@ -218,6 +231,11 @@ export class GamePageStore {
   });
   /** Whether the fleet can still be changed; after ready the board is read only. */
   readonly canEdit = computed(() => isEditable(this.#state()));
+  /** Whether the "Ready" action is enabled. */
+  readonly canReady = computed(() => canDeclareReady(this.#state()));
+  /** The caller declared ready (confirmed by the server). */
+  readonly isReady = computed(() => this.me()?.ready ?? false);
+  readonly readying = computed(() => this.#state().readying);
   /** The ship under the pointer during a drag, and whether it may be dropped there. */
   readonly preview = computed(() => {
     const ship = draggedShip(this.#state().drag);
@@ -343,6 +361,27 @@ export class GamePageStore {
     const preview = this.preview();
     this.#state.update((s) => (s.drag === null ? s : { ...s, drag: null }));
     if (preview?.valid) this.place(preview.ship);
+  }
+
+  /**
+   * Declares the caller's fleet ready. Only possible with five saved ships; while the request is
+   * in flight nothing else is sent, however often this is called. On success the board becomes
+   * read only; on a refusal a message is shown and the game reloaded.
+   */
+  async markReady(): Promise<void> {
+    if (!canDeclareReady(this.#state())) return;
+    const code = this.code();
+    this.#state.update((s) => ({ ...s, readying: true, activeKind: null, drag: null }));
+    try {
+      const game = await this.#api.markReady(code);
+      this.#state.update((s) =>
+        s.code === code ? gameLoaded({ ...s, readying: false }, game) : s,
+      );
+    } catch (error) {
+      this.#state.update((s) => ({ ...s, readying: false }));
+      this.#notify(gameApiErrorMessage(error));
+      await this.reload();
+    }
   }
 
   /** Resolves once every placement sent so far has been answered. */

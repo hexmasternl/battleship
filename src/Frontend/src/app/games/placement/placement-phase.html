@@ -1,7 +1,11 @@
 <section class="placement" aria-labelledby="placement-title">
   <h2 id="placement-title" class="placement__title">Place your fleet</h2>
 
-  <div class="placement__players"></div>
+  <battle-players-panel
+    class="placement__players"
+    [me]="store.me()"
+    [opponent]="store.opponent()"
+  />
 
   <div class="placement__board">
     <battle-placement-board
@@ -47,5 +51,23 @@
       (dragMoved)="dragMoved($event)"
       (dragEnded)="store.dragEnd()"
     />
+
+    @if (store.isReady()) {
+      <p class="bs-status bs-status--info" role="status">
+        Your fleet is ready. Waiting for your opponent&hellip;
+      </p>
+    } @else {
+      <button
+        type="button"
+        class="bs-btn bs-btn--primary placement__ready"
+        [disabled]="!store.canReady()"
+        (click)="store.markReady()"
+      >
+        {{ store.readying() ? 'Declaring ready…' : 'Ready' }}
+      </button>
+      @if (store.unplacedFleet().length > 0) {
+        <p class="placement__hint">Place all five ships to declare ready.</p>
+      }
+    }
   </div>
 </section>

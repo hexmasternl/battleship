@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { axe } from 'vitest-axe';
 import { FakeEventsService, provideFakeEvents } from '../../../testing/fake-events';
-import { FakeGamesApi, provideFakeGamesApi } from '../../../testing/fake-games-api';
-import { GAME_CODE, gameView, me, ship } from '../../../testing/game-views';
+import { FakeGamesApi, flushPromises, provideFakeGamesApi } from '../../../testing/fake-games-api';
+import { FULL_FLEET, GAME_CODE, gameView, me, opponent, ship } from '../../../testing/game-views';
 import { GameView } from '../game-view';
 import { GamePageStore } from '../game-page/game-page.store';
 import { By } from '@angular/platform-browser';
@@ -171,6 +171,78 @@ describe('PlacementPhase', () => {
     expect(host.querySelector('.placement__selection')?.textContent).toContain(
       'Destroyer selected',
     );
+  });
+
+  describe('players and ready', () => {
+    const readyButton = (host: HTMLElement) =>
+      host.querySelector<HTMLButtonElement>('.placement__ready');
+    const players = (host: HTMLElement) =>
+      Array.from(host.querySelectorAll('.players__row')).map((r) =>
+        Array.from(r.children)
+          .map((part) => part.textContent?.replace(/\s+/g, ' ').trim())
+          .join(' '),
+      );
+
+    it('shows the caller and a greyed-out Player 2 while alone', async () => {
+      const { host } = await render();
+      expect(players(host)).toEqual([
+        'Ann You hourglass_empty Not ready',
+        'Player 2 person_add Waiting to join',
+      ]);
+      expect(host.querySelector('.players__row.is-absent')).not.toBeNull();
+    });
+
+    it('shows the opponent as ready after a reload', async () => {
+      const { fixture, host, store, api } = await render(gameView({ opponent: opponent() }));
+      const reloaded = store.reload();
+      api.last('getGame').resolve(gameView({ opponent: opponent({ ready: true }) }));
+      await reloaded;
+      await fixture.whenStable();
+      expect(players(host)[1]).toBe('Bob check_circle Ready');
+    });
+
+    it('disables Ready until all five ships are placed', async () => {
+      const { host } = await render(gameView({ me: me({ ships: FULL_FLEET.slice(0, 4) }) }));
+      expect(readyButton(host)?.disabled).toBe(true);
+      expect(host.textContent).toContain('Place all five ships to declare ready.');
+    });
+
+    it('sends one ready request on a double click and then shows the board read only', async () => {
+      const { fixture, host, api } = await render(gameView({ me: me({ ships: FULL_FLEET }) }));
+      const button = readyButton(host) as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      button.click();
+      button.click();
+      await fixture.whenStable();
+      expect(api.of('markReady').length).toBe(1);
+      expect(readyButton(host)?.disabled).toBe(true);
+
+      api.last('markReady').resolve(gameView({ me: me({ ships: FULL_FLEET, ready: true }) }));
+      await flushPromises();
+      await fixture.whenStable();
+      expect(readyButton(host)).toBeNull();
+      expect(host.querySelector('[role="status"]')?.textContent).toContain(
+        'Waiting for your opponent',
+      );
+      expect(players(host)[0]).toBe('Ann You check_circle Ready');
+
+      const carrier = host.querySelector('.placement-board__ship') as HTMLButtonElement;
+      expect(carrier.getAttribute('aria-disabled')).toBe('true');
+      expect(carrier.classList).toContain('cdk-drag-disabled');
+      carrier.click();
+      cell(host, 'L12').click();
+      await fixture.whenStable();
+      expect(host.querySelector('.placement-board__ship.is-active')).toBeNull();
+      expect(host.querySelector('.placement__rotate')).toBeNull();
+      expect(api.of('placeShip').length).toBe(0);
+    });
+
+    it('shows a ready player a read-only board after a refresh', async () => {
+      const { host } = await render(gameView({ me: me({ ships: FULL_FLEET, ready: true }) }));
+      expect(readyButton(host)).toBeNull();
+      expect(host.textContent).toContain('Waiting for your opponent');
+      expect(cell(host, 'A1').getAttribute('aria-disabled')).toBe('true');
+    });
   });
 
   it('has no accessibility violations', async () => {

@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { GamePageStore } from '../game-page/game-page.store';
 import { PlacementBoard } from './placement-board';
+import { PlayersPanel } from './players-panel';
 import { Point } from './placement-drag';
 import { ShipList } from './ship-list';
 
@@ -20,7 +21,7 @@ import { ShipList } from './ship-list';
  */
 @Component({
   selector: 'battle-placement-phase',
-  imports: [MatButtonModule, MatIconModule, PlacementBoard, ShipList],
+  imports: [MatButtonModule, MatIconModule, PlacementBoard, PlayersPanel, ShipList],
   templateUrl: './placement-phase.html',
   styleUrl: './placement-phase.scss',
   host: { '(keydown.escape)': 'store.clearActive()' },

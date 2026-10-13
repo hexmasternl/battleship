@@ -46,6 +46,16 @@
   color: var(--bs-color-text);
 }
 
+.placement__ready {
+  justify-self: start;
+}
+
+.placement__hint {
+  margin: 0;
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text-dim);
+}
+
 .placement__rotate {
   color: var(--bs-color-accent);
 }

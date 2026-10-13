@@ -426,4 +426,61 @@ describe('GamePageStore placement', () => {
       expect(store.pendingSaves()).toBe(0);
     });
   });
+
+  describe('ready', () => {
+    it('is possible only with five ships placed and no save pending', async () => {
+      await loaded(FULL_FLEET.slice(0, 4));
+      expect(store.canReady()).toBe(false);
+
+      store.place(FULL_FLEET[4]);
+      expect(store.canReady()).toBe(false);
+      await flushPromises();
+      api.last('placeShip').resolve(gameView({ me: me({ ships: FULL_FLEET }) }));
+      await store.settled();
+      expect(store.canReady()).toBe(true);
+    });
+
+    it('sends one request however often it is asked for, then makes the board read only', async () => {
+      await loaded(FULL_FLEET);
+      store.activate('carrier');
+      void store.markReady();
+      void store.markReady();
+      expect(store.readying()).toBe(true);
+      expect(store.canEdit()).toBe(false);
+      expect(store.activeKind()).toBeNull();
+      expect(api.of('markReady').map((call) => call.args)).toEqual([[GAME_CODE]]);
+
+      api.last('markReady').resolve(gameView({ me: me({ ships: FULL_FLEET, ready: true }) }));
+      await flushPromises();
+      expect(store.isReady()).toBe(true);
+      expect(store.readying()).toBe(false);
+      expect(store.canEdit()).toBe(false);
+      expect(store.canReady()).toBe(false);
+      void store.markReady();
+      expect(api.of('markReady').length).toBe(1);
+    });
+
+    it('shows a message and reloads when ready is refused', async () => {
+      await loaded(FULL_FLEET);
+      const done = store.markReady();
+      api.last('markReady').reject({ kind: 'fleet-incomplete', status: 409 });
+      await flushPromises();
+      expect(snackBar.open).toHaveBeenCalledWith(
+        'Place all five ships before you declare ready.',
+        'Dismiss',
+        expect.anything(),
+      );
+      api.last('getGame').resolve(gameView({ me: me({ ships: FULL_FLEET.slice(0, 4) }) }));
+      await done;
+      expect(store.readying()).toBe(false);
+      expect(store.placedShips().length).toBe(4);
+    });
+
+    it('is read only after a reload of a ready player', async () => {
+      await loaded(FULL_FLEET, true);
+      expect(store.isReady()).toBe(true);
+      expect(store.canEdit()).toBe(false);
+      expect(store.canReady()).toBe(false);
+    });
+  });
 });
