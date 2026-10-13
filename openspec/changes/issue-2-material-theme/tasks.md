@@ -19,6 +19,6 @@
 
 ## 4. Visual verification and integration
 
-- [ ] 4.1 Add a temporary theme preview to the root component with a filled button, an outlined form field in valid and invalid states, a card and a dialog trigger, run `ng serve`, and verify the button is `#00c0ff`, the focused field outline is `#00c0ff`, the invalid field is `#ff2146`, the card and dialog surfaces are surface scale steps, hover and focus states are visible, and headings use Quantico while body text uses Courier Prime
+- [x] 4.1 Add a temporary theme preview to the root component with a filled button, an outlined form field in valid and invalid states, a card and a dialog trigger, run `ng serve`, and verify the button is `#00c0ff`, the focused field outline is `#00c0ff`, the invalid field is `#ff2146`, the card and dialog surfaces are surface scale steps, hover and focus states are visible, and headings use Quantico while body text uses Courier Prime
 - [ ] 4.2 Emulate a light colour scheme in devtools and verify the application stays dark with the `#011627` background and dark native controls
 - [ ] 4.3 Remove the temporary preview (unless the user asks to keep it as a dev route), run `ng build` in the production configuration and `ng test`, and verify both succeed with no budget error
