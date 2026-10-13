@@ -6,6 +6,8 @@
   </Folder>
   <Folder Name="/Core/">
     <Project Path="Core/HexMaster.Battleship.Core/HexMaster.Battleship.Core.csproj" />
+    <Project Path="Core/HexMaster.Battleship.IntegrationEvents.Tests/HexMaster.Battleship.IntegrationEvents.Tests.csproj" />
+    <Project Path="Core/HexMaster.Battleship.IntegrationEvents/HexMaster.Battleship.IntegrationEvents.csproj" />
   </Folder>
   <Folder Name="/Events/">
     <Project Path="Events/HexMaster.Battleship.Events.Abstractions/HexMaster.Battleship.Events.Abstractions.csproj" />

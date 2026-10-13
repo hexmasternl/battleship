@@ -340,7 +340,7 @@ Focus is always `outline: var(--bs-focus-width) solid var(--bs-color-focus-ring)
 |---|---|
 | `.bs-card` | fill `--bs-color-surface-raised`, radius `--bs-radius-md`, `--bs-shadow-2`, padding `--bs-space-5`; on hover `--bs-color-surface-overlay`; heading in `--bs-font-heading` `--bs-text-lg` |
 | `.bs-panel` | fill `--bs-color-surface`, 1px border `--bs-color-border`, radius `--bs-radius-lg`, padding `--bs-space-6`; a 2px top rule in `--bs-color-accent` marks the panel as live |
-| `.bs-panel--info` | as `.bs-panel` with the text in `--bs-font-panel` at `--bs-font-weight-panel`, `--bs-leading-panel`, `--bs-text-lg`, colour `--bs-color-accent` with `--bs-glow-text-primary`. This is the only place Bitcount Single appears. |
+| `.bs-panel--info` | as `.bs-panel` with the text in `--bs-font-panel` at `--bs-font-weight-panel`, `--bs-leading-panel`, `--bs-text-lg`, colour `--bs-color-accent` with `--bs-glow-text-primary`. Bitcount Single appears only here and in the message text of the landing page bridge console (its timestamps stay in `--bs-font-body`). |
 
 ### 7.4 Status messages
 

@@ -24,7 +24,7 @@ public static class Extensions
 
         builder.AddDefaultHealthChecks();
 
-        builder.AddDaprMessaging();
+        builder.AddIntegrationEvents();
 
         builder.Services.AddServiceDiscovery();
 

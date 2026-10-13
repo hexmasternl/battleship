@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Join game
+affected_areas:
+  - frontend
+  - games

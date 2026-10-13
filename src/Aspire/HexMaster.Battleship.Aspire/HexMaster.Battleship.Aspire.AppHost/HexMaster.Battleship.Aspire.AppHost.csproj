@@ -27,4 +27,8 @@
     <ProjectReference Include="..\..\..\Players\HexMaster.Battleship.Players.Api\HexMaster.Battleship.Players.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\HexMaster.Battleship.Aspire.ServiceDefaults\AspireConstants.cs" Link="AspireConstants.cs" />
+  </ItemGroup>
+
 </Project>

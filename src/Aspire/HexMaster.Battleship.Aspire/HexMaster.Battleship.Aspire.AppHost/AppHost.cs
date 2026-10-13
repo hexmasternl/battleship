@@ -1,4 +1,5 @@
 using CommunityToolkit.Aspire.Hosting.Dapr;
+using HexMaster.Battleship.Aspire;
 using HexMaster.Battleship.Aspire.AppHost;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -34,7 +35,7 @@ var messagingEndpoint = messaging.Resource.PrimaryEndpoint;
 var messagingHostAndPort = ReferenceExpression.Create(
     $"{messagingEndpoint.Property(EndpointProperty.Host)}:{messagingEndpoint.Property(EndpointProperty.Port)}");
 
-var pubsub = builder.AddDaprComponent("pubsub", "pubsub.rabbitmq")
+var pubsub = builder.AddDaprComponent(AspireConstants.PubSubName, "pubsub.rabbitmq")
     .WithMetadata("hostname", messagingHostAndPort)
     .WithMetadata("username", rabbitUsername.Resource)
     .WithMetadata("password", rabbitPassword.Resource)

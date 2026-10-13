@@ -1,0 +1,133 @@
+using Dapr.Client;
+using HexMaster.Battleship.Events.Abstractions;
+using HexMaster.Battleship.Events.Abstractions.DataTransferObjects;
+using HexMaster.Battleship.IntegrationEvents.Tests.Factories;
+using Microsoft.Extensions.Time.Testing;
+using Moq;
+
+namespace HexMaster.Battleship.IntegrationEvents.Tests.Sending;
+
+public class DaprIntegrationEventSenderTests
+{
+    private readonly Mock<DaprClient> _daprClient = new();
+    private readonly FakeTimeProvider _timeProvider = new(new DateTimeOffset(2026, 10, 13, 9, 30, 0, TimeSpan.Zero));
+    private readonly List<IntegrationEventEnvelope> _published = [];
+
+    public DaprIntegrationEventSenderTests()
+    {
+        _daprClient
+            .Setup(c => c.PublishEventAsync(
+                "pubsub", "integration-events", It.IsAny<IntegrationEventEnvelope>(), It.IsAny<CancellationToken>()))
+            .Callback<string, string, IntegrationEventEnvelope, CancellationToken>((_, _, envelope, _) => _published.Add(envelope))
+            .Returns(Task.CompletedTask);
+    }
+
+    private DaprIntegrationEventSender CreateSender() => new(_daprClient.Object, _timeProvider);
+
+    [Fact]
+    public async Task SendAsync_PublishesTheEnvelopeToIntegrationEventsOnPubSub()
+    {
+        var playerId = Guid.NewGuid();
+        var created = IntegrationEventFactory.PlayerCreated(playerId);
+
+        await CreateSender().SendAsync(created, EventAudience.Players(playerId));
+
+        var envelope = Assert.Single(_published);
+        Assert.True(Guid.TryParse(envelope.Id, out _));
+        Assert.Equal("player.created.v1", envelope.Type);
+        Assert.Equal(EventTarget.Player, envelope.Target);
+        Assert.Equal([playerId.ToString()], envelope.TargetIds);
+        Assert.Equal(_timeProvider.GetUtcNow(), envelope.OccurredAt);
+        Assert.Equal(TimeSpan.Zero, envelope.OccurredAt.Offset);
+        Assert.Equal(playerId, envelope.Payload.GetProperty("playerId").GetGuid());
+        Assert.Equal(created.PlayerName, envelope.Payload.GetProperty("playerName").GetString());
+    }
+
+    [Fact]
+    public async Task SendAsync_GameStarted_CarriesItsTypeName()
+    {
+        await CreateSender().SendAsync(IntegrationEventFactory.GameStarted(), EventAudience.Everyone);
+
+        Assert.Equal("game.started.v1", Assert.Single(_published).Type);
+    }
+
+    [Fact]
+    public async Task SendAsync_GameAudience_TargetsTheGameAndItsPlayers()
+    {
+        var a = Guid.NewGuid();
+        var b = Guid.NewGuid();
+
+        await CreateSender().SendAsync(IntegrationEventFactory.GameJoined(), EventAudience.Game(a, b));
+
+        var envelope = Assert.Single(_published);
+        Assert.Equal(EventTarget.Game, envelope.Target);
+        Assert.Equal([a.ToString(), b.ToString()], envelope.TargetIds);
+    }
+
+    [Fact]
+    public async Task SendAsync_Everyone_TargetsAllWithoutIds()
+    {
+        await CreateSender().SendAsync(IntegrationEventFactory.PlayerUpdated(), EventAudience.Everyone);
+
+        var envelope = Assert.Single(_published);
+        Assert.Equal(EventTarget.All, envelope.Target);
+        Assert.Empty(envelope.TargetIds);
+    }
+
+    [Fact]
+    public async Task SendAsync_SameEventTwice_GivesEachEnvelopeItsOwnId()
+    {
+        var sender = CreateSender();
+        var created = IntegrationEventFactory.PlayerCreated();
+
+        await sender.SendAsync(created, EventAudience.Everyone);
+        await sender.SendAsync(created, EventAudience.Everyone);
+
+        Assert.Equal(2, _published.Count);
+        Assert.NotEqual(_published[0].Id, _published[1].Id);
+    }
+
+    [Fact]
+    public async Task SendAsync_EmptyPlayerAudience_ThrowsAndPublishesNothing()
+    {
+        var sender = CreateSender();
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sender.SendAsync(IntegrationEventFactory.PlayerCreated(), EventAudience.Players()));
+
+        _daprClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task SendAsync_EmptyGameAudience_ThrowsAndPublishesNothing()
+    {
+        var sender = CreateSender();
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sender.SendAsync(IntegrationEventFactory.GameStarted(), EventAudience.Game([])));
+
+        _daprClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task SendAsync_DefaultAudience_ThrowsAndPublishesNothing()
+    {
+        var sender = CreateSender();
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sender.SendAsync(IntegrationEventFactory.GameStarted(), default));
+
+        _daprClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task SendAsync_PassesTheCancellationTokenToDapr()
+    {
+        using var cancellation = new CancellationTokenSource();
+
+        await CreateSender().SendAsync(IntegrationEventFactory.GameCreated(), EventAudience.Everyone, cancellation.Token);
+
+        _daprClient.Verify(c => c.PublishEventAsync(
+            "pubsub", "integration-events", It.IsAny<IntegrationEventEnvelope>(), cancellation.Token));
+    }
+}
