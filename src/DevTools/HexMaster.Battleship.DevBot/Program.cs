@@ -25,6 +25,7 @@ builder.Services.AddSingleton(options);
 builder.Services.AddSingleton<BotSettings>();
 builder.Services.AddSingleton<GameSessions>();
 builder.Services.AddSingleton<IntegrationEventHandler>();
+builder.Services.AddHostedService<ReconcileTimerService>();
 
 var app = builder.Build();
 
