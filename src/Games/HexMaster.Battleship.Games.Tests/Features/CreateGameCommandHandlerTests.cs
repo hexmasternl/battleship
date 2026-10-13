@@ -123,7 +123,7 @@ public class CreateGameCommandHandlerTests
         _logger.Verify(l => l.Log(
             LogLevel.Error,
             It.IsAny<EventId>(),
-            It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains(response.GameCode)),
+            It.Is<It.IsAnyType>((state, _) => state != null && state.ToString()!.Contains(response.GameCode)),
             It.IsAny<HttpRequestException>(),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
