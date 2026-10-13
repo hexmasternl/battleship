@@ -50,7 +50,7 @@ public sealed class Player : IPlayer
 
     public IReadOnlyList<ShipPlacement> Ships { get; internal set; }
 
-    public IReadOnlyList<Shot> Shots { get; }
+    public IReadOnlyList<Shot> Shots { get; internal set; }
 
     public DateTimeOffset LastActivityOn { get; internal set; }
 

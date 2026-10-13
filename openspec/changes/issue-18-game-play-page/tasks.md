@@ -11,7 +11,7 @@
 
 ## 3. Domain
 
-- [ ] 3.1 Add `ShotRefusedException` with `Reason` (`GameNotStarted`, `NotYourTurn`, `CellAlreadyShot`), `ShotOutcome`, and `Game.FireShot(playerId, at, now)` with the refusal order, hit detection against the opponent's ship cells, recorded shot, `SwitchTurn` and shooter activity (design D2); verify unit tests for hit, miss, turn switched after both, refusal on `New` and `Completed`, not your turn, repeated cell keeping the turn, both players hitting the same coordinates, and no mutation on any refusal pass
+- [x] 3.1 Add `ShotRefusedException` with `Reason` (`GameNotStarted`, `NotYourTurn`, `CellAlreadyShot`), `ShotOutcome`, and `Game.FireShot(playerId, at, now)` with the refusal order, hit detection against the opponent's ship cells, recorded shot, `SwitchTurn` and shooter activity (design D2); verify unit tests for hit, miss, turn switched after both, refusal on `New` and `Completed`, not your turn, repeated cell keeping the turn, both players hitting the same coordinates, and no mutation on any refusal pass
 
 ## 4. Fire-shot slice and endpoint
 
