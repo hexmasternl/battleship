@@ -1,5 +1,6 @@
 using HexMaster.Battleship.Games.Abstractions.DataTransferObjects;
 using HexMaster.Battleship.Games.Features.CreateGame;
+using HexMaster.Battleship.Games.Features.JoinGame;
 using HexMaster.Battleship.Games.Observability;
 using HexMaster.Battleship.Games.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -20,6 +21,7 @@ public static class GamesModuleRegistration
         services.TryAddScoped<IGameUpdater, GameUpdater>();
 
         services.AddCommandHandler<CreateGameCommand, CreateGameResponse, CreateGameCommandHandler>();
+        services.AddCommandHandler<JoinGameCommand, JoinGameResult, JoinGameCommandHandler>();
 
         return services;
     }
