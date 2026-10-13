@@ -3,7 +3,7 @@
 ## 1. Shared API reference in ServiceDefaults
 
 - [x] 1.1 Add `Scalar.AspNetCore` (exact current version) to ServiceDefaults. Add a reference path constant to `AspireConstants`. Add the `AddApiReference()` and `MapApiReference()` extensions, which map the OpenAPI document and the Scalar UI only in Development (design D1). Verify `WebApplicationFactory` tests on the Players API: the reference path and `/openapi/v1.json` answer 200 in Development and 404 in Production.
-- [ ] 1.2 Add `BearerSecuritySchemeTransformer` and register it in `AddApiReference()`. Configure Scalar to prefer the `Bearer` scheme (design D2). Verify a test on the generated Players document: the `bearer` security scheme exists, `GET /users/me` carries the requirement, and `POST /users/tokens` and `POST /users/tokens/refresh` do not.
+- [x] 1.2 Add `BearerSecuritySchemeTransformer` and register it in `AddApiReference()`. Configure Scalar to prefer the `Bearer` scheme (design D2). Verify a test on the generated Players document: the `bearer` security scheme exists, `GET /users/me` carries the requirement, and `POST /users/tokens` and `POST /users/tokens/refresh` do not.
 
 ## 2. Wire every API
 

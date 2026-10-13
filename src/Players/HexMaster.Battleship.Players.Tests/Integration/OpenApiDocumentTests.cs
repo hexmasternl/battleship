@@ -41,6 +41,34 @@ public class OpenApiDocumentTests : IClassFixture<OpenApiDocumentTests.Factory>
         Assert.False(document.RootElement.GetProperty("paths").TryGetProperty("/weatherforecast", out _));
     }
 
+    [Fact]
+    public async Task Document_DescribesTheBearerScheme()
+    {
+        using var client = _factory.CreateClient();
+
+        using var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
+
+        var scheme = document.RootElement.GetProperty("components").GetProperty("securitySchemes").GetProperty("Bearer");
+        Assert.Equal("http", scheme.GetProperty("type").GetString());
+        Assert.Equal("bearer", scheme.GetProperty("scheme").GetString());
+    }
+
+    [Theory]
+    [InlineData("/users/me", "get", true)]
+    [InlineData("/users/tokens", "post", false)]
+    [InlineData("/users/tokens/refresh", "post", false)]
+    public async Task Document_MarksOnlyProtectedOperationsAsSecured(string path, string method, bool secured)
+    {
+        using var client = _factory.CreateClient();
+
+        using var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
+
+        var operation = document.RootElement.GetProperty("paths").GetProperty(path).GetProperty(method);
+        var requiresBearer = operation.TryGetProperty("security", out var security)
+            && security.EnumerateArray().Any(requirement => requirement.TryGetProperty("Bearer", out _));
+        Assert.Equal(secured, requiresBearer);
+    }
+
     public sealed class Factory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
