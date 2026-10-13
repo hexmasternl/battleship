@@ -45,16 +45,49 @@ var pubsub = builder.AddDaprComponent("pubsub", "pubsub.rabbitmq")
 // Each API runs with its own sidecar that loads the pubsub component. The component is
 // referenced from the sidecar (referencing it from the project is obsolete and ignored).
 // The APIs reach the broker only through Dapr, so they wait for it but do not reference it.
-builder.AddProject<Projects.HexMaster_Battleship_Games_Api>("hexmaster-battleship-games-api")
+var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(GatewayRoutes.GamesApi)
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "games-api" })
         .WithReference(pubsub))
     .WaitFor(messaging);
 
-builder.AddProject<Projects.HexMaster_Battleship_Players_Api>("hexmaster-battleship-players-api")
+var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(GatewayRoutes.PlayersApi)
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "players-api" })
         .WithReference(pubsub))
     .WaitFor(messaging);
+
+// The gateway is the single backend endpoint for the frontend. It routes each declared module
+// prefix to that module's API with the path unchanged; anything not in GatewayRoutes (internal
+// endpoints included) gets no route. The table is owned by the yarp-gateway-routes skill.
+Dictionary<string, IResourceBuilder<ProjectResource>> moduleApis = new()
+{
+    [GatewayRoutes.GamesApi] = gamesApi,
+    [GatewayRoutes.PlayersApi] = playersApi,
+};
+
+GatewayRoutes.Validate(GatewayRoutes.Modules);
+
+var gateway = builder.AddYarp("gateway")
+    .WithConfiguration(yarp =>
+    {
+        foreach (var module in GatewayRoutes.Modules)
+        {
+            var api = moduleApis.TryGetValue(module.ApiResourceName, out var resource)
+                ? resource
+                : throw new InvalidOperationException(
+                    $"Gateway module '{module.Module}' points at API resource '{module.ApiResourceName}', which the AppHost does not run.");
+
+            foreach (var prefix in module.Prefixes)
+            {
+                yarp.AddRoute(GatewayRoutes.RoutePath(prefix), api);
+            }
+        }
+    });
+
+foreach (var api in moduleApis.Values)
+{
+    gateway.WaitFor(api);
+}
 
 builder.Build().Run();

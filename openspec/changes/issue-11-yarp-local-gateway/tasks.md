@@ -11,7 +11,7 @@
 - [x] 2.1 Add `Aspire.Hosting.Yarp` to the AppHost project at the version matching Aspire 13.6.1, and verify `dotnet build src/Battleship.slnx` succeeds.
 - [x] 2.2 Add `GatewayRoutes` (`ModuleRoute` records for `players` and `games`, plus the prefix guard rejecting empty, duplicate, non-lowercase and reserved prefixes) to the AppHost project.
 - [x] 2.3 Create `src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests` (xUnit, Moq, Bogus per house standards), add it to the solution, and add tests for the route table and the guard. Verify `dotnet test` passes with at least 80% coverage of `GatewayRoutes`.
-- [ ] 2.4 In `AppHost.cs`, keep the API resource builders in variables, add `AddYarp("gateway")` waiting for both APIs, and add `/{prefix}/{**catch-all}` routes from `GatewayRoutes`. Verify with `aspire run` that the dashboard shows `gateway` start after the APIs, that `curl <gateway>/players/x` and `<gateway>/games/x` show up in the matching API's traces with the path unchanged, and that `<gateway>/smoke/publish` and `<gateway>/unknown` return 404 without reaching an API.
+- [x] 2.4 In `AppHost.cs`, keep the API resource builders in variables, add `AddYarp("gateway")` waiting for both APIs, and add `/{prefix}/{**catch-all}` routes from `GatewayRoutes`. Verify with `aspire run` that the dashboard shows `gateway` start after the APIs, that `curl <gateway>/players/x` and `<gateway>/games/x` show up in the matching API's traces with the path unchanged, and that `<gateway>/smoke/publish` and `<gateway>/unknown` return 404 without reaching an API.
 
 ## 3. Module APIs and CORS
 
