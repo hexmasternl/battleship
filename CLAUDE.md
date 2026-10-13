@@ -19,3 +19,7 @@ The `openspec-github-issues` skill (`/issue`) triages issues, labels and types t
 ## Frontend work uses the Angular agent
 
 The Angular app under `src/Frontend/` (Angular 22, Angular Material 22.2.2, zoneless, signals) is built by the `angular-frontend` agent (`.claude/agents/angular-frontend.md`). Use it for any screen, component, store, form, Material or frontend test work. It keeps component data in a local immutable state store exposed as read-only signals.
+
+## Gateway routes are owned by a skill
+
+The YARP `gateway` in the Aspire AppHost is the single backend endpoint the frontend calls. Its route table (`GatewayRoutes.cs` in the AppHost) is owned by the `yarp-gateway-routes` skill (`.claude/skills/yarp-gateway-routes/SKILL.md`). Load it when a backend module or `*.Api` project is added, when an API maps an endpoint under a new first path segment, or when the route table changes. Every new, renamed or removed prefix is proposed and approved before it is added.
