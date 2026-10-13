@@ -15,8 +15,10 @@
 
 .bs-board {
   position: relative;
-  width: 100%;
-  max-width: 520px;
+  // The cells follow the available width (about 23px at 360px) up to the 520px board. The padding
+  // and border count in that width, so the board never grows past its container.
+  box-sizing: border-box;
+  width: min(100%, 520px);
   background: var(--bs-color-grid-line);
   border: 1px solid var(--bs-color-border);
   border-radius: var(--bs-radius-md);

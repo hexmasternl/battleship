@@ -167,6 +167,20 @@ describe('EventsService', () => {
     ]);
   });
 
+  it('surfaces a turn changed event', () => {
+    const { service, sources, received } = setup();
+    service.connect('A');
+    sources[0].open();
+    sources[0].emit('game.turn-changed.v1', '{"gameCode":"K7Q2M9XA","playerWithTurnId":"B"}', '8');
+    expect(received).toEqual([
+      {
+        type: 'game.turn-changed.v1',
+        id: '8',
+        payload: { gameCode: 'K7Q2M9XA', playerWithTurnId: 'B' },
+      },
+    ]);
+  });
+
   it('does not surface heartbeats', () => {
     const { service, sources, received } = setup();
     service.connect('A');

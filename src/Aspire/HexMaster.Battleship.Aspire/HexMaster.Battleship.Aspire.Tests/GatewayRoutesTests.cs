@@ -65,6 +65,7 @@ public sealed class GatewayRoutesTests
     [InlineData("alive")]
     [InlineData("integration-events")]
     [InlineData("openapi")]
+    [InlineData("scalar")]
     [InlineData("weatherforecast")]
     public void Validate_RejectsReservedPrefix(string prefix)
     {

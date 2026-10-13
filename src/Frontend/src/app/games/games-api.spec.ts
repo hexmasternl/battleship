@@ -3,7 +3,18 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { GAME_CODE, gameView, me, ship } from '../../testing/game-views';
 import { GameApiError, gameApiErrorMessage, toGameApiError } from './game-api-error';
-import { GAMES_URL, GamesApi, JoinGameFailure, joinGameUrl, toJoinGameError } from './games-api';
+import {
+  FireShotFailure,
+  FireShotResponse,
+  GAMES_URL,
+  GamesApi,
+  JoinGameFailure,
+  fireShotErrorMessage,
+  isFireShotConflict,
+  joinGameUrl,
+  toFireShotError,
+  toJoinGameError,
+} from './games-api';
 
 const PROBLEMS = 'https://battleship.hexmaster.nl/problems';
 
@@ -166,6 +177,101 @@ describe('GamesApi', () => {
       expect(gameApiErrorMessage({ kind: 'placement-overlap', status: 400 })).toContain('overlap');
       expect(gameApiErrorMessage({ kind: 'network', status: 0 })).toContain('connection');
       expect(gameApiErrorMessage('nonsense')).toBe('Something went wrong. Please try again.');
+    });
+  });
+
+  describe('fireShot', () => {
+    const SHOTS_URL = `/api/games/${GAME_CODE}/shots`;
+
+    /** Starts a shot and resolves the reason it was refused with. */
+    function refusal(): Promise<unknown> {
+      return api.fireShot(GAME_CODE, 4, 6).then(
+        () => {
+          throw new Error('Expected the shot to be refused');
+        },
+        (e: unknown) => (e instanceof FireShotFailure ? e.reason : e),
+      );
+    }
+
+    it('posts the cell to /api/games/{code}/shots and resolves the result', async () => {
+      const fired = api.fireShot(GAME_CODE, 4, 6);
+
+      const req = backend.expectOne(SHOTS_URL);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ column: 4, row: 6 });
+      req.flush({ column: 4, row: 6, hit: true });
+
+      expect(await fired).toEqual({ column: 4, row: 6, hit: true } satisfies FireShotResponse);
+    });
+
+    it.each([
+      ['game-not-started', 'game-not-started'],
+      ['not-your-turn', 'not-your-turn'],
+      ['cell-already-shot', 'cell-already-shot'],
+      ['game-update-conflict', 'game-update-conflict'],
+      ['something-new', 'failed'],
+    ] as const)('maps 409 %s to %s', async (slug, expected) => {
+      const reason = refusal();
+      backend
+        .expectOne(SHOTS_URL)
+        .flush(
+          { type: `${PROBLEMS}/${slug}`, title: 'Refused', status: 409 },
+          { status: 409, statusText: 'Conflict' },
+        );
+      expect(await reason).toBe(expected);
+    });
+
+    it('maps a 409 without problem details to failed', async () => {
+      const reason = refusal();
+      backend.expectOne(SHOTS_URL).flush(null, { status: 409, statusText: 'Conflict' });
+      expect(await reason).toBe('failed');
+    });
+
+    it('maps 404 to not-found', async () => {
+      const reason = refusal();
+      backend
+        .expectOne(SHOTS_URL)
+        .flush(
+          { type: `${PROBLEMS}/game-not-found`, status: 404 },
+          { status: 404, statusText: 'Not Found' },
+        );
+      expect(await reason).toBe('not-found');
+    });
+
+    it.each([400, 401, 500])('maps %d to failed', async (status) => {
+      const reason = refusal();
+      backend.expectOne(SHOTS_URL).flush(null, { status, statusText: 'Error' });
+      expect(await reason).toBe('failed');
+    });
+
+    it('maps a network error to failed', async () => {
+      const reason = refusal();
+      backend.expectOne(SHOTS_URL).error(new ProgressEvent('error'));
+      expect(await reason).toBe('failed');
+    });
+
+    it('maps anything that is not an HTTP error to failed', () => {
+      expect(toFireShotError(new Error('boom'))).toBe('failed');
+    });
+
+    it('has a player-facing message for every reason and tells conflicts apart', () => {
+      const reasons = [
+        'game-not-started',
+        'not-your-turn',
+        'cell-already-shot',
+        'game-update-conflict',
+        'not-found',
+        'failed',
+      ] as const;
+      for (const reason of reasons) expect(fireShotErrorMessage(reason)).not.toBe('');
+      expect(fireShotErrorMessage('not-your-turn')).toBe('It is not your turn.');
+      expect(fireShotErrorMessage('failed')).toContain('not fired');
+      expect(reasons.filter(isFireShotConflict)).toEqual([
+        'game-not-started',
+        'not-your-turn',
+        'cell-already-shot',
+        'game-update-conflict',
+      ]);
     });
   });
 

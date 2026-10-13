@@ -14,4 +14,7 @@ public static class GameProblemTypes
     public const string PlacementOverlap = BaseUri + "placement-overlap";
     public const string PlayerReady = BaseUri + "player-ready";
     public const string FleetIncomplete = BaseUri + "fleet-incomplete";
+    public const string GameNotStarted = BaseUri + "game-not-started";
+    public const string NotYourTurn = BaseUri + "not-your-turn";
+    public const string CellAlreadyShot = BaseUri + "cell-already-shot";
 }

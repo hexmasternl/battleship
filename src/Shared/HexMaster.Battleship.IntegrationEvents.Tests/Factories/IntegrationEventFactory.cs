@@ -29,13 +29,18 @@ public static class IntegrationEventFactory
     public static GameStartedEvent GameStarted() =>
         new(Guid.NewGuid(), GameCode(), Guid.NewGuid());
 
-    public static GameShotFiredEvent ShotFired(string? gameCode = null, Guid? playerId = null, int? column = null, int? row = null) =>
+    public static GameShotFiredEvent ShotFired(
+        string? gameCode = null, Guid? playerId = null, int? column = null, int? row = null, bool? hit = null) =>
         new(
             Guid.NewGuid(),
             gameCode ?? GameCode(),
             playerId ?? Guid.NewGuid(),
-            column ?? Faker.Random.Int(0, 9),
-            row ?? Faker.Random.Int(0, 9));
+            column ?? Faker.Random.Int(0, 11),
+            row ?? Faker.Random.Int(0, 11),
+            hit ?? Faker.Random.Bool());
+
+    public static GameTurnChangedEvent TurnChanged(string? gameCode = null, Guid? playerWithTurnId = null) =>
+        new(Guid.NewGuid(), gameCode ?? GameCode(), playerWithTurnId ?? Guid.NewGuid());
 
     public static GameEndedEvent GameEnded(GameEndReason? reason = null, Guid? winnerId = null) =>
         new(Guid.NewGuid(), GameCode(), reason ?? GameEndReason.Completed, winnerId);

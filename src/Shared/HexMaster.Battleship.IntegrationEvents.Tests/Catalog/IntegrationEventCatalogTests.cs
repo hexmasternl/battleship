@@ -21,6 +21,7 @@ public partial class IntegrationEventCatalogTests
                 "game.player-ready.v1",
                 "game.started.v1",
                 "game.shot-fired.v1",
+                "game.turn-changed.v1",
                 "game.ended.v1"
             ],
             names);

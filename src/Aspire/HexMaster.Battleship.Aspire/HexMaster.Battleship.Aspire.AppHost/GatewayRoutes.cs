@@ -26,6 +26,7 @@ internal static class GatewayRoutes
         "health",
         "integration-events",
         "openapi",
+        "scalar",
         "smoke",
         "weatherforecast",
     };

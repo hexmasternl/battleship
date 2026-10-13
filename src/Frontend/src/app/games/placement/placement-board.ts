@@ -25,7 +25,7 @@ const INDEXES = Array.from({ length: BOARD_SIZE }, (_, i) => i);
 const key = (cell: Cell) => `${cell.column}-${cell.row}`;
 
 /** The grid lines a ship covers, clipped to the board; the tracks start after the header. */
-function gridArea(ship: ShipView): { column: string; row: string } {
+export function gridArea(ship: ShipView): { column: string; row: string } {
   const cells = cellsOf(ship).filter(
     (c) => c.column >= 0 && c.column < BOARD_SIZE && c.row >= 0 && c.row < BOARD_SIZE,
   );
