@@ -1,0 +1,23 @@
+// The dialog container itself is themed globally (styles.scss, `mat.dialog-overrides`).
+.create-game-dialog__title {
+  font-family: var(--bs-font-heading);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+}
+
+.create-game-dialog__intro {
+  margin: 0 0 var(--bs-space-4);
+  color: var(--bs-color-text);
+}
+
+.create-game-dialog__status {
+  display: grid;
+  gap: var(--bs-space-2);
+}
+
+.create-game-dialog__progress-text {
+  margin: 0 0 var(--bs-space-4);
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text-dim-raised);
+}

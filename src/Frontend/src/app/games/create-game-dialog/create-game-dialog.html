@@ -1,0 +1,35 @@
+<h2 mat-dialog-title class="create-game-dialog__title">Create a new game</h2>
+<mat-dialog-content>
+  <p class="create-game-dialog__intro">
+    A new game gets its own code. Share it with a friend so they can join you at sea.
+  </p>
+
+  <div class="create-game-dialog__status" role="status">
+    @if (store.isCreating()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Creating the game" />
+      <p class="create-game-dialog__progress-text">Creating the game...</p>
+    }
+  </div>
+
+  @if (store.error(); as message) {
+    <p class="bs-status bs-status--danger" role="alert">{{ message }}</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button
+    class="bs-btn bs-btn--ghost"
+    type="button"
+    mat-dialog-close
+    [disabled]="store.isCreating()"
+  >
+    Cancel
+  </button>
+  <button
+    class="bs-btn bs-btn--primary"
+    type="button"
+    [disabled]="store.isCreating()"
+    (click)="confirm()"
+  >
+    {{ store.hasFailed() ? 'Try again' : 'Create game' }}
+  </button>
+</mat-dialog-actions>
