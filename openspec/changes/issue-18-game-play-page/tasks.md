@@ -32,4 +32,4 @@
 
 ## 7. Integration check
 
-- [ ] 7.1 Run `dotnet test src/Battleship.slnx` and `npm test` in `src/Frontend`, then start the AppHost, play a game in two browsers (one at a 360px viewport) up to a few shots each, and confirm: confirmed shots draw hit and miss markers, the opponent's shots appear live on the "Opponent" tab, tabs follow the turn, a second shot in the same turn is refused, a refresh restores the same view, and the grid fits without horizontal scrolling; verify all pass and record the observations in the pull request
+- [x] 7.1 Run `dotnet test src/Battleship.slnx` and `npm test` in `src/Frontend`, then start the AppHost, play a game in two browsers (one at a 360px viewport) up to a few shots each, and confirm: confirmed shots draw hit and miss markers, the opponent's shots appear live on the "Opponent" tab, tabs follow the turn, a second shot in the same turn is refused, a refresh restores the same view, and the grid fits without horizontal scrolling; verify all pass and record the observations in the pull request
