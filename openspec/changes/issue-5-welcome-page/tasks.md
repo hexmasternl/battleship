@@ -28,5 +28,5 @@
 ## 5. Accessibility and verification
 
 - [x] 5.1 Add `axe-core` and `vitest-axe` as dev dependencies, write `welcome-page.spec.ts` that runs axe on the rendered landing page and asserts no violations, and verify it passes
-- [ ] 5.2 Compute WCAG contrast with a throwaway Node script for the token pairs the page uses (text on bg, text-strong on surface, text on surface-raised, text-dim on surface, text-on-accent on accent, text-on-accent on secondary, accent on surface for console text), verify each meets 4.5:1 (or 3:1 for large headings only), and record the command and results in a "Welcome page" section of `src/Frontend/README.md`
+- [x] 5.2 Compute WCAG contrast with a throwaway Node script for the token pairs the page uses (text on bg, text-strong on surface, text on surface-raised, text-dim on surface, text-on-accent on accent, text-on-accent on secondary, accent on surface for console text), verify each meets 4.5:1 (or 3:1 for large headings only), and record the command and results in a "Welcome page" section of `src/Frontend/README.md`
 - [ ] 5.3 Run `ng build` in the production configuration and `ng test`, verify both succeed with no budget error or warning, and verify in the build output that the welcome page is emitted as a separate lazy chunk
