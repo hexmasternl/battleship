@@ -38,6 +38,30 @@ html {
       density: 0,
     )
   );
+
+  // The roles that carry the page (surfaces, text, outlines) follow the design system's
+  // semantic role tokens rather than the palette tones. The palettes produce the same values
+  // today, so this changes nothing visually; it makes the dependency explicit, and a later
+  // re-assignment of a design system role flows into Material without touching the palettes.
+  // The chromatic roles (primary, tertiary, error) stay on the palettes because Material
+  // derives their container and fixed variants from the same tone ladder.
+  @include mat.theme-overrides(
+    (
+      background: var(--bs-color-bg),
+      surface: var(--bs-color-bg),
+      surface-dim: var(--bs-color-bg),
+      surface-container-lowest: var(--bs-color-bg),
+      surface-container-low: var(--bs-color-surface),
+      surface-container: var(--bs-color-surface-raised),
+      surface-container-high: var(--bs-color-surface-overlay),
+      surface-container-highest: var(--bs-color-border),
+      surface-bright: var(--bs-color-border),
+      on-surface: var(--bs-color-text),
+      on-surface-variant: var(--bs-color-text-dim),
+      outline: var(--bs-color-border-strong),
+      outline-variant: var(--bs-color-border),
+    )
+  );
 }
 
 body {
