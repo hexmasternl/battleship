@@ -244,6 +244,63 @@ public class PlacementApiTests : IClassFixture<JoinGameApiFactory>
         await AssertProblemAsync(response, HttpStatusCode.Conflict, "game-already-started");
     }
 
+    [Fact]
+    public async Task Ready_WithoutAToken_Is401()
+    {
+        var game = await StoreAsync();
+
+        using var response = await SendAsync(HttpMethod.Post, $"/games/{game.GameCode}/ready", token: null);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Ready_UnknownGameOrNotAPlayer_Is404()
+    {
+        var game = await StoreAsync();
+
+        using var unknown = await SendAsync(HttpMethod.Post, $"/games/{GameFactory.Code()}/ready", Token(Guid.NewGuid()));
+        using var stranger = await SendAsync(HttpMethod.Post, $"/games/{game.GameCode}/ready", Token(Guid.NewGuid()));
+
+        await AssertProblemAsync(unknown, HttpStatusCode.NotFound, "game-not-found");
+        await AssertProblemAsync(stranger, HttpStatusCode.NotFound, "game-not-found");
+    }
+
+    [Fact]
+    public async Task Ready_WithTheFullFleet_Is200AndReadyAgainIs200()
+    {
+        var game = await StoreAsync(GameFactory.Stored(GameState.New, playerOne: GameFactory.Player(ships: GameFactory.FullFleet())));
+        var token = Token(game.PlayerOne.PlayerId);
+
+        using var first = await SendAsync(HttpMethod.Post, $"/games/{game.GameCode.ToLowerInvariant()}/ready", token);
+        using var again = await SendAsync(HttpMethod.Post, $"/games/{game.GameCode}/ready", token);
+
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.True(JsonDocument.Parse(await first.Content.ReadAsStringAsync()).RootElement.GetProperty("me").GetProperty("ready").GetBoolean());
+        Assert.Equal(HttpStatusCode.OK, again.StatusCode);
+        Assert.True((await ReadAsync(game)).PlayerOne.IsReady);
+    }
+
+    [Fact]
+    public async Task Ready_WithAnIncompleteFleet_Is409FleetIncomplete()
+    {
+        var game = await StoreAsync();
+
+        using var response = await SendAsync(HttpMethod.Post, $"/games/{game.GameCode}/ready", Token(game.PlayerOne.PlayerId));
+
+        await AssertProblemAsync(response, HttpStatusCode.Conflict, "fleet-incomplete");
+    }
+
+    [Fact]
+    public async Task Ready_InAStartedGame_Is409GameAlreadyStarted()
+    {
+        var game = await StoreAsync(GameFactory.Stored(GameState.Started, playerOne: GameFactory.Player(ships: GameFactory.FullFleet())));
+
+        using var response = await SendAsync(HttpMethod.Post, $"/games/{game.GameCode}/ready", Token(game.PlayerOne.PlayerId));
+
+        await AssertProblemAsync(response, HttpStatusCode.Conflict, "game-already-started");
+    }
+
     private static object Body(int column, int row, string orientation = "horizontal") => new { column, row, orientation };
 
     private Task<HttpResponseMessage> PlaceAsync(string code, string kind, string? token, object body) =>

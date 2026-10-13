@@ -8,6 +8,7 @@ using HexMaster.Battleship.Games.Exceptions;
 using HexMaster.Battleship.Games.Features.CreateGame;
 using HexMaster.Battleship.Games.Features.GetGame;
 using HexMaster.Battleship.Games.Features.JoinGame;
+using HexMaster.Battleship.Games.Features.MarkReady;
 using HexMaster.Battleship.Games.Features.PlaceShip;
 using HexMaster.Battleship.Games.Services;
 using Microsoft.AspNetCore.Builder;
@@ -51,7 +52,47 @@ public static class GamesEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        group.MapPost("/{code}/ready", MarkReady)
+            .WithName("MarkReady")
+            .WithSummary("Marks the caller ready once all five ships are placed, starting the game when both players are.")
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         return app;
+    }
+
+    // Takes no body. Getting ready again answers 200 with the same view, in any game state.
+    private static async Task<Results<Ok<GameView>, ProblemHttpResult>> MarkReady(
+        string code,
+        ClaimsPrincipal principal,
+        ICommandHandler<MarkReadyCommand, GameView?> handler,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetPlayerId(principal, out var playerId))
+        {
+            return UnidentifiedPlayer();
+        }
+
+        var normalized = code.ToUpperInvariant();
+        if (!GameCode.TryParse(normalized, out var gameCode))
+        {
+            return GameNotFound(normalized);
+        }
+
+        try
+        {
+            var view = await handler.Handle(new MarkReadyCommand(gameCode, playerId), cancellationToken);
+            return view is null ? GameNotFound(gameCode.Value) : TypedResults.Ok(view);
+        }
+        catch (PlacementRefusedException refused)
+        {
+            return PlacementRefused(refused);
+        }
+        catch (GameUpdateConflictException conflict)
+        {
+            return Conflict(GameProblemTypes.GameUpdateConflict, "The game was changed by another request. Try again.", conflict.Message);
+        }
     }
 
     // The kind comes from the route and the orientation from the body, both in any casing.

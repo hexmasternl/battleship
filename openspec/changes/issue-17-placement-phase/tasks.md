@@ -35,7 +35,7 @@
 ## 8. Ready slice and endpoint
 
 - [x] 8.1 Add `MarkReadyCommand`/`MarkReadyCommandHandler` using `IGameUpdater` (`AlreadyReady` → no write), publishing `game.player-ready.v1` to the present players and then, when started, `game.started.v1` to both, with publish failures logged (game code) and swallowed, the `games.ready` activity and the `games.player-ready` and `games.started` counters (design D5); verify handler tests for the events, their audiences and order, no event on `AlreadyReady`, ready while alone targeting only the caller, and a swallowed publish failure pass
-- [ ] 8.2 Add `POST /games/{code}/ready` to `GamesEndpoints`; verify endpoint tests for `401`, `404`, `200` with `me.ready` true, `409 fleet-incomplete`, `409 game-already-started` and ready-again `200` pass
+- [x] 8.2 Add `POST /games/{code}/ready` to `GamesEndpoints`; verify endpoint tests for `401`, `404`, `200` with `me.ready` true, `409 fleet-incomplete`, `409 game-already-started` and ready-again `200` pass
 - [ ] 8.3 Add a race test running two `MarkReady` handlers for both players against #16's in-memory repository fake that honours concurrency tokens; verify both answer success, the game is `Started` once with exactly one turn holder, exactly one `game.started.v1` is sent, and coverage on `HexMaster.Battleship.Games` is at least 80%
 
 ## 9. Frontend game page (angular-frontend agent)
