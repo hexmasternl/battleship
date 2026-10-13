@@ -1,5 +1,7 @@
+import { CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 import { ShipKind, ShipView } from '../game-view';
+import { Point, ShipDragStart, grabIndexAt } from './placement-drag';
 import {
   BOARD_SIZE,
   Cell,
@@ -15,6 +17,9 @@ export interface PlacementPreview {
   readonly ship: ShipView;
   readonly valid: boolean;
 }
+
+/** The id of the board's drop list, which the ship list connects to. */
+export const PLACEMENT_BOARD_DROP_LIST = 'placement-board';
 
 const INDEXES = Array.from({ length: BOARD_SIZE }, (_, i) => i);
 const key = (cell: Cell) => `${cell.column}-${cell.row}`;
@@ -41,6 +46,7 @@ function gridArea(ship: ShipView): { column: string; row: string } {
  */
 @Component({
   selector: 'battle-placement-board',
+  imports: [CdkDrag, CdkDropList],
   templateUrl: './placement-board.html',
   styleUrl: './placement-board.scss',
   host: { '(keydown.escape)': 'cleared.emit()' },
@@ -60,6 +66,19 @@ export class PlacementBoard {
   readonly shipActivated = output<ShipKind>();
   /** Escape was pressed: the active ship is to be cleared. */
   readonly cleared = output<void>();
+  /** A placed ship started to be dragged. */
+  readonly shipDragStarted = output<ShipDragStart>();
+  /** The pointer moved during a drag of a placed ship (viewport coordinates). */
+  readonly dragMoved = output<Point>();
+  /** A drag of a placed ship ended. */
+  readonly dragEnded = output<void>();
+
+  protected readonly dropListId = PLACEMENT_BOARD_DROP_LIST;
+  /**
+   * The cell of the ship the pointer went down on. Read when the drag starts, when the ship is
+   * already hidden behind the drag preview and can no longer be measured. Not rendered.
+   */
+  #grabIndex = 0;
 
   /** The cell that holds the roving tab stop. UI state of this component only. */
   protected readonly focused = signal<Cell>({ column: 0, row: 0 });
@@ -134,6 +153,24 @@ export class PlacementBoard {
 
   protected activateShip(kind: ShipKind): void {
     if (!this.readOnly()) this.shipActivated.emit(kind);
+  }
+
+  protected grabbed(event: PointerEvent, ship: ShipView): void {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.#grabIndex = grabIndexAt(
+      { x: event.clientX, y: event.clientY },
+      rect,
+      cellsOf(ship).length,
+      ship.orientation,
+    );
+  }
+
+  protected dragStarted(ship: ShipView): void {
+    this.shipDragStarted.emit({
+      kind: ship.kind,
+      orientation: ship.orientation,
+      grabIndex: this.#grabIndex,
+    });
   }
 
   protected move(event: KeyboardEvent, cell: Cell): void {

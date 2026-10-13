@@ -1,4 +1,11 @@
-<div class="bs-board placement-board" [class.is-read-only]="readOnly()">
+<div
+  class="bs-board placement-board"
+  [class.is-read-only]="readOnly()"
+  cdkDropList
+  [id]="dropListId"
+  cdkDropListSortingDisabled
+  [cdkDropListDisabled]="readOnly()"
+>
   <div
     class="placement-board__grid"
     role="grid"
@@ -45,6 +52,13 @@
         [attr.aria-label]="placed.label"
         [attr.aria-pressed]="placed.active"
         [attr.aria-disabled]="readOnly() || null"
+        cdkDrag
+        [cdkDragData]="placed.kind"
+        [cdkDragDisabled]="readOnly()"
+        (pointerdown)="grabbed($event, placed.ship)"
+        (cdkDragStarted)="dragStarted(placed.ship)"
+        (cdkDragMoved)="dragMoved.emit($event.pointerPosition)"
+        (cdkDragEnded)="dragEnded.emit()"
         (click)="activateShip(placed.kind)"
       ></button>
     }

@@ -52,6 +52,11 @@
   }
 }
 
+// While a ship is dragged, a faint copy marks where it was; an invalid drop leaves it there.
+.placement-board__ship.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
 .placement-board__preview {
   z-index: 2;
 }

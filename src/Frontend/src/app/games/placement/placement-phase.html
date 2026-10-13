@@ -3,9 +3,29 @@
 
   <div class="placement__players"></div>
 
-  <battle-placement-board class="placement__board" [ships]="store.placedShips()" />
+  <battle-placement-board
+    class="placement__board"
+    [ships]="store.placedShips()"
+    [activeKind]="store.activeKind()"
+    [preview]="store.preview()"
+    [readOnly]="!store.canEdit()"
+    (cellActivated)="store.cellActivated($event)"
+    (shipActivated)="store.activate($event)"
+    (cleared)="store.clearActive()"
+    (shipDragStarted)="store.dragStart($event)"
+    (dragMoved)="dragMoved($event)"
+    (dragEnded)="store.dragEnd()"
+  />
 
   <div class="placement__ships">
-    <battle-ship-list [ships]="store.unplacedFleet()" />
+    <battle-ship-list
+      [ships]="store.unplacedFleet()"
+      [activeKind]="store.activeKind()"
+      [readOnly]="!store.canEdit()"
+      (shipActivated)="store.activate($event)"
+      (shipDragStarted)="store.dragStart($event)"
+      (dragMoved)="dragMoved($event)"
+      (dragEnded)="store.dragEnd()"
+    />
   </div>
 </section>

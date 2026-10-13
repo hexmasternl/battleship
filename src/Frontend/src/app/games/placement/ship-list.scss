@@ -59,6 +59,10 @@
     box-shadow: var(--bs-glow-primary);
   }
 
+  &.cdk-drag-placeholder {
+    opacity: 0.4;
+  }
+
   &[aria-disabled='true'] {
     cursor: default;
   }
