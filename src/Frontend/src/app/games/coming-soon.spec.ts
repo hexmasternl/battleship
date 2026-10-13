@@ -14,22 +14,16 @@ describe('ComingSoon', () => {
     return fixture;
   }
 
-  it('names the create-game feature inside an info panel', async () => {
-    const fixture = await render('create');
-    const panel = fixture.nativeElement.querySelector('.bs-panel--info') as HTMLElement;
-    expect(panel).not.toBeNull();
-    expect(panel.querySelector('h1')?.textContent?.trim()).toBe('Create a new game');
-    expect(panel.textContent).toContain('Coming soon');
-  });
-
   it('names the join-game feature inside an info panel', async () => {
     const fixture = await render('join');
     const panel = fixture.nativeElement.querySelector('.bs-panel--info') as HTMLElement;
+    expect(panel).not.toBeNull();
     expect(panel.querySelector('h1')?.textContent?.trim()).toBe('Join an existing game');
+    expect(panel.textContent).toContain('Coming soon');
   });
 
   it('links back to the landing page with a ghost button', async () => {
-    const fixture = await render('create');
+    const fixture = await render('join');
     const link = fixture.nativeElement.querySelector('a.bs-btn--ghost') as HTMLAnchorElement;
     expect(link).not.toBeNull();
     expect(link.getAttribute('href')).toBe('/');

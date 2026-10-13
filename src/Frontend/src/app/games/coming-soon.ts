@@ -2,16 +2,15 @@ import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 /** The game flows that do not exist yet. The value comes from the route's `data.feature`. */
-export type ComingSoonFeature = 'create' | 'join';
+export type ComingSoonFeature = 'join';
 
 const FEATURE_TITLES: Record<ComingSoonFeature, string> = {
-  create: 'Create a new game',
   join: 'Join an existing game',
 };
 
 /**
- * Placeholder for the create-game and join-game routes until those flows are built.
- * One component serves both: the route's `data.feature` is bound to the `feature` input.
+ * Placeholder for game flows that are not built yet (currently joining a game). The route's
+ * `data.feature` is bound to the `feature` input.
  */
 @Component({
   selector: 'battle-coming-soon',
