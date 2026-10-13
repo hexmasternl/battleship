@@ -3,6 +3,7 @@ using HexMaster.Battleship.Players.Abstractions.DataTransferObjects;
 using HexMaster.Battleship.Players.Configuration;
 using HexMaster.Battleship.Players.Features.CreateTokens;
 using HexMaster.Battleship.Players.Features.GetCurrentUser;
+using HexMaster.Battleship.Players.Features.RefreshTokens;
 using HexMaster.Battleship.Players.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -26,6 +27,7 @@ public static class PlayersModuleRegistration
         services.AddSingleton<ITokenService, JwtTokenService>();
 
         services.AddScoped<ICommandHandler<CreateTokensCommand, TokenPairResponse>, CreateTokensCommandHandler>();
+        services.AddScoped<ICommandHandler<RefreshTokensCommand, TokenPairResponse>, RefreshTokensCommandHandler>();
         services.AddScoped<IQueryHandler<GetCurrentUserQuery, CurrentUserResponse?>, GetCurrentUserQueryHandler>();
 
         return services;
