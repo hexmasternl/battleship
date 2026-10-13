@@ -36,4 +36,4 @@
 
 ## 7. Integration check
 
-- [ ] 7.1 Run the Aspire AppHost, play a game in two browsers until one fleet is sunk; verify the winner sees "You won", the loser "You lost", both boards are read only behind the dialog, a refresh shows the dialog again, and Close returns both to the landing page
+- [x] 7.1 Run the Aspire AppHost, play a game in two browsers until one fleet is sunk; verify the winner sees "You won", the loser "You lost", both boards are read only behind the dialog, a refresh shows the dialog again, and Close returns both to the landing page
