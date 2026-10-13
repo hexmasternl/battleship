@@ -17,6 +17,7 @@ public static class GamesModuleRegistration
         services.AddMetrics();
         services.TryAddSingleton<GamesMetrics>();
         services.AddSingleton<IGameCodeGenerator, GameCodeGenerator>();
+        services.TryAddScoped<IGameUpdater, GameUpdater>();
 
         services.AddCommandHandler<CreateGameCommand, CreateGameResponse, CreateGameCommandHandler>();
 

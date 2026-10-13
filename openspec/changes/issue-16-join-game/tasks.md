@@ -11,7 +11,7 @@
 ## 3. Optimistic concurrency
 
 - [x] 3.1 Add `GameForUpdate` and `IGameRepository.GetForUpdateAsync`/`TryUpdateAsync` to `Games.Abstractions` (token as an opaque string), and implement them in `GameTableRepository` with the stored ETag and `UpdateEntityAsync(..., new ETag(token), TableUpdateMode.Replace)`, returning `false` on `412` (design D3); verify Azurite-backed tests for an update with a fresh token and `false` with a stale token pass, or skip with a clear reason when Azurite is unreachable
-- [ ] 3.2 Add `IGameUpdater`/`GameUpdater` with `GameMutation<T>` (`Save`, `NoChange`), `GameUpdateResult<T>` (incl. `NotFound`), `MaxAttempts = 3`, immediate retries, the `game.update.conflict` activity event, the `games.update.conflicts` counter and `GameUpdateConflictException`; register it in `AddGamesModule` (design D3); verify Moq-based tests for not found, `NoChange` writing nothing, save on the first attempt, conflict then success with `mutate` re-run on the reloaded game, three conflicts throwing, and a `DomainException` propagating without a write pass
+- [x] 3.2 Add `IGameUpdater`/`GameUpdater` with `GameMutation<T>` (`Save`, `NoChange`), `GameUpdateResult<T>` (incl. `NotFound`), `MaxAttempts = 3`, immediate retries, the `game.update.conflict` activity event, the `games.update.conflicts` counter and `GameUpdateConflictException`; register it in `AddGamesModule` (design D3); verify Moq-based tests for not found, `NoChange` writing nothing, save on the first attempt, conflict then success with `mutate` re-run on the reloaded game, three conflicts throwing, and a `DomainException` propagating without a write pass
 
 ## 4. Join slice and endpoint
 
