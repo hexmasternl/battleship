@@ -4,7 +4,7 @@
 
 ## Why
 
-Nothing in the solution identifies a player: the Players API still serves the template `/weatherforecast` endpoint, has no data store and no authentication, and no other service can tell one browser from another. Creating a game, joining one and routing real-time events to the right client all need a stable identity for a visitor who never registers, so anonymous identity has to exist before any of those features can be built.
+Nothing in the solution identifies a player: the Players API still serves the template `/weatherforecast` endpoint, has no data store and no authentication, and no other service can tell one browser from another. Creating a game, joining one and routing real-time events to the right client all need a stable identity for a visitor who never registers, so anonymous identity has to exist before any of those features can be built. The frontend has to hold on to that identity too: a returning visitor should be recognised without being asked anything, and a new visitor should be asked for a player name only at the moment they want to play.
 
 ## What Changes
 
@@ -16,6 +16,10 @@ Nothing in the solution identifies a player: the Players API still serves the te
 - Model an Azure Storage resource with a tables sub-resource in the Aspire AppHost that runs as the Azurite emulator locally, and inject its connection into the Players API through the Aspire client integration, so `aspire run` needs no Azure subscription.
 - Add a reusable bearer-authentication registration to ServiceDefaults (`AddBattleshipAuthentication`) that validates the same tokens from the same configuration, so the Games API and the future Events API can protect endpoints without re-implementing validation.
 - Read the signing key and lifetimes from configuration (`Players:Tokens:*`, user secrets locally) and fail fast at startup when the signing key is missing or too short.
+- Add a frontend player session: the refresh token and its expiry live in `localStorage` so the identity survives browser restarts, the access token and its expiry live in `sessionStorage` so they are gone when the browser session ends.
+- When the landing page opens and a refresh token is stored, the frontend calls `POST /tokens/refresh` (through the gateway as `/api/tokens/refresh`) and stores the rotated pair; a refused refresh clears the stored tokens so the visitor becomes unknown.
+- Add a new shared player-name component that asks for a player name, calls the anonymous `POST /tokens` endpoint with it and stores the returned access and refresh tokens.
+- "Create a new game" and "Join an existing game" open a modal dialog with the player-name component when the player is unknown, and navigate to their route once the player is known; a known player navigates straight away.
 - Introduce the shared `HexMaster.Battleship.Core` project (command and query handler interfaces, domain model base classes) that the house standards expect every module to build on, since this is the first real feature in the solution.
 
 ## Capabilities
@@ -24,8 +28,10 @@ Nothing in the solution identifies a player: the Players API still serves the te
 - `user-identification`: how an anonymous visitor becomes a known user of Battleship: token issuance, the access and refresh token contracts, refresh rotation and rejection rules, the stored user record and the `/users/me` identity endpoint.
 - `bearer-authentication`: how any Battleship API validates an access token issued by the Players service and exposes the caller's identity to endpoints, including the configuration it needs and the failure behaviour when that configuration is missing.
 
+- `player-session`: how the frontend keeps the player's identity: where the access and refresh tokens are stored, the refresh on the landing page, the shared player-name component that creates a new player, and when the visitor counts as known.
+
 ### Modified Capabilities
-<!-- none: there are no existing specs for the backend services -->
+- `welcome-page`: the two calls to action ask an unknown player for a player name in a modal dialog before navigating to the game routes.
 
 ## Impact
 
@@ -38,4 +44,6 @@ Nothing in the solution identifies a player: the Players API still serves the te
 - `src/Aspire/.../HexMaster.Battleship.Aspire.ServiceDefaults/`: references `Microsoft.AspNetCore.Authentication.JwtBearer`; gains `AddBattleshipAuthentication`.
 - New `src/Core/HexMaster.Battleship.Core/`: `ICommandHandler`, `IQueryHandler`, `DomainModel<TId>`, `DomainModelState`, `DomainException`. Added to `src/Battleship.slnx` together with the Data project.
 - `README.md`: gains a section on running with Azurite and setting the signing key with `dotnet user-secrets`.
-- No frontend change. The Games API is untouched apart from the authentication helper becoming available to it; no Games endpoint requires authorization yet.
+- `src/Frontend/src/app/`: a new `core/session/` folder (token storage over `localStorage` and `sessionStorage`, the Players API client, the root `PlayerSession` store), a new `shared/player-name/` folder (the player-name component with its store, and the dialog that hosts it), the welcome page triggering the session restore, and the hero calls to action gated on a known player. Angular Material's dialog is used for the modal.
+- Depends on `issue-11-yarp-local-gateway` for `provideHttpClient`, the runtime gateway URL and the `/api/` rewrite; that change is applied first. Because the gateway routes by first path segment, its route table lists `tokens` and `users` as Players prefixes (through the `yarp-gateway-routes` skill), so the Players endpoints keep the paths defined here.
+- The Games API is untouched apart from the authentication helper becoming available to it; no Games endpoint requires authorization yet.
