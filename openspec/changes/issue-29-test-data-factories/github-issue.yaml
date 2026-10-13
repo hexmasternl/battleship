@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 29
+url: https://github.com/hexmasternl/battleship/issues/29
+title: Build test domain objects and events through Bogus factories
+linked: 2026-10-13
