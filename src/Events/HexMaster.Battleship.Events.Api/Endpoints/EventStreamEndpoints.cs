@@ -4,8 +4,10 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HexMaster.Battleship.Events.Api.Identity;
 using HexMaster.Battleship.Events.Routing;
+using HexMaster.Battleship.Events.Streaming;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Options;
 
 namespace HexMaster.Battleship.Events.Api.Endpoints;
 
@@ -29,7 +31,9 @@ public static class EventStreamEndpoints
     private static Results<ServerSentEventsResult<JsonElement>, ProblemHttpResult> OpenStream(
         HttpContext httpContext,
         IConnectionIdentityResolver identityResolver,
-        IEventRouter router)
+        IEventRouter router,
+        IOptions<StreamOptions> streamOptions,
+        TimeProvider timeProvider)
     {
         var playerId = identityResolver.ResolvePlayerId(httpContext);
 
@@ -46,7 +50,14 @@ public static class EventStreamEndpoints
         var lastEventId = ParseLastEventId(httpContext.Request.Headers[LastEventIdHeader]);
 
         return TypedResults.ServerSentEvents(
-            Stream(httpContext, router, playerId, lastEventId, httpContext.RequestAborted));
+            Stream(
+                httpContext,
+                router,
+                playerId,
+                lastEventId,
+                streamOptions.Value.HeartbeatInterval,
+                timeProvider,
+                httpContext.RequestAborted));
     }
 
     private static async IAsyncEnumerable<SseItem<JsonElement>> Stream(
@@ -54,16 +65,21 @@ public static class EventStreamEndpoints
         IEventRouter router,
         string playerId,
         long? lastEventId,
+        TimeSpan heartbeatInterval,
+        TimeProvider timeProvider,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var connection = router.Connect(playerId, lastEventId);
 
+        // A failed write (client gone) or an aborted request ends the enumeration, and the
+        // finally block takes the connection out of routing.
         try
         {
             // Send the headers now, so the client sees an open stream before the first event.
             await httpContext.Response.Body.FlushAsync(cancellationToken);
 
-            await foreach (var item in connection.Reader.ReadAllAsync(cancellationToken))
+            await foreach (var item in HeartbeatStream.ReadAsync(
+                connection.Reader, heartbeatInterval, timeProvider, cancellationToken))
             {
                 yield return item;
             }
