@@ -4,7 +4,7 @@
 
 - [x] 1.1 Add `Aspire.Hosting.RabbitMQ` and the latest `CommunityToolkit.Aspire.Hosting.Dapr` release compatible with Aspire 13.6 to the AppHost project, record the chosen versions and the verified extension method names in design.md, and verify `dotnet build src/Battleship.slnx` succeeds
 - [x] 1.2 Add `AddRabbitMQ("messaging")` with a `rabbitmq-username` parameter (default `guest`), a generated `rabbitmq-password` parameter and `.WithManagementPlugin()` to `AppHost.cs`, run the AppHost and verify the `messaging` resource reaches healthy on the dashboard and the management UI opens on the port the dashboard shows
-- [ ] 1.3 Add a "Running locally" section to `README.md` listing Docker Desktop, the .NET 10 SDK, the Aspire CLI, the Dapr CLI and `dapr init` as prerequisites with the `aspire run` start command, and verify every command in the section runs as written on a machine with the prerequisites
+- [x] 1.3 Add a "Running locally" section to `README.md` listing Docker Desktop, the .NET 10 SDK, the Aspire CLI, the Dapr CLI and `dapr init` as prerequisites with the `aspire run` start command, and verify every command in the section runs as written on a machine with the prerequisites
 
 ## 2. Dapr component and sidecars
 
