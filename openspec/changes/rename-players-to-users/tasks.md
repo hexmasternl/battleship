@@ -11,7 +11,7 @@
 
 ## 3. AppHost and gateway
 
-- [ ] 3.1 Rename the AppHost resource to `hexmaster-battleship-users-api` (`GatewayRoutes.UsersApi`, module entry `users`), the Dapr app id to `users-api`, the parameter to `users-signing-key` and the environment variable to `Users__Tokens__SigningKey` for the Users and Games APIs (design D2, D6), using the `yarp-gateway-routes` skill to confirm the prefix set is unchanged; verify `GatewayRoutesTests` pass, and that `aspire start --isolated` shows `hexmaster-battleship-users-api` and the Games API healthy and a token from `/users/tokens` is accepted by `POST /games` through the gateway
+- [x] 3.1 Rename the AppHost resource to `hexmaster-battleship-users-api` (`GatewayRoutes.UsersApi`, module entry `users`), the Dapr app id to `users-api`, the parameter to `users-signing-key` and the environment variable to `Users__Tokens__SigningKey` for the Users and Games APIs (design D2, D6), using the `yarp-gateway-routes` skill to confirm the prefix set is unchanged; verify `GatewayRoutesTests` pass, and that `aspire start --isolated` shows `hexmaster-battleship-users-api` and the Games API healthy and a token from `/users/tokens` is accepted by `POST /games` through the gateway
 
 ## 4. Integration events and Events service
 

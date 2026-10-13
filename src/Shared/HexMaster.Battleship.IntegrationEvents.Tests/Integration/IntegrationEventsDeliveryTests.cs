@@ -19,7 +19,7 @@ public class IntegrationEventsDeliveryTests
 {
     private const string PubSubName = "pubsub";
     private const string TopicName = "integration-events";
-    private const string PlayersApi = "hexmaster-battleship-players-api";
+    private const string PlayersApi = "hexmaster-battleship-users-api";
     private const string EventsApi = "hexmaster-battleship-events-api";
     private const string PlayersSidecar = PlayersApi + "-dapr-cli";
     private const string EventsSidecar = EventsApi + "-dapr-cli";
@@ -74,7 +74,7 @@ public class IntegrationEventsDeliveryTests
 
         using var stream = new SseStreamReader(await streamResponse.Content.ReadAsStreamAsync(cancellationToken));
 
-        // The Players service's own sidecar, reached the way a service reaches it: the SDK
+        // The Users service's own sidecar, reached the way a service reaches it: the SDK
         // publishes over gRPC and uses HTTP for everything else.
         using var daprClient = new DaprClientBuilder()
             .UseHttpEndpoint(app.GetEndpoint(PlayersSidecar, "http").ToString())
