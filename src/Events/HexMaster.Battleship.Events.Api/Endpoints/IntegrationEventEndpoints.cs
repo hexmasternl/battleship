@@ -66,7 +66,7 @@ public static class IntegrationEventEndpoints
         }
 
         var errors = IntegrationEventEnvelopeValidator.Validate(envelope);
-        if (errors.Count > 0)
+        if (errors.Count > 0 || envelope is null)
         {
             var reasons = string.Join(" ", errors.Values.SelectMany(e => e));
 
@@ -77,7 +77,7 @@ public static class IntegrationEventEndpoints
             return TypedResults.Ok(Drop);
         }
 
-        activity?.SetTag(EventsTelemetry.MessageIdAttribute, envelope!.Id);
+        activity?.SetTag(EventsTelemetry.MessageIdAttribute, envelope.Id);
         activity?.SetTag(EventsTelemetry.EventTypeAttribute, envelope.Type);
 
         var result = router.Route(envelope);
