@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 26
+url: https://github.com/hexmasternl/battleship/issues/26
+title: Give Core its own test project and move DomainModelTests out of Players.Tests
+linked: 2026-10-13

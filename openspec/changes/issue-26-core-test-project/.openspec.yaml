@@ -1,0 +1,7 @@
+schema: spec-driven
+created: 2026-10-13
+skip_specs: true
+goal: Give Core its own test project and move DomainModelTests out of Players.Tests
+affected_areas:
+  - core
+  - players
