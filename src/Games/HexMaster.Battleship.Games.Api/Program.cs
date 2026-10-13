@@ -1,5 +1,3 @@
-using HexMaster.Battleship.Games.Api.Endpoints;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -7,11 +5,6 @@ builder.AddServiceDefaults();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddSingleton<SmokeEventStore>();
-}
 
 var app = builder.Build();
 
@@ -21,7 +14,6 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapSmokeEndpoints();
 }
 
 // Unwraps CloudEvents envelopes delivered by the Dapr sidecar before routing.

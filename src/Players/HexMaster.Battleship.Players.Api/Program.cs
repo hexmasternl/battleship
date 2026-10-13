@@ -1,5 +1,3 @@
-using HexMaster.Battleship.Players.Api.Endpoints;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -16,7 +14,6 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapSmokeEndpoints();
 }
 
 // Unwraps CloudEvents envelopes delivered by the Dapr sidecar before routing.
