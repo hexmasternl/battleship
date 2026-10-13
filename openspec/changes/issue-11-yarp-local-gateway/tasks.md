@@ -31,4 +31,4 @@
 
 ## 6. Integration check
 
-- [ ] 6.1 With `aspire run`, open the frontend and, from the browser console, run `fetch('/api/players/x')` through the app's `HttpClient` (or a temporary test call in a unit test harness). Verify the request reaches the Players API through the gateway with no CORS error, that navigating to `/games` causes no gateway request, and that `dotnet build`, `dotnet test` and `ng test` all pass.
+- [x] 6.1 With `aspire run`, open the frontend and, from the browser console, run `fetch('/api/players/x')` through the app's `HttpClient` (or a temporary test call in a unit test harness). Verify the request reaches the Players API through the gateway with no CORS error, that navigating to `/games` causes no gateway request, and that `dotnet build`, `dotnet test` and `ng test` all pass.
