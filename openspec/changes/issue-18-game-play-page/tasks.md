@@ -2,7 +2,7 @@
 
 ## 1. Prerequisites
 
-- [ ] 1.1 Confirm `issue-13-create-new-game`, `issue-16-join-game` and `issue-17-placement-phase` are merged into `development` (`Game.SwitchTurn`, `IGameUpdater`, `GameProblemTypes`, `Coordinate`, ship placements with cells, `Shot(Column, Row, Hit)`, `GET /games/{code}`, `GamePage` and its store); stop and report if any is missing; write down in the pull request how this design's names (`GameView`, `GamePageStore`, `ShipPlacement.Cells`, `Coordinate`) map onto the merged code; verify `dotnet build src/Battleship.slnx` and `npm run build` in `src/Frontend` pass on the branch before any change
+- [x] 1.1 Confirm `issue-13-create-new-game`, `issue-16-join-game` and `issue-17-placement-phase` are merged into `development` (`Game.SwitchTurn`, `IGameUpdater`, `GameProblemTypes`, `Coordinate`, ship placements with cells, `Shot(Column, Row, Hit)`, `GET /games/{code}`, `GamePage` and its store); stop and report if any is missing; write down in the pull request how this design's names (`GameView`, `GamePageStore`, `ShipPlacement.Cells`, `Coordinate`) map onto the merged code; verify `dotnet build src/Battleship.slnx` and `npm run build` in `src/Frontend` pass on the branch before any change
 
 ## 2. Integration events
 
