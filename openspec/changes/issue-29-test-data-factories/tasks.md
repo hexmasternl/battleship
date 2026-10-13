@@ -12,7 +12,7 @@
 
 ## 3. IntegrationEvents tests use the factory
 
-- [ ] 3.1 Add an optional `playerName` override to `IntegrationEventFactory.PlayerCreated`, and replace `new PlayerCreatedEvent(playerId, "Captain Nemo")` at `Integration/IntegrationEventsDeliveryTests.cs:81` with `IntegrationEventFactory.PlayerCreated(playerId)`. Assert against the factory-produced name instead of a literal. Verify that `dotnet test src/Core/HexMaster.Battleship.IntegrationEvents.Tests` passes.
+- [ ] 3.1 Add an optional `playerName` override to `IntegrationEventFactory.PlayerCreated`, and replace `new PlayerCreatedEvent(playerId, "Captain Nemo")` at `Integration/IntegrationEventsDeliveryTests.cs:81` with `IntegrationEventFactory.PlayerCreated(playerId)`. Assert against the factory-produced name instead of a literal. Verify that `dotnet test src/Shared/HexMaster.Battleship.IntegrationEvents.Tests` passes.
 
 ## 4. Check
 

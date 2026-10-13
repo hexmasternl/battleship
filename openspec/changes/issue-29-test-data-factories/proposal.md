@@ -35,7 +35,7 @@ None (`skip_specs`). This is a test-only refactor.
 
 - **Test code**:
   - `src/Players/HexMaster.Battleship.Players.Tests`: `Factories/UserFactory.cs`, `Factories/RefreshTokenFactory.cs`, `Storage/TableRepositoryTests.cs`, `Features/CreateTokensCommandHandlerTests.cs`, `Integration/PlayersApiTests.cs`
-  - `src/Core/HexMaster.Battleship.IntegrationEvents.Tests`: `Factories/IntegrationEventFactory.cs`, `Integration/IntegrationEventsDeliveryTests.cs`
+  - `src/Shared/HexMaster.Battleship.IntegrationEvents.Tests`: `Factories/IntegrationEventFactory.cs`, `Integration/IntegrationEventsDeliveryTests.cs`
 - **Production code**: none.
 - **Dependencies**: none new; Bogus is already referenced.
 - **Related**: issue #26 moves `DomainModelTests` into a new Core test project. Its factories, if any, follow the same convention.

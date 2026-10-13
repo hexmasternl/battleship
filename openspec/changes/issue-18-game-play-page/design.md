@@ -37,7 +37,7 @@ src/Games/HexMaster.Battleship.Games/
   Features/FireShot/FireShotCommand.cs, FireShotCommandHandler.cs, FireShotResult.cs
   Endpoints/GamesEndpoints.cs                (+ POST /{code}/shots)
   GameProblemTypes.cs                        (+ game-not-started, not-your-turn, cell-already-shot)
-src/Core/HexMaster.Battleship.IntegrationEvents/
+src/Shared/HexMaster.Battleship.IntegrationEvents/
   Games/GameShotFiredEvent.cs                (+ bool Hit)
   Games/GameTurnChangedEvent.cs              (new)
 ```

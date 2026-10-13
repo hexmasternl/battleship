@@ -20,7 +20,7 @@
 
 ## 5. Integration event
 
-- [ ] 5.1 Add `GamePlayerReadyEvent(GameId, GameCode, PlayerId)` = `game.player-ready.v1` to `src/Core/HexMaster.Battleship.IntegrationEvents`, the catalog and the README table (design D7); verify the catalog and serialization tests, updated for the new type and its camelCase payload, pass
+- [ ] 5.1 Add `GamePlayerReadyEvent(GameId, GameCode, PlayerId)` = `game.player-ready.v1` to `src/Shared/HexMaster.Battleship.IntegrationEvents`, the catalog and the README table (design D7); verify the catalog and serialization tests, updated for the new type and its camelCase payload, pass
 
 ## 6. Get game slice and endpoint
 

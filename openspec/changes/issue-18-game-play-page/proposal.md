@@ -43,7 +43,7 @@ After #17 both players can place their fleets and get the game to `Started`, but
   - `Games`: `Game.FireShot`, the `FireShot` feature slice, the `POST /games/{code}/shots` endpoint in `GamesEndpoints`.
   - `Games.Tests`: domain, handler and endpoint tests.
   - No storage change: #17's `GameDocument` v2 already stores `Shot(Column, Row, Hit)`.
-- **Integration events** (`src/Core/HexMaster.Battleship.IntegrationEvents`): `GameShotFiredEvent` gains `bool Hit`; new `GameTurnChangedEvent`; catalog, catalog tests and README updated.
+- **Integration events** (`src/Shared/HexMaster.Battleship.IntegrationEvents`): `GameShotFiredEvent` gains `bool Hit`; new `GameTurnChangedEvent`; catalog, catalog tests and README updated.
 - **Frontend** (`src/Frontend/src/app/`):
   - `events/realtime-event-types.ts` gains `game.turn-changed.v1`.
   - `games/`: `GamesApi.fireShot`, the `GamePlayPhase` component tree, a shot-confirm snackbar, store intents on #17's `GamePage` store.

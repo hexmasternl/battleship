@@ -41,7 +41,7 @@ After #13 a player can create a game, but nobody can take the second seat: "Join
   - `Games.Data`: `GameTableRepository` reads the ETag and writes updates with `UpdateEntityAsync(..., ifMatch)`.
   - `Games.Tests`: domain, updater, handler, repository and endpoint tests.
 - **Gateway**: the `games` prefix from #11 already covers `/api/games/{code}/join`. No route change.
-- **Integration events**: none. `GameJoinedEvent` and `EventAudience.Game(...)` already exist in `src/Core/HexMaster.Battleship.IntegrationEvents`.
+- **Integration events**: none. `GameJoinedEvent` and `EventAudience.Game(...)` already exist in `src/Shared/HexMaster.Battleship.IntegrationEvents`.
 - **Frontend** (`src/Frontend/src/app/`), built by the `angular-frontend` agent:
   - `games/` gains `joinGame` on `GamesApi` and `join-game-dialog/` with its component-scoped store.
   - `welcome/hero-section` turns "Join an existing game" into a button that opens the dialog.

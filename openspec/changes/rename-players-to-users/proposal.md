@@ -39,7 +39,7 @@ This change renames the identity side to Users and leaves the game side as Playe
   - The events client connects for a user id.
   - **Visible copy does not change.** The visitor still sees "Player name" and "Take command", because in the game UI they are a player.
 - **Documentation and agent configuration.**
-  - Updated: README, `src/Frontend/README.md`, `src/Core/HexMaster.Battleship.IntegrationEvents/README.md`, the architecture diagram, CLAUDE.md and `.github/copilot-instructions.md`.
+  - Updated: README, `src/Frontend/README.md`, `src/Shared/HexMaster.Battleship.IntegrationEvents/README.md`, the architecture diagram, CLAUDE.md and `.github/copilot-instructions.md`.
   - The `hexmaster-*` standards skills, the `openspec-github-issues` label catalog (`players` becomes `users`), and the git flow commit scopes, mirrored to `.github/` through `sync-agent-config`.
   - The GitHub label `players` is renamed to `users`.
   - The open change proposals (#16–#19, #24 and later ones) get their identity references updated: "Players service" becomes "Users service", and `playerId` on the event stream becomes `userId`.
@@ -68,7 +68,7 @@ This change renames the identity side to Users and leaves the game side as Playe
 - **Code**:
   - `src/Players` → `src/Users` (every project);
   - `src/Aspire` (AppHost, `GatewayRoutes`, ServiceDefaults `BearerTokenValidationOptions`, tests);
-  - `src/Core/HexMaster.Battleship.IntegrationEvents` and its tests;
+  - `src/Shared/HexMaster.Battleship.IntegrationEvents` and its tests;
   - `src/Events` (Abstractions, module, Api, tests);
   - `src/Games` (test token issuer and configuration key, `EventAudience.Users`);
   - `src/Frontend/src/app/core/session`, `shared/player-name`, `events`, `welcome` and `games`.

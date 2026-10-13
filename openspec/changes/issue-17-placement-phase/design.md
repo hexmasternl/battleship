@@ -45,7 +45,7 @@ src/Games/HexMaster.Battleship.Games/
   Endpoints/GameProblemTypes.cs               (+ placement types)
 src/Games/HexMaster.Battleship.Games.Data/
   Entities/GameDocument.cs                    (version 2) + GameDocumentV1.cs and the upgrade
-src/Core/HexMaster.Battleship.IntegrationEvents/
+src/Shared/HexMaster.Battleship.IntegrationEvents/
   Games/GamePlayerReadyEvent.cs, catalog entry, README row
 ```
 

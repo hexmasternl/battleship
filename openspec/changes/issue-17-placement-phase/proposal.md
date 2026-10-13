@@ -52,7 +52,7 @@ After creating (#13) or joining (#16) a game, a player lands on `/games/{game-co
   - `Games`: `Game.PlaceShip`, `Game.MarkReady`, `Game.Start`; the `GetGame`, `PlaceShip` and `MarkReady` feature slices; three endpoints in `GamesEndpoints`; a first-turn picker abstraction.
   - `Games.Data`: `GameDocument` version 2 with the version 1 upgrade.
   - `Games.Tests`: domain, handler, endpoint and repository tests.
-- **Integration events** (`src/Core/HexMaster.Battleship.IntegrationEvents`): `GamePlayerReadyEvent`, the catalog entry, the README table.
+- **Integration events** (`src/Shared/HexMaster.Battleship.IntegrationEvents`): `GamePlayerReadyEvent`, the catalog entry, the README table.
 - **Frontend** (`src/Frontend/src/app/`): `games/game-page/` and `games/placement/` (page, stores, grid, ship list, players panel), `GamesApi` additions, the route, and `events/realtime-event-types.ts`. Built by the `angular-frontend` agent.
 - **Gateway**: none. The `games` prefix already routes `/api/games/**`.
 - **Depends on**: `issue-16-join-game` (join endpoint, `IGameRepository` optimistic-concurrency update, refusal-to-problem-details mapping), and through it `issue-13-create-new-game` and `issue-7-user-identification`. Both `game-state` (from #13) and the #16 specs must be archived before this change is archived.
