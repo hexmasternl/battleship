@@ -17,7 +17,7 @@
 
 ## 4. Create game slice and endpoint
 
-- [ ] 4.1 Add `CreateGameCommand`, `CreateGameResponse` and `CreateGameCommandHandler` with the code retry (max 5), `GameCreatedEvent` sent to `EventAudience.Players(creator)` with publish failures logged and swallowed, the `games.create` activity and `games.created` counter (design D3); verify Moq-based handler tests for success, retry on conflict, failure after 5 conflicts, the sent event and audience, and a swallowed publish failure pass
+- [x] 4.1 Add `CreateGameCommand`, `CreateGameResponse` and `CreateGameCommandHandler` with the code retry (max 5), `GameCreatedEvent` sent to `EventAudience.Players(creator)` with publish failures logged and swallowed, the `games.create` activity and `games.created` counter (design D3); verify Moq-based handler tests for success, retry on conflict, failure after 5 conflicts, the sent event and audience, and a swallowed publish failure pass
 - [ ] 4.2 Add `GamesEndpoints.MapGamesEndpoints` with `POST /games` (`RequireAuthorization`, identity from `sub`/`name`, `201` with `Location: /games/{code}`), `AddGamesModule`, and the new `Program.cs` wiring with `AddBattleshipAuthentication`; remove the weather sample; verify `WebApplicationFactory` tests for `401` without or with an expired token and `201` with body and `Location` using a test-signed JWT pass, and coverage on `HexMaster.Battleship.Games` is at least 80%
 
 ## 5. Frontend authenticated requests
