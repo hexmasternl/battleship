@@ -8,8 +8,8 @@
 
 ## 2. Dapr component and sidecars
 
-- [ ] 2.1 Register Dapr in the AppHost, create the `pubsub` pub/sub component backed by the `messaging` resource (through a resource reference, or through reference expressions on the component metadata if the toolkit cannot reference RabbitMQ directly; note which in design.md), and verify the generated component manifest in the sidecar logs names the RabbitMQ pub/sub type and contains no literal host, port or password from a repository file
-- [ ] 2.2 Attach a Dapr sidecar that references `pubsub` to the Games API and the Players API project resources, run the AppHost and verify both sidecars appear on the dashboard with the `pubsub` component loaded and both API processes receive `DAPR_HTTP_ENDPOINT` and `DAPR_GRPC_ENDPOINT`
+- [x] 2.1 Register Dapr in the AppHost, create the `pubsub` pub/sub component backed by the `messaging` resource (through a resource reference, or through reference expressions on the component metadata if the toolkit cannot reference RabbitMQ directly; note which in design.md), and verify the generated component manifest in the sidecar logs names the RabbitMQ pub/sub type and contains no literal host, port or password from a repository file
+- [x] 2.2 Attach a Dapr sidecar that references `pubsub` to the Games API and the Players API project resources, run the AppHost and verify both sidecars appear on the dashboard with the `pubsub` component loaded and both API processes receive `DAPR_HTTP_ENDPOINT` and `DAPR_GRPC_ENDPOINT`
 - [ ] 2.3 Add a startup check in the AppHost that verifies the Dapr CLI and the initialised runtime exist and throws with a message naming the missing step, and verify by temporarily renaming the Dapr runtime directory that the AppHost stops with that message instead of restarting sidecars
 
 ## 3. Dapr client and subscriptions in the services
