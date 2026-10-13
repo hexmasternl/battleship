@@ -30,7 +30,7 @@
 
 ## 6. Frontend: result dialog (via the `angular-frontend` agent)
 
-- [ ] 6.1 Create `games/game-result-dialog/GameResultDialog` (Material dialog, "You won" / "You lost" / "The game has ended", one primary "Close" with `cdkFocusInitial`, backdrop click disabled, central SASS variables); verify Vitest specs for the three texts and initial focus
+- [x] 6.1 Create `games/game-result-dialog/GameResultDialog` (Material dialog, "You won" / "You lost" / "The game has ended", one primary "Close" with `cdkFocusInitial`, backdrop click disabled, central SASS variables); verify Vitest specs for the three texts and initial focus
 - [ ] 6.2 Open the dialog from an `effect()` on `outcome()` guarded to open once per page, and navigate to `/` on `afterClosed()`; verify Vitest specs: one dialog when response and event both arrive, Close and Escape both navigate to `/`
 - [ ] 6.3 Run `ng test` and `ng build` for `src/Frontend`; verify both pass
 
