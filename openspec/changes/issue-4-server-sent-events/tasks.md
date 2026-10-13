@@ -25,7 +25,7 @@
 
 ## 5. Frontend events service
 
-- [ ] 5.1 Create `src/Frontend/src/app/events/` with `realtime-event-types.ts`, the `RealtimeEvent` model, the `EVENTS_API_URL` and `EVENT_SOURCE_FACTORY` injection tokens (provided in `app.config.ts` with the development Events API URL and the native `EventSource`), and `EventsService` with idempotent `connect(playerId)`, `disconnect()`, `events$` and the `state` signal per design.md, closing the stream through the root `DestroyRef`, and verify `ng build` succeeds
+- [x] 5.1 Create `src/Frontend/src/app/events/` with `realtime-event-types.ts`, the `RealtimeEvent` model, the `EVENTS_API_URL` and `EVENT_SOURCE_FACTORY` injection tokens (provided in `app.config.ts` with the development Events API URL and the native `EventSource`), and `EventsService` with idempotent `connect(playerId)`, `disconnect()`, `events$` and the `state` signal per design.md, closing the stream through the root `DestroyRef`, and verify `ng build` succeeds
 - [ ] 5.2 Write Vitest tests with a fake `EventSource` covering: one stream per connect, repeated connect is idempotent, a named event is surfaced with type, id and parsed payload, `heartbeat` is not surfaced, malformed JSON is skipped and logged, the state sequence `connecting` to `open` to `reconnecting`, the reconnect request URL carrying the last event id when the fake reconnects, explicit disconnect closing the stream without reconnection, and teardown closing the stream, and verify `ng test` passes
 - [ ] 5.3 Document in `src/Frontend/README.md` how to set `EVENTS_API_URL` to the running Events API and how to confirm events arrive in the browser network panel, and verify the steps work against the AppHost from task 4.1
 
