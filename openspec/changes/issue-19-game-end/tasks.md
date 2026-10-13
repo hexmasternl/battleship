@@ -13,7 +13,7 @@
 
 ## 3. Persistence
 
-- [ ] 3.1 Add optional `WinnerId` to `GameDocument` (keep `DocumentVersion` 2) and map it in the repository; verify Azurite storage tests (skipped with a reason when unreachable): a completed game round-trips with state, winner and no turn, and a version-2 document without `WinnerId` reads with `null`
+- [x] 3.1 Add optional `WinnerId` to `GameDocument` (keep `DocumentVersion` 2) and map it in the repository; verify Azurite storage tests (skipped with a reason when unreachable): a completed game round-trips with state, winner and no turn, and a version-2 document without `WinnerId` reads with `null`
 
 ## 4. Fire-shot handler, events and API
 
