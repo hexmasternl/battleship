@@ -1,9 +1,11 @@
 <section class="play" [class.has-target]="store.target()" aria-labelledby="play-title">
   <h2 id="play-title" class="play__title">Battle</h2>
 
-  <p class="play__turn" [class.is-mine]="store.myTurn()" role="status" aria-live="polite">
-    {{ turnText() }}
-  </p>
+  @if (!readonly()) {
+    <p class="play__turn" [class.is-mine]="store.myTurn()" role="status" aria-live="polite">
+      {{ turnText() }}
+    </p>
+  }
 
   <mat-tab-group
     class="play__tabs"
@@ -16,7 +18,7 @@
         class="play__grid"
         [shots]="store.myShots()"
         [target]="store.target()"
-        [canShoot]="store.canShoot()"
+        [canShoot]="canShoot()"
         [fresh]="store.myFreshShots()"
         (cellSelected)="store.selectTarget($event)"
         (cleared)="store.clearTarget()"

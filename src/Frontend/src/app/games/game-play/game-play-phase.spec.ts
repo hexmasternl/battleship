@@ -1,6 +1,7 @@
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { TestBed } from '@angular/core/testing';
 import { MATERIAL_ANIMATIONS } from '@angular/material/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { axe } from 'vitest-axe';
 import { FakeEventsService, provideFakeEvents } from '../../../testing/fake-events';
@@ -31,7 +32,7 @@ function started(
 }
 
 describe('GamePlayPhase', () => {
-  async function render(view: GameView) {
+  async function render(view: GameView, readonly = false) {
     const api = new FakeGamesApi();
     const events = new FakeEventsService();
     TestBed.configureTestingModule({
@@ -49,6 +50,7 @@ describe('GamePlayPhase', () => {
     api.last('getGame').resolve(view);
     await loaded;
     const fixture = TestBed.createComponent(GamePlayPhase);
+    fixture.componentRef.setInput('readonly', readonly);
     await fixture.whenStable();
     const host = fixture.nativeElement as HTMLElement;
     const tabs = await TestbedHarnessEnvironment.loader(fixture).getHarness(MatTabGroupHarness);
@@ -173,6 +175,72 @@ describe('GamePlayPhase', () => {
       await fixture.whenStable();
       // Only the caller's own five ships exist anywhere in the view.
       expect(host.querySelectorAll('.bs-ship').length).toBe(5);
+    });
+  });
+
+  describe('read only', () => {
+    const WINNING_SHOT = { column: 2, row: 4, hit: true };
+
+    /** A completed game the caller won with their shot at C5. */
+    function won(): GameView {
+      return gameView({
+        state: 'completed',
+        winnerId: ME_ID,
+        me: me({ ready: true, ships: FULL_FLEET, shots: [WINNING_SHOT] }),
+        opponent: opponent({ ready: true, shots: [{ column: 11, row: 11, hit: false }] }),
+      });
+    }
+
+    it('shows the final boards with the winning hit and no turn line', async () => {
+      const { fixture, host, tabs, selectedTab, turnLine } = await render(won(), true);
+      expect(await selectedTab()).toBe('You');
+      expect(turnLine()).toBeUndefined();
+      expect(host.querySelector('[aria-label="C5, hit"] battle-shot-marker.is-hit')).not.toBeNull();
+
+      await tabs.selectTab({ label: 'Opponent' });
+      await fixture.whenStable();
+      expect(
+        host.querySelector('[role="cell"][aria-label="L12, miss"] battle-shot-marker.is-miss'),
+      ).not.toBeNull();
+    });
+
+    it('opens on the caller own fleet when they lost', async () => {
+      const { selectedTab } = await render({ ...won(), winnerId: OPPONENT_ID }, true);
+      expect(await selectedTab()).toBe('Opponent');
+    });
+
+    it('sends no shot and opens no confirmation when a cell is activated', async () => {
+      const { fixture, host, store, api } = await render(won(), true);
+      const snackBar = TestBed.inject(MatSnackBar);
+      const opened = vi.spyOn(snackBar, 'openFromComponent');
+
+      const cell = host.querySelector('[aria-label="E7"]') as HTMLButtonElement;
+      cell.click();
+      cell.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      await fixture.whenStable();
+
+      expect(cell.getAttribute('aria-disabled')).toBe('true');
+      expect(store.target()).toBeNull();
+      expect(opened).not.toHaveBeenCalled();
+      expect(document.querySelector('battle-shot-confirm-snackbar')).toBeNull();
+      expect(api.of('fireShot')).toEqual([]);
+    });
+
+    it('keeps the selected tab and hides the turn when the game ends during play', async () => {
+      const { fixture, store, selectedTab, turnLine } = await render(started(true));
+      expect(await selectedTab()).toBe('You');
+      store.selectTarget({ column: 4, row: 6 });
+      await fixture.whenStable();
+      expect(document.querySelector('battle-shot-confirm-snackbar')).not.toBeNull();
+
+      // The caller's turn ends with the game, which would otherwise switch to "Opponent".
+      store.endGame(ME_ID);
+      fixture.componentRef.setInput('readonly', true);
+      await fixture.whenStable();
+
+      expect(await selectedTab()).toBe('You');
+      expect(turnLine()).toBeUndefined();
+      expect(store.target()).toBeNull();
     });
   });
 

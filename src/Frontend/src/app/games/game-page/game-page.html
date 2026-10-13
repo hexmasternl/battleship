@@ -26,12 +26,12 @@
       </section>
     }
     @case ('loaded') {
-      @switch (store.phase()) {
-        @case ('new') {
+      @switch (store.stage()) {
+        @case ('placement') {
           <battle-placement-phase />
         }
-        @case ('started') {
-          <battle-game-play-phase />
+        @case ('play') {
+          <battle-game-play-phase [readonly]="store.isEnded()" />
         }
         @default {
           <section class="bs-panel game-page__notice" aria-labelledby="game-page-over">

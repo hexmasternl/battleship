@@ -26,7 +26,7 @@
 
 - [x] 5.1 Add `winnerId` to the `GamesApi` game view type and `state` to the shot response type; verify `ng build` succeeds
 - [x] 5.2 Extend the `GamePage` store with `winnerId`, an idempotent `endGame(winnerId)` intent and computed `isEnded` / `outcome`; call it from the `game.ended.v1` subscription (matching game code only, followed by one reconciling `getGame` reload), from a shot response with state `Completed`, and from loading a `Completed` game; verify Vitest specs for idempotence, won/lost/neutral outcomes, ignoring other game codes, response-driven end, load of a completed game and a failed reload keeping the boards
-- [ ] 5.3 Give `GamePlayPhase` a `readonly` input (no clickable cells, no snackbar, no turn indicator, no automatic tab switch) and render it from `GamePage` for `Completed` games; verify Vitest specs that activating a cell sends no shot and the boards show the winning hit
+- [x] 5.3 Give `GamePlayPhase` a `readonly` input (no clickable cells, no snackbar, no turn indicator, no automatic tab switch) and render it from `GamePage` for `Completed` games; verify Vitest specs that activating a cell sends no shot and the boards show the winning hit
 
 ## 6. Frontend: result dialog (via the `angular-frontend` agent)
 

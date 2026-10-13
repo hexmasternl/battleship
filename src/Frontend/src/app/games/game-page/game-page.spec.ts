@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { axe } from 'vitest-axe';
 import { FakeEventsService, provideFakeEvents } from '../../../testing/fake-events';
 import { FakeGamesApi, flushPromises, provideFakeGamesApi } from '../../../testing/fake-games-api';
-import { GAME_CODE, OPPONENT_ID, gameView, me, opponent } from '../../../testing/game-views';
+import { GAME_CODE, ME_ID, OPPONENT_ID, gameView, me, opponent } from '../../../testing/game-views';
 import { GameView } from '../game-view';
 import { GamePage } from './game-page';
 
@@ -55,15 +55,39 @@ describe('GamePage', () => {
     expect(host.textContent).not.toContain('Place your fleet');
   });
 
-  it.each(['completed', 'abandoned'] as const)(
-    'shows game over with a link home for a %s game',
-    async (state) => {
-      const { host, answer, heading } = await render();
-      await answer(gameView({ state }));
-      expect(heading()).toBe('Game over');
-      expect(host.querySelector('a')?.getAttribute('href')).toBe('/');
-    },
-  );
+  it('shows game over with a link home for an abandoned game', async () => {
+    const { host, answer, heading } = await render();
+    await answer(gameView({ state: 'abandoned' }));
+    expect(heading()).toBe('Game over');
+    expect(host.querySelector('a')?.getAttribute('href')).toBe('/');
+  });
+
+  it('shows the final boards read only for a completed game', async () => {
+    const { host, answer, heading } = await render();
+    await answer(
+      gameView({
+        state: 'completed',
+        winnerId: OPPONENT_ID,
+        me: me({ ready: true }),
+        opponent: opponent({ ready: true }),
+      }),
+    );
+    expect(heading()).toBe('Battle');
+    expect(host.querySelector('battle-game-play-phase')).not.toBeNull();
+    expect(host.querySelector('.play__turn')).toBeNull();
+  });
+
+  it('keeps the same boards, now read only, when the game ends during play', async () => {
+    const { fixture, host, answer } = await render();
+    await answer(gameView({ state: 'started', me: me({ hasTurn: true }), opponent: opponent() }));
+    const boards = host.querySelector('battle-game-play-phase');
+
+    events.emit('game.ended.v1', { gameCode: GAME_CODE, reason: 'completed', winnerId: ME_ID });
+    await fixture.whenStable();
+
+    expect(host.querySelector('battle-game-play-phase')).toBe(boards);
+    expect(host.querySelector('.play__turn')).toBeNull();
+  });
 
   it('says the game was not found and links home on a 404', async () => {
     const { host, settle, heading } = await render();
