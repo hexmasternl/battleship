@@ -206,7 +206,7 @@ describe('GamePageStore play', () => {
   async function fired(cell = E7, hit = false): Promise<void> {
     store.selectTarget(cell);
     const done = store.fireAtTarget();
-    api.last('fireShot').resolve({ ...cell, hit });
+    api.last('fireShot').resolve({ ...cell, hit, state: 'started' });
     await done;
   }
 
@@ -338,7 +338,7 @@ describe('GamePageStore play', () => {
       store.applyShotFired({ playerId: ME_ID, ...E7, hit: false });
       store.applyTurnChanged(OPPONENT_ID);
       expect(store.shotStatus()).toBe('firing');
-      api.last('fireShot').resolve({ ...E7, hit: false });
+      api.last('fireShot').resolve({ ...E7, hit: false, state: 'started' });
       await done;
       expect(store.myShots()).toEqual([{ ...E7, hit: false }]);
       expect(store.shotStatus()).toBe('idle');
@@ -438,7 +438,7 @@ describe('GamePageStore play', () => {
       store.selectTarget(E7);
       const done = store.fireAtTarget();
       store.applyShotFired({ playerId: ME_ID, ...E7, hit: false });
-      api.last('fireShot').resolve({ ...E7, hit: false });
+      api.last('fireShot').resolve({ ...E7, hit: false, state: 'started' });
       await done;
       expect(store.myFreshShots()).toEqual([E7]);
     });

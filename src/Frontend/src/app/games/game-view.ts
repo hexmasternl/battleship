@@ -56,6 +56,8 @@ export interface GameView {
   readonly me: PlayerView;
   /** `null` while the caller is alone in the game. */
   readonly opponent: OpponentView | null;
+  /** The player who won; `null` unless the game is `completed` with a winner. */
+  readonly winnerId: string | null;
 }
 
 /** A `GameView` as it arrives on the wire, before its enum casing is normalised. */
@@ -70,6 +72,12 @@ export interface GameViewResponse {
     })[];
   };
   readonly opponent: OpponentView | null;
+  readonly winnerId?: string | null;
+}
+
+/** Reads a game state off the wire, whatever its casing (`"Completed"` reads as `completed`). */
+export function toGameState(state: string): GameState {
+  return state.toLowerCase() as GameState;
 }
 
 /**
@@ -79,7 +87,8 @@ export interface GameViewResponse {
 export function toGameView(response: GameViewResponse): GameView {
   return {
     ...response,
-    state: response.state.toLowerCase() as GameState,
+    state: toGameState(response.state),
+    winnerId: response.winnerId ?? null,
     me: {
       ...response.me,
       ships: response.me.ships.map((ship) => ({
