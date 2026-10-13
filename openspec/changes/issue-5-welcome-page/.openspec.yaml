@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-10-13
+goal: "Welcome page: marine-themed landing page with calls to action and bridge console"
+affected_areas:
+  - frontend
