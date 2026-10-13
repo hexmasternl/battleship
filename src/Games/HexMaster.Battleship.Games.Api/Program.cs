@@ -3,6 +3,7 @@ using HexMaster.Battleship.Games.Api.Endpoints;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddGatewayCors();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -14,6 +15,9 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+// Answers CORS requests from the frontend that reach this API through the gateway (Development only).
+app.UseGatewayCors();
 
 app.MapDefaultEndpoints();
 

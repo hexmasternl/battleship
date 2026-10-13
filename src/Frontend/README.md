@@ -12,6 +12,36 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Calling the backend
+
+Backend calls go through `HttpClient` to a relative URL under `/api/`, followed by the module
+prefix and the rest of the endpoint path, for example `http.get('/api/players/me')`. Never write
+a host or port into the app: the backend runs behind the local YARP gateway, whose port changes
+on every run.
+
+- **Interceptor.** `apiGatewayInterceptor` (`src/app/core/api-gateway.interceptor.ts`) rewrites
+  every request starting with `/api/` to `<gateway>/<rest>`, stripping `/api` and keeping the
+  query string, so `/api/players/me?x=1` goes to `<gateway>/players/me?x=1`. Other URLs, such as
+  assets or absolute URLs, pass through unchanged.
+- **Runtime configuration.** The gateway URL comes from `public/config.json`
+  (`{ "backendBaseUrl": "http://localhost:<port>" }`), which `BackendConfig`
+  (`src/app/core/backend-config.ts`) loads with `fetch` before the app starts. The file is
+  generated and git-ignored; never commit it.
+- **Starting through Aspire.** Run the AppHost from the repository root:
+
+  ```bash
+  dotnet run --project src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost
+  ```
+
+  It starts the `frontend` resource with `npm run start:aspire` once the `gateway` is up, passing
+  `BACKEND_GATEWAY_URL` and `PORT`. `scripts/aspire-start.mjs` writes `public/config.json` from
+  `BACKEND_GATEWAY_URL` and runs `ng serve --host localhost --port $PORT`. Running
+  `npm run start:aspire` without `BACKEND_GATEWAY_URL` stops with an error naming the variable.
+
+- **UI-only work.** Plain `ng serve` (`npm start`) still works for screens that do not call the
+  backend. Without `config.json` the app logs one error naming `backendBaseUrl` at start-up, and
+  every `/api/` request fails with an `HttpErrorResponse` instead of being sent anywhere.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
