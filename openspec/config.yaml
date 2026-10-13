@@ -1,0 +1,49 @@
+schema: spec-driven
+githubCopilot:
+  cloudAgent: false
+
+# Project context (optional)
+# Add only constraints that should guide OpenSpec artifacts and workflows.
+# Include constraints an agent cannot infer by reading the code.
+# Keep general project documentation and discoverable codebase facts out.
+# Example:
+#   context: |
+#     Designs and tasks must cover Windows, macOS, and Linux
+#     Write all artifacts in Spanish
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
+
+# Per-operation guidance (active)
+# The openspec-github-issues skill links changes to GitHub issues through a
+# github-issue.yaml sidecar in the change directory. These entries remind the
+# apply and archive workflows to keep the linked issue in step.
+operations:
+  apply:
+    guidance:
+      - "Follow the openspec-git-flow skill. Implementation happens only in the change's own worktree at ../battleship-worktrees/<change-name> on branch change/<change-name>, never in the main worktree. If the current directory is the main worktree, set up and enter the worktree first."
+      - "Commit after every completed and verified task, code and tasks.md together, with a logical conventional-commit message. When all tasks are complete, push the branch and open a pull request into development as the openspec-git-flow skill describes. Do not merge it."
+      - "If the change directory contains github-issue.yaml, this change tracks a GitHub issue. When the work session ends, run the openspec-github-issues skill in sync mode (/issue sync <change>) so the issue reflects task progress and the pull request."
+  archive:
+    guidance:
+      - "Follow the openspec-git-flow skill. Archive only in the main worktree on the development branch, after the change's pull request into development is merged and development is pulled. After archiving, commit openspec/ to development (chore(openspec): archive <name>) and remove the change worktree and branch."
+      - "If the change directory contains github-issue.yaml, after the archive commit run the openspec-github-issues skill in sync mode (/issue sync <change>) so the linked GitHub issue is updated and closed."

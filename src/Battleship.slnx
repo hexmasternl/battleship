@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/Aspire/">
+    <Project Path="Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost/HexMaster.Battleship.Aspire.AppHost.csproj" Id="57d53e65-35fb-419f-80f8-4807fec8c616" />
+    <Project Path="Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.ServiceDefaults/HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/Games/">
+    <Project Path="Games/HexMaster.Battleship.Games.Abstractions/HexMaster.Battleship.Games.Abstractions.csproj" Id="28949574-8e96-40fd-b77c-9202ee8795b8" />
+    <Project Path="Games/HexMaster.Battleship.Games.Api/HexMaster.Battleship.Games.Api.csproj" />
+    <Project Path="Games/HexMaster.Battleship.Games.Tests/HexMaster.Battleship.Games.Tests.csproj" Id="3465d902-1fc1-4fcb-b5a7-0908ab415ec1" />
+    <Project Path="Games/HexMaster.Battleship.Games/HexMaster.Battleship.Games.csproj" Id="5a32d682-5bae-45db-adf8-6ba89b184996" />
+  </Folder>
+  <Folder Name="/Players/">
+    <Project Path="Players/HexMaster.Battleship.Players.Abstractions/HexMaster.Battleship.Players.Abstractions.csproj" Id="b8806fa1-7a45-4f65-b6c0-b4f8ded181a4" />
+    <Project Path="Players/HexMaster.Battleship.Players.Api/HexMaster.Battleship.Players.Api.csproj" />
+    <Project Path="Players/HexMaster.Battleship.Players.Tests/HexMaster.Battleship.Players.Tests.csproj" Id="17539180-ad5f-4817-81bd-b9c9ca795be3" />
+    <Project Path="Players/HexMaster.Battleship.Players/HexMaster.Battleship.Players.csproj" Id="1dce1f8c-299d-4918-a9df-a55c2411152e" />
+  </Folder>
+</Solution>
