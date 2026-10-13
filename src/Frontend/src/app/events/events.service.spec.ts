@@ -145,7 +145,7 @@ describe('EventsService', () => {
     expect(sources[0].readyState).toBe(EVENT_SOURCE_CLOSED);
     expect(sources[1].url).toBe(`${BASE_URL}/events?playerId=B`);
     // A late message on the old stream is ignored.
-    sources[0].emit('shot-fired', '{}', '1');
+    sources[0].emit('game.shot-fired.v1', '{}', '1');
     expect(received).toEqual([]);
   });
 
@@ -153,8 +153,8 @@ describe('EventsService', () => {
     const { service, sources, received } = setup();
     service.connect('A');
     sources[0].open();
-    sources[0].emit('shot-fired', '{"x":3,"y":5}', '42');
-    expect(received).toEqual([{ type: 'shot-fired', id: '42', payload: { x: 3, y: 5 } }]);
+    sources[0].emit('game.shot-fired.v1', '{"x":3,"y":5}', '42');
+    expect(received).toEqual([{ type: 'game.shot-fired.v1', id: '42', payload: { x: 3, y: 5 } }]);
   });
 
   it('does not surface heartbeats', () => {
@@ -170,12 +170,12 @@ describe('EventsService', () => {
     const { service, sources, received } = setup();
     service.connect('A');
     sources[0].open();
-    sources[0].emit('shot-fired', '{not json', '1');
+    sources[0].emit('game.shot-fired.v1', '{not json', '1');
     expect(received).toEqual([]);
     expect(error).toHaveBeenCalledOnce();
     expect(sources[0].readyState).toBe(EVENT_SOURCE_OPEN);
-    sources[0].emit('turn-changed', '{"player":"B"}', '2');
-    expect(received).toEqual([{ type: 'turn-changed', id: '2', payload: { player: 'B' } }]);
+    sources[0].emit('game.joined.v1', '{"player":"B"}', '2');
+    expect(received).toEqual([{ type: 'game.joined.v1', id: '2', payload: { player: 'B' } }]);
   });
 
   it('logs messages without a registered event type', () => {
@@ -215,7 +215,7 @@ describe('EventsService', () => {
     service.connect('A');
     const source = sources[0];
     source.open();
-    source.emit('shot-fired', '{"x":1,"y":1}', '10');
+    source.emit('game.shot-fired.v1', '{"x":1,"y":1}', '10');
     source.drop();
     expect(service.state()).toBe('reconnecting');
 
@@ -225,12 +225,12 @@ describe('EventsService', () => {
       url: `${BASE_URL}/events?playerId=A`,
       lastEventId: '10',
     });
-    source.emit('shot-fired', '{"x":2,"y":2}', '11');
-    source.emit('turn-changed', '{"player":"A"}', '12');
+    source.emit('game.shot-fired.v1', '{"x":2,"y":2}', '11');
+    source.emit('game.joined.v1', '{"player":"A"}', '12');
 
     expect(sources.length).toBe(1);
     expect(received.map((event) => event.id)).toEqual(['10', '11', '12']);
-    expect(received[2]).toEqual({ type: 'turn-changed', id: '12', payload: { player: 'A' } });
+    expect(received[2]).toEqual({ type: 'game.joined.v1', id: '12', payload: { player: 'A' } });
   });
 
   it('closes the stream on disconnect and does not reconnect', () => {

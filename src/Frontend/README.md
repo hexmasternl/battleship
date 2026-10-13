@@ -190,12 +190,14 @@ dev-server origin to that setting, otherwise the browser blocks the stream and t
 
    ```bash
    dapr publish --publish-app-id events-api --pubsub pubsub --topic integration-events \
-     --data '{"id":"e-9","type":"shot-fired","target":"player","targetIds":["A"],"occurredAt":"2026-10-13T10:00:00Z","payload":{"x":3,"y":5}}'
+     --data '{"id":"e-9","type":"game.shot-fired.v1","target":"player","targetIds":["A"],"occurredAt":"2026-10-13T10:00:00Z","payload":{"gameCode":"ABCD1234","column":3,"row":5}}'
    ```
 
-   A `shot-fired` row appears in the EventStream tab with the server's sequence number as its id
-   and `{"x":3,"y":5}` as its data, and subscribers of `events$` receive
-   `{ type: 'shot-fired', id: '<sequence>', payload: { x: 3, y: 5 } }`.
+   A `game.shot-fired.v1` row appears in the EventStream tab with the server's sequence number as
+   its id and the payload as its data, and subscribers of `events$` receive
+   `{ type: 'game.shot-fired.v1', id: '<sequence>', payload: { gameCode: 'ABCD1234', column: 3, row: 5 } }`.
+   The browser only listens for the names in `REALTIME_EVENT_TYPES`, so a type outside the
+   integration event catalog does not show up.
 
 Verified on 2026-10-13 against the running AppHost: the service opened the stream (`state` read
 `connecting`, then `open`), no value was emitted during a 17-second idle period that carried a
