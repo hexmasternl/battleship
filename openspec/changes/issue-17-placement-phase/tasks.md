@@ -16,7 +16,7 @@
 
 ## 4. Storage version 2
 
-- [ ] 4.1 Move `GameDocument` to version 2 (ready flag, ship placements, shots with hit), keep `GameDocumentV1` with a pure upgrade function, and switch on `DocumentVersion` when reading in `GameTableRepository` (design D6); verify unit tests for the upgrade (ready false, ships dropped, shots as misses, id/code/state/activity kept) and Azurite-backed tests for a v2 round trip and a stored v1 record read back and rewritten as v2 pass, or skip with a clear reason when Azurite is unreachable
+- [x] 4.1 Move `GameDocument` to version 2 (ready flag, ship placements, shots with hit), keep `GameDocumentV1` with a pure upgrade function, and switch on `DocumentVersion` when reading in `GameTableRepository` (design D6); verify unit tests for the upgrade (ready false, ships dropped, shots as misses, id/code/state/activity kept) and Azurite-backed tests for a v2 round trip and a stored v1 record read back and rewritten as v2 pass, or skip with a clear reason when Azurite is unreachable
 
 ## 5. Integration event
 

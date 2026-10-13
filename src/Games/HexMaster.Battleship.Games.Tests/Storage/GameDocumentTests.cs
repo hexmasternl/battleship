@@ -48,6 +48,69 @@ public class GameDocumentTests
     }
 
     [Fact]
+    public void Document_WritesShipsAndShotsByName()
+    {
+        var game = Game.Create(Guid.NewGuid(), "Admiral Nelson", GameFactory.Code(), Now);
+        game.PlaceShip(game.PlayerOne.PlayerId, new ShipPlacement(ShipKind.Cruiser, new(2, 3), Orientation.Vertical), Now);
+
+        var json = GameDocument.From(game).Serialize();
+
+        Assert.Equal(2, GameDocument.CurrentVersion);
+        Assert.Contains("\"ships\":[{\"kind\":\"Cruiser\",\"column\":2,\"row\":3,\"orientation\":\"Vertical\"}]", json);
+        Assert.Contains("\"isReady\":false", json);
+        Assert.Contains("\"shots\":[]", json);
+    }
+
+    [Fact]
+    public void VersionOne_IsUpgradedKeepingIdentityStateAndActivity()
+    {
+        var id = Guid.NewGuid();
+        var playerOne = Guid.NewGuid();
+        var playerTwo = Guid.NewGuid();
+        var json = $$"""
+            {"id":"{{id}}","gameCode":"K7Q2M9XA","gameState":"Started",
+             "playerOne":{"playerId":"{{playerOne}}","playerName":"Admiral Nelson","hasTurn":true,
+               "shipCoordinates":[{"column":1,"row":1}],"shotCoordinates":[{"column":3,"row":4},{"column":5,"row":6}],
+               "lastActivityOn":"{{Now:O}}"},
+             "playerTwo":{"playerId":"{{playerTwo}}","playerName":"Admiral Tromp","hasTurn":false,
+               "shipCoordinates":[],"shotCoordinates":[],"lastActivityOn":"{{Now.AddSeconds(5):O}}"},
+             "lastActivityOn":"{{Now.AddSeconds(5):O}}"}
+            """;
+
+        var game = GameDocument.Deserialize(json, 1).ToGame();
+
+        Assert.Equal(id, game.Id);
+        Assert.Equal("K7Q2M9XA", game.GameCode);
+        Assert.Equal(GameState.Started, game.GameState);
+        Assert.Equal(Now.AddSeconds(5), game.LastActivityOn);
+        Assert.Equal(playerOne, game.PlayerOne.PlayerId);
+        Assert.True(game.PlayerOne.HasTurn);
+        Assert.False(game.PlayerOne.IsReady);
+        Assert.Empty(game.PlayerOne.Ships);
+        Assert.Equal([new Shot(3, 4, false), new Shot(5, 6, false)], game.PlayerOne.Shots);
+        Assert.Equal(Now, game.PlayerOne.LastActivityOn);
+        Assert.Equal(playerTwo, game.PlayerTwo!.PlayerId);
+        Assert.False(game.PlayerTwo.IsReady);
+    }
+
+    [Fact]
+    public void VersionOne_WithoutASecondPlayerOrCoordinatesIsUpgraded()
+    {
+        var json = $$"""
+            {"id":"{{Guid.NewGuid()}}","gameCode":"K7Q2M9XA","gameState":"New",
+             "playerOne":{"playerId":"{{Guid.NewGuid()}}","playerName":"Admiral Nelson","hasTurn":false,
+               "lastActivityOn":"{{Now:O}}"},
+             "playerTwo":null,"lastActivityOn":"{{Now:O}}"}
+            """;
+
+        var document = GameDocumentV1.Deserialize(json).Upgrade();
+
+        Assert.Null(document.PlayerTwo);
+        Assert.Empty(document.PlayerOne.Ships);
+        Assert.Empty(document.PlayerOne.Shots);
+    }
+
+    [Fact]
     public void Deserialize_RefusesAnUnknownVersion()
     {
         Assert.Throws<NotSupportedException>(() => GameDocument.Deserialize("{}", GameDocument.CurrentVersion + 1));

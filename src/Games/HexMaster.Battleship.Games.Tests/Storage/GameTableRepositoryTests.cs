@@ -135,6 +135,44 @@ public class GameTableRepositoryTests
     }
 
     [AzuriteFact]
+    public async Task VersionOneRow_IsReadUpgradedAndWrittenBackAsVersionTwo()
+    {
+        var client = Azurite.CreateClient();
+        var repository = new GameTableRepository(client);
+        var code = GameFactory.Code().Value;
+        var gameId = Guid.NewGuid();
+        var playerId = Guid.NewGuid();
+        var table = client.GetTableClient(GameTableRepository.TableName);
+        await table.CreateIfNotExistsAsync();
+        await table.AddEntityAsync(new GameEntity
+        {
+            PartitionKey = code,
+            GameId = gameId,
+            State = "New",
+            LastActivityOn = Now,
+            DocumentVersion = 1,
+            Document = $$"""
+                {"id":"{{gameId}}","gameCode":"{{code}}","gameState":"New","playerOne":{"playerId":"{{playerId}}",
+                "playerName":"Admiral Nelson","hasTurn":false,"shipCoordinates":[],"shotCoordinates":[],
+                "lastActivityOn":"{{Now:O}}"},"playerTwo":null,"lastActivityOn":"{{Now:O}}"}
+                """,
+        });
+
+        var read = await repository.GetForUpdateAsync(code, CancellationToken.None);
+        Assert.Equal(gameId, read!.Game.Id);
+        Assert.Equal(playerId, read.Game.PlayerOne.PlayerId);
+        Assert.False(read.Game.PlayerOne.IsReady);
+
+        ((Game)read.Game).PlaceShip(playerId, GameFactory.FullFleet()[0], Now.AddMinutes(1));
+        Assert.True(await repository.TryUpdateAsync(read.Game, read.ConcurrencyToken, CancellationToken.None));
+
+        var row = (await table.GetEntityAsync<GameEntity>(code, GameEntity.GameRowKey)).Value;
+        Assert.Equal(2, row.DocumentVersion);
+        var stored = await repository.GetByCodeAsync(code, CancellationToken.None);
+        Assert.Equal([GameFactory.FullFleet()[0]], stored!.PlayerOne.Ships);
+    }
+
+    [AzuriteFact]
     public async Task GetForUpdate_UnknownCodeReturnsNull()
     {
         var repository = new GameTableRepository(Azurite.CreateClient());
