@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HexMaster.Battleship.Aspire.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Games\HexMaster.Battleship.Games.Api\HexMaster.Battleship.Games.Api.csproj" />
     <ProjectReference Include="..\..\..\Players\HexMaster.Battleship.Players.Api\HexMaster.Battleship.Players.Api.csproj" />
   </ItemGroup>
