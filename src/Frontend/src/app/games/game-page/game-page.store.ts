@@ -6,11 +6,12 @@ import { EventsService } from '../../events/events.service';
 import { RealtimeEvent } from '../../events/realtime-event';
 import { RealtimeEventType } from '../../events/realtime-event-types';
 import { GameApiError, gameApiErrorMessage, isGameApiError } from '../game-api-error';
-import { GameView, Orientation, ShipKind, ShipView } from '../game-view';
-import { GamesApi } from '../games-api';
+import { GameView, Orientation, ShipKind, ShipView, ShotView } from '../game-view';
+import { FireShotError, FireShotFailure, GamesApi, isFireShotConflict } from '../games-api';
 import {
   Cell,
   FLEET,
+  cellLabel,
   cellsOf,
   checkPlacement,
   nameOf,
@@ -20,6 +21,7 @@ import {
 } from '../placement/placement-rules';
 
 const NO_SHIPS: readonly ShipView[] = [];
+const NO_SHOTS: readonly ShotView[] = [];
 
 /** Where the page is with loading its game. */
 export type GamePageStatus = 'loading' | 'loaded' | 'not-found' | 'failed';
@@ -32,6 +34,17 @@ export interface ShipDrag {
   readonly grabIndex: number;
   /** The origin the ship would get if dropped now; `null` while the pointer is off the board. */
   readonly origin: Cell | null;
+}
+
+/**
+ * Where the caller is with their shot: free to fire, a shot request in flight, or a shot recorded
+ * and the turn not yet moved on (only a turn change or a reload frees the next shot).
+ */
+export type ShotStatus = 'idle' | 'firing' | 'fired';
+
+/** A shot as the `game.shot-fired.v1` event reports it: who fired, where, and whether it hit. */
+export interface FiredShot extends ShotView {
+  readonly playerId: string;
 }
 
 export interface GamePageState {
@@ -47,6 +60,11 @@ export interface GamePageState {
   readonly pendingSaves: number;
   /** The ready request is in flight. */
   readonly readying: boolean;
+  /** The cell in the opponent's waters the caller selected to fire at, awaiting confirmation. */
+  readonly target: Cell | null;
+  readonly shotStatus: ShotStatus;
+  /** Why the last shot was refused or failed, until the next target is selected. */
+  readonly shotError: FireShotError | null;
 }
 
 const initialState: GamePageState = {
@@ -57,6 +75,9 @@ const initialState: GamePageState = {
   drag: null,
   pendingSaves: 0,
   readying: false,
+  target: null,
+  shotStatus: 'idle',
+  shotError: null,
 };
 
 /** The events after which the page reloads its game. */
@@ -110,8 +131,10 @@ export function gameLoaded(state: GamePageState, game: GameView): GamePageState 
     state.pendingSaves > 0 && state.game !== null
       ? { ...game, me: { ...game.me, ships: state.game.me.ships } }
       : game;
-  const next = { ...state, status: 'loaded' as const, game: shown };
-  return isEditable(next) ? next : { ...next, activeKind: null, drag: null };
+  // The server's view is the truth about the turn, so a shot waiting for the turn to move is freed.
+  const shotStatus = state.shotStatus === 'fired' ? 'idle' : state.shotStatus;
+  const next = { ...state, status: 'loaded' as const, game: shown, shotStatus };
+  return withSelectableTarget(isEditable(next) ? next : { ...next, activeKind: null, drag: null });
 }
 
 /**
@@ -179,13 +202,115 @@ export function draggedShip(drag: ShipDrag | null): ShipView | null {
   return { kind: drag.kind, orientation: drag.orientation, ...drag.origin };
 }
 
+/** Whether `shots` holds a shot at `cell`. */
+export function hasShotAt(shots: readonly ShotView[], cell: Cell): boolean {
+  return shots.some((shot) => shot.column === cell.column && shot.row === cell.row);
+}
+
+/** Whether the caller may fire now: the game is on, it is their turn and no shot is pending. */
+export function canFire(state: GamePageState): boolean {
+  return state.game?.state === 'started' && state.game.me.hasTurn && state.shotStatus === 'idle';
+}
+
+/** Whether `cell` may be the target: the caller may fire and has not fired at it before. */
+export function isSelectable(state: GamePageState, cell: Cell): boolean {
+  return canFire(state) && !hasShotAt(state.game?.me.shots ?? [], cell);
+}
+
+/** Drops a target that can no longer be fired at (the turn moved, the cell was shot meanwhile). */
+function withSelectableTarget(state: GamePageState): GamePageState {
+  const target = state.target;
+  if (target === null || state.shotStatus === 'firing') return state;
+  return isSelectable(state, target) ? state : { ...state, target: null };
+}
+
+/** The caller selected `cell` to fire at. Ignored while they may not fire or for a shot cell. */
+export function targetSelected(state: GamePageState, cell: Cell): GamePageState {
+  if (!isSelectable(state, cell)) return state;
+  if (state.target?.column === cell.column && state.target.row === cell.row) return state;
+  return { ...state, target: { column: cell.column, row: cell.row }, shotError: null };
+}
+
+/** The caller cancelled the target. */
+export function targetCleared(state: GamePageState): GamePageState {
+  return state.target === null || state.shotStatus === 'firing'
+    ? state
+    : { ...state, target: null };
+}
+
+/** The shot at the target was sent: no other shot until it is answered. */
+export function shotSent(state: GamePageState): GamePageState {
+  return { ...state, shotStatus: 'firing', shotError: null };
+}
+
+/** `shots` with `shot` added, unless a shot at the same cell is already there. */
+function withShot(shots: readonly ShotView[], shot: ShotView): readonly ShotView[] {
+  return hasShotAt(shots, shot)
+    ? shots
+    : [...shots, { column: shot.column, row: shot.row, hit: shot.hit }];
+}
+
+/**
+ * The server recorded the caller's shot: it is drawn and the target cleared. The turn is left as
+ * it is; it moves only with a turn change event or a reload, and until then no shot is possible.
+ */
+export function shotRecorded(state: GamePageState, shot: ShotView): GamePageState {
+  if (state.game === null) return state;
+  const me = { ...state.game.me, shots: withShot(state.game.me.shots, shot) };
+  // A turn change that arrived while the request was in flight already freed the next shot.
+  const shotStatus = me.hasTurn ? 'fired' : 'idle';
+  return { ...state, game: { ...state.game, me }, target: null, shotStatus };
+}
+
+/** The shot was refused or failed: nothing is drawn, the caller may select a cell again. */
+export function shotRefused(state: GamePageState, reason: FireShotError): GamePageState {
+  return { ...state, target: null, shotStatus: 'idle', shotError: reason };
+}
+
+/**
+ * A shot event arrived: the shot is added to the shooter's shots, the caller's or the opponent's.
+ * A shot the shooter already has at that cell (the caller's own echo, a replay) is not added again.
+ */
+export function shotFiredApplied(state: GamePageState, shot: FiredShot): GamePageState {
+  const game = state.game;
+  if (game === null) return state;
+  if (shot.playerId === game.me.playerId) {
+    const shots = withShot(game.me.shots, shot);
+    if (shots === game.me.shots) return state;
+    return withSelectableTarget({ ...state, game: { ...game, me: { ...game.me, shots } } });
+  }
+  if (game.opponent !== null && shot.playerId === game.opponent.playerId) {
+    const shots = withShot(game.opponent.shots, shot);
+    if (shots === game.opponent.shots) return state;
+    return { ...state, game: { ...game, opponent: { ...game.opponent, shots } } };
+  }
+  return state;
+}
+
+/** A turn change event arrived: the player it names has the turn, the other one has not. */
+export function turnChanged(state: GamePageState, playerWithTurnId: string): GamePageState {
+  const game = state.game;
+  if (game === null) return state;
+  const me = { ...game.me, hasTurn: game.me.playerId === playerWithTurnId };
+  const opponent =
+    game.opponent === null
+      ? null
+      : { ...game.opponent, hasTurn: game.opponent.playerId === playerWithTurnId };
+  const shotStatus = state.shotStatus === 'fired' ? 'idle' : state.shotStatus;
+  return withSelectableTarget({ ...state, game: { ...game, me, opponent }, shotStatus });
+}
+
 /**
  * The state of one game page: the caller's view of the game, how loading it went and the
- * placement in progress. Provided by `GamePage`, so it lives and dies with the page.
+ * placement or the shot in progress. Provided by `GamePage`, so it lives and dies with the page.
  *
  * Keeps the page current through the event stream: it reloads on a join, ready or start event for
  * its game and when the stream reconnects. Placement changes are shown at once and sent to the
  * server in order, one request per change; a refusal shows a message and reloads the game.
+ *
+ * During play the caller selects a target, confirms it and fires one shot per turn. A shot is
+ * drawn only once the server recorded it (no optimistic markers); the turn moves only by a turn
+ * change event or a reload.
  */
 @Injectable()
 export class GamePageStore {
@@ -241,6 +366,25 @@ export class GamePageStore {
     const ship = draggedShip(this.#state().drag);
     return ship === null ? null : { ship, valid: checkPlacement(ship, this.placedShips()).ok };
   });
+
+  /** Whether the caller has the turn. */
+  readonly myTurn = computed(() => this.me()?.hasTurn ?? false);
+  /** The shots the caller fired, with their results. */
+  readonly myShots = computed(() => this.me()?.shots ?? NO_SHOTS);
+  /** The shots the opponent fired at the caller's board, with their results. */
+  readonly opponentShots = computed(() => this.opponent()?.shots ?? NO_SHOTS);
+  /** Whether a cell of the opponent's waters may be selected and fired at now. */
+  readonly canShoot = computed(() => canFire(this.#state()));
+  readonly shotStatus = computed(() => this.#state().shotStatus);
+  /** The selected target, or `null`. */
+  readonly target = computed(() => this.#state().target);
+  /** The target's coordinate as the board labels it (`E7`), or `null` without a target. */
+  readonly targetName = computed(() => {
+    const target = this.target();
+    return target === null ? null : cellLabel(target);
+  });
+  /** Why the last shot was refused or failed, for the page to tell the player. */
+  readonly shotError = computed(() => this.#state().shotError);
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -382,6 +526,50 @@ export class GamePageStore {
       this.#notify(gameApiErrorMessage(error));
       await this.reload();
     }
+  }
+
+  /** The caller selected a cell of the opponent's waters to fire at. See `targetSelected`. */
+  selectTarget(cell: Cell): void {
+    this.#state.update((s) => targetSelected(s, cell));
+  }
+
+  /** The caller cancelled the selected target. */
+  clearTarget(): void {
+    this.#state.update(targetCleared);
+  }
+
+  /**
+   * Fires at the selected target. One request per confirmed target: while it is in flight nothing
+   * else is sent, however often this is called. A recorded shot is drawn and the target cleared;
+   * a refused or failed one leaves the cell empty and the reason in `shotError`, and a `409`
+   * reloads the game, since the server's view moved on.
+   */
+  async fireAtTarget(): Promise<void> {
+    const s = this.#state();
+    const target = s.target;
+    if (target === null || !canFire(s)) return;
+    const code = s.code;
+    this.#state.update(shotSent);
+    try {
+      const shot = await this.#api.fireShot(code, target.column, target.row);
+      this.#state.update((current) =>
+        current.code === code ? shotRecorded(current, shot) : current,
+      );
+    } catch (error) {
+      const reason = error instanceof FireShotFailure ? error.reason : 'failed';
+      this.#state.update((current) => shotRefused(current, reason));
+      if (isFireShotConflict(reason)) await this.reload();
+    }
+  }
+
+  /** A `game.shot-fired.v1` event for this game arrived. */
+  applyShotFired(shot: FiredShot): void {
+    this.#state.update((s) => shotFiredApplied(s, shot));
+  }
+
+  /** A `game.turn-changed.v1` event for this game arrived. */
+  applyTurnChanged(playerWithTurnId: string): void {
+    this.#state.update((s) => turnChanged(s, playerWithTurnId));
   }
 
   /** Resolves once every placement sent so far has been answered. */

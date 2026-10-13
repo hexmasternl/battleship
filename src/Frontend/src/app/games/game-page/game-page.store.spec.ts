@@ -1,12 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ShipView } from '../game-view';
+import { GameView, ShipView } from '../game-view';
+import { FireShotFailure } from '../games-api';
 import { FakeEventsService, provideFakeEvents } from '../../../testing/fake-events';
 import { FakeGamesApi, flushPromises, provideFakeGamesApi } from '../../../testing/fake-games-api';
 import {
   FULL_FLEET,
   GAME_CODE,
   ME_ID,
+  OPPONENT_ID,
   gameView,
   me,
   opponent,
@@ -163,6 +165,314 @@ describe('GamePageStore', () => {
     events.setState('open');
     TestBed.tick();
     expect(api.of('getGame').length).toBe(2);
+  });
+});
+
+describe('GamePageStore play', () => {
+  let api: FakeGamesApi;
+  let store: GamePageStore;
+
+  const E7 = { column: 4, row: 6 };
+  const F2 = { column: 5, row: 1 };
+
+  beforeEach(() => {
+    api = new FakeGamesApi();
+    TestBed.configureTestingModule({
+      providers: [
+        provideFakeGamesApi(api),
+        provideFakeEvents(),
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        GamePageStore,
+      ],
+    });
+    store = TestBed.inject(GamePageStore);
+  });
+
+  /** Loads a started game; by default the caller has the turn. */
+  async function playing(overrides: Partial<GameView> = {}): Promise<void> {
+    const done = store.load(GAME_CODE);
+    api.last('getGame').resolve(
+      gameView({
+        state: 'started',
+        me: me({ ready: true, hasTurn: true, ships: FULL_FLEET }),
+        opponent: opponent({ ready: true }),
+        ...overrides,
+      }),
+    );
+    await done;
+  }
+
+  /** Selects `cell`, fires and answers the request with `hit`. */
+  async function fired(cell = E7, hit = false): Promise<void> {
+    store.selectTarget(cell);
+    const done = store.fireAtTarget();
+    api.last('fireShot').resolve({ ...cell, hit });
+    await done;
+  }
+
+  const fireCalls = () => api.of('fireShot').map((call) => call.args);
+
+  describe('slices', () => {
+    it('reads the turn and both players shots', async () => {
+      const mine = [{ column: 2, row: 4, hit: true }];
+      const theirs = [{ column: 0, row: 0, hit: true }];
+      await playing({
+        me: me({ hasTurn: true, shots: mine }),
+        opponent: opponent({ shots: theirs }),
+      });
+      expect(store.myTurn()).toBe(true);
+      expect(store.myShots()).toEqual(mine);
+      expect(store.opponentShots()).toEqual(theirs);
+      expect(store.canShoot()).toBe(true);
+    });
+
+    it('has no shots and no turn before a game is loaded', () => {
+      expect(store.myTurn()).toBe(false);
+      expect(store.myShots()).toEqual([]);
+      expect(store.opponentShots()).toEqual([]);
+      expect(store.canShoot()).toBe(false);
+    });
+
+    it('cannot shoot in a game that has not started', async () => {
+      const done = store.load(GAME_CODE);
+      api.last('getGame').resolve(gameView({ me: me({ hasTurn: true }) }));
+      await done;
+      expect(store.canShoot()).toBe(false);
+      store.selectTarget(E7);
+      expect(store.target()).toBeNull();
+    });
+  });
+
+  describe('selection', () => {
+    it('marks the selected cell as the target and names it', async () => {
+      await playing();
+      store.selectTarget(E7);
+      expect(store.target()).toEqual(E7);
+      expect(store.targetName()).toBe('E7');
+    });
+
+    it('moves the target to the next selected cell', async () => {
+      await playing();
+      store.selectTarget(E7);
+      store.selectTarget(F2);
+      expect(store.target()).toEqual(F2);
+      expect(store.targetName()).toBe('F2');
+    });
+
+    it('ignores a selection without the turn', async () => {
+      await playing({ me: me({ hasTurn: false }), opponent: opponent({ hasTurn: true }) });
+      expect(store.canShoot()).toBe(false);
+      store.selectTarget(E7);
+      expect(store.target()).toBeNull();
+    });
+
+    it('ignores a cell already fired at', async () => {
+      await playing({ me: me({ hasTurn: true, shots: [{ ...E7, hit: false }] }) });
+      store.selectTarget(E7);
+      expect(store.target()).toBeNull();
+    });
+
+    it('ignores a selection while a shot is in flight', async () => {
+      await playing();
+      store.selectTarget(E7);
+      void store.fireAtTarget();
+      expect(store.shotStatus()).toBe('firing');
+      expect(store.canShoot()).toBe(false);
+      store.selectTarget(F2);
+      expect(store.target()).toEqual(E7);
+    });
+
+    it('clears the target and sends nothing on cancel', async () => {
+      await playing();
+      store.selectTarget(E7);
+      store.clearTarget();
+      expect(store.target()).toBeNull();
+      expect(store.myTurn()).toBe(true);
+      expect(fireCalls()).toEqual([]);
+    });
+  });
+
+  describe('firing', () => {
+    it('does nothing without a target', async () => {
+      await playing();
+      await store.fireAtTarget();
+      expect(fireCalls()).toEqual([]);
+    });
+
+    it('sends one request per confirm, however often it is asked for', async () => {
+      await playing();
+      store.selectTarget(E7);
+      void store.fireAtTarget();
+      void store.fireAtTarget();
+      expect(fireCalls()).toEqual([[GAME_CODE, 4, 6]]);
+    });
+
+    it('draws the recorded shot, clears the target and leaves the turn as it is', async () => {
+      await playing();
+      await fired(E7, true);
+      expect(store.myShots()).toEqual([{ ...E7, hit: true }]);
+      expect(store.target()).toBeNull();
+      expect(store.myTurn()).toBe(true);
+      expect(store.opponent()?.hasTurn).toBe(false);
+    });
+
+    it('accepts no further shot until a turn change gives the turn back', async () => {
+      await playing();
+      await fired(E7);
+      expect(store.canShoot()).toBe(false);
+      store.selectTarget(F2);
+      expect(store.target()).toBeNull();
+
+      store.applyTurnChanged(OPPONENT_ID);
+      expect(store.canShoot()).toBe(false);
+      store.applyTurnChanged(ME_ID);
+      expect(store.canShoot()).toBe(true);
+      store.selectTarget(F2);
+      expect(store.target()).toEqual(F2);
+    });
+
+    it('frees the next shot when the turn moved while the request was in flight', async () => {
+      await playing();
+      store.selectTarget(E7);
+      const done = store.fireAtTarget();
+      store.applyShotFired({ playerId: ME_ID, ...E7, hit: false });
+      store.applyTurnChanged(OPPONENT_ID);
+      expect(store.shotStatus()).toBe('firing');
+      api.last('fireShot').resolve({ ...E7, hit: false });
+      await done;
+      expect(store.myShots()).toEqual([{ ...E7, hit: false }]);
+      expect(store.shotStatus()).toBe('idle');
+
+      store.applyTurnChanged(ME_ID);
+      expect(store.canShoot()).toBe(true);
+    });
+
+    it.each(['failed', 'not-found'] as const)(
+      'returns to idle without a marker and keeps the reason on %s, without a reload',
+      async (reason) => {
+        await playing();
+        store.selectTarget(E7);
+        const done = store.fireAtTarget();
+        api.last('fireShot').reject(new FireShotFailure(reason));
+        await done;
+        expect(store.shotStatus()).toBe('idle');
+        expect(store.shotError()).toBe(reason);
+        expect(store.target()).toBeNull();
+        expect(store.myShots()).toEqual([]);
+        expect(store.canShoot()).toBe(true);
+        expect(api.of('getGame').length).toBe(1);
+      },
+    );
+
+    it('treats a rejection that is not a FireShotFailure as failed', async () => {
+      await playing();
+      store.selectTarget(E7);
+      const done = store.fireAtTarget();
+      api.last('fireShot').reject(new Error('boom'));
+      await done;
+      expect(store.shotError()).toBe('failed');
+    });
+
+    it('clears the reason once a new target is selected', async () => {
+      await playing();
+      store.selectTarget(E7);
+      const done = store.fireAtTarget();
+      api.last('fireShot').reject(new FireShotFailure('failed'));
+      await done;
+      store.selectTarget(F2);
+      expect(store.shotError()).toBeNull();
+    });
+
+    it.each([
+      'not-your-turn',
+      'cell-already-shot',
+      'game-not-started',
+      'game-update-conflict',
+    ] as const)(
+      'reloads the game after a 409 %s and shows the turn the server reports',
+      async (reason) => {
+        await playing();
+        store.selectTarget(E7);
+        const done = store.fireAtTarget();
+        api.last('fireShot').reject(new FireShotFailure(reason));
+        await flushPromises();
+        expect(store.shotError()).toBe(reason);
+        expect(api.of('getGame').length).toBe(2);
+
+        api.last('getGame').resolve(
+          gameView({
+            state: 'started',
+            me: me({ hasTurn: false, ships: FULL_FLEET }),
+            opponent: opponent({ hasTurn: true }),
+          }),
+        );
+        await done;
+        expect(store.myTurn()).toBe(false);
+        expect(store.myShots()).toEqual([]);
+        expect(store.shotStatus()).toBe('idle');
+      },
+    );
+  });
+
+  describe('events', () => {
+    it('adds a shot of the opponent to their shots', async () => {
+      await playing();
+      store.applyShotFired({ playerId: OPPONENT_ID, column: 1, row: 1, hit: true });
+      expect(store.opponentShots()).toEqual([{ column: 1, row: 1, hit: true }]);
+      expect(store.myShots()).toEqual([]);
+    });
+
+    it('adds a shot of the caller to their shots', async () => {
+      await playing();
+      store.applyShotFired({ playerId: ME_ID, ...E7, hit: false });
+      expect(store.myShots()).toEqual([{ ...E7, hit: false }]);
+      expect(store.opponentShots()).toEqual([]);
+    });
+
+    it('does not add the echo of a shot drawn from the response, nor a replay', async () => {
+      await playing();
+      await fired(E7, true);
+      store.applyShotFired({ playerId: ME_ID, ...E7, hit: true });
+      store.applyShotFired({ playerId: OPPONENT_ID, ...F2, hit: false });
+      store.applyShotFired({ playerId: OPPONENT_ID, ...F2, hit: false });
+      expect(store.myShots()).toEqual([{ ...E7, hit: true }]);
+      expect(store.opponentShots()).toEqual([{ ...F2, hit: false }]);
+    });
+
+    it('lets both players shoot at the same coordinates', async () => {
+      await playing();
+      store.applyShotFired({ playerId: ME_ID, ...E7, hit: false });
+      store.applyShotFired({ playerId: OPPONENT_ID, ...E7, hit: true });
+      expect(store.myShots()).toEqual([{ ...E7, hit: false }]);
+      expect(store.opponentShots()).toEqual([{ ...E7, hit: true }]);
+    });
+
+    it('ignores a shot of an unknown player', async () => {
+      await playing();
+      const before = store.state();
+      store.applyShotFired({ playerId: 'someone-else', ...E7, hit: true });
+      expect(store.state()).toBe(before);
+    });
+
+    it('drops a target that an own shot event marks as shot', async () => {
+      await playing();
+      store.selectTarget(E7);
+      store.applyShotFired({ playerId: ME_ID, ...E7, hit: false });
+      expect(store.target()).toBeNull();
+    });
+
+    it('sets both turn flags from a turn change and drops a target without the turn', async () => {
+      await playing();
+      store.selectTarget(E7);
+      store.applyTurnChanged(OPPONENT_ID);
+      expect(store.myTurn()).toBe(false);
+      expect(store.opponent()?.hasTurn).toBe(true);
+      expect(store.target()).toBeNull();
+
+      store.applyTurnChanged(ME_ID);
+      expect(store.myTurn()).toBe(true);
+      expect(store.opponent()?.hasTurn).toBe(false);
+    });
   });
 });
 

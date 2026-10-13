@@ -21,7 +21,7 @@
 ## 5. Frontend data and store
 
 - [x] 5.1 Add `GamesApi.fireShot(code, column, row)` and `FireShotError` mapping (design D5); verify `HttpTestingController` specs for the request, the success body and every error mapping pass
-- [ ] 5.2 Extend the `GamePage` store with `target`, `shotStatus`, `selectTarget`, `clearTarget`, `fireAtTarget`, `applyShotFired`, `applyTurnChanged` and the `myTurn`, `myShots`, `opponentShots`, `canShoot` computeds (design D5); verify store specs for selection rules (turn, already shot, in flight), one request per confirm, no turn change on the response, de-duplication by shooter and cell, turn change from the event, error return to idle, and reload after a `409` pass
+- [x] 5.2 Extend the `GamePage` store with `target`, `shotStatus`, `selectTarget`, `clearTarget`, `fireAtTarget`, `applyShotFired`, `applyTurnChanged` and the `myTurn`, `myShots`, `opponentShots`, `canShoot` computeds (design D5); verify store specs for selection rules (turn, already shot, in flight), one request per confirm, no turn change on the response, de-duplication by shooter and cell, turn change from the event, error return to idle, and reload after a `409` pass
 - [ ] 5.3 Route `game.shot-fired.v1` and `game.turn-changed.v1` for this game code from the page's `events$` subscription to the store, ignore other codes, and reload the game when `EventsService.state` goes from `reconnecting` to `open`; verify page specs for routing, game-code filtering, the `game.started.v1` switch to play and a single reload on reconnect pass
 
 ## 6. Frontend game play view
