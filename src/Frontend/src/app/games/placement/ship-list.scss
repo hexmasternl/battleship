@@ -1,0 +1,87 @@
+:host {
+  display: grid;
+  gap: var(--bs-space-3);
+}
+
+.ship-list__title {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-md);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+}
+
+.ship-list__empty {
+  margin: 0;
+  color: var(--bs-color-text-dim);
+}
+
+// The ships stack under each other on every width.
+.ship-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--bs-space-2);
+}
+
+.ship-list__item {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--bs-space-2) var(--bs-space-3);
+  align-items: center;
+  padding: var(--bs-space-2) var(--bs-space-3);
+  font-family: var(--bs-font-body);
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text);
+  text-align: start;
+  background: var(--bs-color-surface-raised);
+  border: 1px solid var(--bs-color-border-strong);
+  border-radius: var(--bs-radius-md);
+  cursor: grab;
+  transition: border-color var(--bs-duration-fast) var(--bs-ease-standard);
+
+  &:hover {
+    border-color: var(--bs-color-accent);
+  }
+
+  &:focus-visible {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: var(--bs-focus-offset);
+  }
+
+  // The active ship: an accent border twice the resting width.
+  &.is-active {
+    border: var(--bs-focus-width) solid var(--bs-color-accent);
+    box-shadow: var(--bs-glow-primary);
+  }
+
+  &.cdk-drag-placeholder {
+    opacity: 0.4;
+  }
+
+  &[aria-disabled='true'] {
+    cursor: default;
+  }
+}
+
+.ship-list__name {
+  font-family: var(--bs-font-heading);
+  color: var(--bs-color-text-strong);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-caps);
+}
+
+.ship-list__length {
+  color: var(--bs-color-text-dim-raised);
+}
+
+// The hull is drawn one board-cell size per unit of length.
+.ship-list__hull {
+  grid-column: 1 / -1;
+  width: calc(var(--ship-length) * var(--bs-space-6));
+  height: var(--bs-space-5);
+}

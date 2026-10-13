@@ -1,6 +1,6 @@
 # Battleship
 
-.NET solution (`src/Battleship.slnx`) with one project group per service under `src/` (`Players`, `Games`, `Aspire` for hosting). Planning is spec-driven with OpenSpec (`openspec/`).
+.NET solution (`src/Battleship.slnx`) with one project group per service under `src/` (`Users`, `Games`, `Aspire` for hosting). Planning is spec-driven with OpenSpec (`openspec/`).
 
 ## OpenSpec changes follow the git flow skill
 

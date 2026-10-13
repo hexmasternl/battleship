@@ -1,8 +1,13 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
 import { provideRouter, Route, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from './app.routes';
+import { UserSession } from './core/session/user-session';
+import { userGuard } from './core/session/user.guard';
+import { EVENT_SOURCE_FACTORY, EVENTS_API_URL } from './events/events.tokens';
 import { CONSOLE_MESSAGE_POOL, REDUCED_MOTION } from './welcome/console-scheduler';
 
 function route(path: string): Route {
@@ -18,19 +23,14 @@ describe('routes', () => {
     expect(typeof root.loadComponent).toBe('function');
   });
 
-  it('lazy loads the coming-soon placeholder for joining a game', () => {
-    const join = route('games/join');
-    expect(typeof join.loadComponent).toBe('function');
-    expect(join.data).toEqual({ feature: 'join' });
-  });
-
-  it('lazy loads the game placeholder for a game code', () => {
+  it('lazy loads the game page behind the user guard for a game code', () => {
     const game = route('games/:gameCode');
     expect(typeof game.loadComponent).toBe('function');
+    expect(game.canActivate).toEqual([userGuard]);
   });
 
-  it('no longer declares games/new', () => {
-    expect(routes.some((candidate) => candidate.path === 'games/new')).toBe(false);
+  it.each(['games/new', 'games/join'])('no longer declares %s', (path) => {
+    expect(routes.some((candidate) => candidate.path === path)).toBe(false);
   });
 
   it('redirects unknown paths to the landing page', () => {
@@ -39,13 +39,8 @@ describe('routes', () => {
     expect(wildcard?.redirectTo).toBe('');
   });
 
-  it('declares exactly three feature routes plus the wildcard', () => {
-    expect(routes.map((candidate) => candidate.path)).toEqual([
-      '',
-      'games/join',
-      'games/:gameCode',
-      '**',
-    ]);
+  it('declares exactly two feature routes plus the wildcard', () => {
+    expect(routes.map((candidate) => candidate.path)).toEqual(['', 'games/:gameCode', '**']);
   });
 });
 
@@ -56,6 +51,17 @@ describe('routes (navigation)', () => {
         provideRouter(routes, withComponentInputBinding()),
         { provide: REDUCED_MOTION, useValue: true },
         { provide: CONSOLE_MESSAGE_POOL, useValue: ['Radar sweep clear.'] },
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: EVENTS_API_URL, useValue: 'http://events.test' },
+        {
+          provide: EVENT_SOURCE_FACTORY,
+          useValue: () => ({
+            readyState: 0,
+            addEventListener: () => undefined,
+            close: () => undefined,
+          }),
+        },
       ],
     });
   });
@@ -68,15 +74,22 @@ describe('routes (navigation)', () => {
     expect(element.querySelector('battle-info-section')).not.toBeNull();
   });
 
-  it('renders the game placeholder naming the code at /games/K7Q2M9XA', async () => {
+  it('renders the game page for a known user at /games/K7Q2M9XA', async () => {
+    vi.spyOn(TestBed.inject(UserSession), 'ensureUser').mockResolvedValue(true);
     const harness = await RouterTestingHarness.create('/games/K7Q2M9XA');
     const element = harness.routeNativeElement as HTMLElement;
-    expect(element.tagName.toLowerCase()).toBe('battle-game-placeholder');
-    expect(element.querySelector('h1')?.textContent?.trim()).toBe('K7Q2M9XA');
+    expect(element.tagName.toLowerCase()).toBe('battle-game-page');
     expect(TestBed.inject(Title).getTitle()).toBe('Game K7Q2M9XA | Battleship');
   });
 
-  it.each(['/games/new', '/games/k7q2m9xa', '/games/K7Q2M9X'])(
+  it('sends a visitor who is not a known user to the landing page without requesting the game', async () => {
+    const harness = await RouterTestingHarness.create('/games/K7Q2M9XA');
+    const element = harness.routeNativeElement as HTMLElement;
+    expect(element.querySelector('h1')?.textContent?.trim()).toBe('Welcome aboard, Captain');
+    TestBed.inject(HttpTestingController).expectNone((req) => req.url.includes('/api/games'));
+  });
+
+  it.each(['/games/new', '/games/join', '/games/k7q2m9xa', '/games/K7Q2M9X'])(
     'sends %s, which is not a game code, back to the landing page',
     async (url) => {
       const harness = await RouterTestingHarness.create(url);
@@ -84,12 +97,6 @@ describe('routes (navigation)', () => {
       expect(element.querySelector('h1')?.textContent?.trim()).toBe('Welcome aboard, Captain');
     },
   );
-
-  it('renders the join placeholder at /games/join', async () => {
-    const harness = await RouterTestingHarness.create('/games/join');
-    const element = harness.routeNativeElement as HTMLElement;
-    expect(element.querySelector('h1')?.textContent?.trim()).toBe('Join an existing game');
-  });
 
   it('sends unknown paths back to the landing page', async () => {
     const harness = await RouterTestingHarness.create('/no/such/page');

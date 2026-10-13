@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { axe } from 'vitest-axe';
 import { MemoryStorage } from '../../testing/memory-storage';
-import { PlayerSession } from '../core/session/player-session';
+import { UserSession } from '../core/session/user-session';
 import {
   PERSISTENT_STORAGE,
   REFRESH_TOKEN_EXPIRES_AT_KEY,
@@ -61,9 +61,9 @@ describe('WelcomePage', () => {
       expect(host.querySelectorAll('h1').length).toBe(1);
     });
 
-    it('sends no refresh request and leaves the player unknown', () => {
+    it('sends no refresh request and leaves the user unknown', () => {
       backend.expectNone(REFRESH_URL);
-      expect(TestBed.inject(PlayerSession).status()).toBe('unknown');
+      expect(TestBed.inject(UserSession).status()).toBe('unknown');
     });
 
     it('has no accessibility violations', async () => {
@@ -94,7 +94,7 @@ describe('WelcomePage', () => {
       expect(req.request.body).toEqual({ refreshToken: 'refresh-0' });
 
       // The response is still pending, yet the hero and both calls to action are on screen.
-      expect(TestBed.inject(PlayerSession).status()).toBe('restoring');
+      expect(TestBed.inject(UserSession).status()).toBe('restoring');
       expect(host.querySelector('h1')?.textContent?.trim()).toBe('Welcome aboard, Captain');
       expect(host.querySelectorAll('.hero__actions .bs-btn').length).toBe(2);
 
@@ -105,7 +105,7 @@ describe('WelcomePage', () => {
         refreshTokenExpiresAt: '2999-01-01T00:00:00Z',
       });
       await fixture.whenStable();
-      expect(TestBed.inject(PlayerSession).status()).toBe('known');
+      expect(TestBed.inject(UserSession).status()).toBe('known');
       expect(local.getItem(REFRESH_TOKEN_KEY)).toBe('refresh-1');
     });
   });

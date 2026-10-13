@@ -1,5 +1,5 @@
 using HexMaster.Battleship.IntegrationEvents.Games;
-using HexMaster.Battleship.IntegrationEvents.Players;
+using HexMaster.Battleship.IntegrationEvents.Users;
 
 namespace HexMaster.Battleship.IntegrationEvents;
 
@@ -9,12 +9,14 @@ public static class IntegrationEventCatalog
 {
     public static IReadOnlyList<IntegrationEventDescriptor> Events { get; } =
     [
-        Describe<PlayerCreatedEvent>(),
-        Describe<PlayerUpdatedEvent>(),
+        Describe<UserCreatedEvent>(),
+        Describe<UserUpdatedEvent>(),
         Describe<GameCreatedEvent>(),
         Describe<GameJoinedEvent>(),
+        Describe<GamePlayerReadyEvent>(),
         Describe<GameStartedEvent>(),
         Describe<GameShotFiredEvent>(),
+        Describe<GameTurnChangedEvent>(),
         Describe<GameEndedEvent>()
     ];
 

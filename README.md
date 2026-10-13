@@ -45,7 +45,7 @@ The game is also a **reference project for building distributed .NET apps with A
 You don't need a cloud account, a `docker-compose.yml`, or any connection string written by hand.
 
 > [!NOTE]
-> The game is being built in the open. Player identity, the gateway and real-time events are
+> The game is being built in the open. User identity, the gateway and real-time events are
 > done. Creating, joining, placing ships, battle and the end of the game are planned as OpenSpec
 > changes (see [Roadmap](#roadmap)). The infrastructure is complete, so the project is already
 > useful as an Aspire example.
@@ -102,14 +102,14 @@ Read it top to bottom. It is short and every block has a comment.
 
 | Aspire concept | How Battleship uses it |
 |---|---|
-| **Projects as resources** | `AddProject<...>()` runs the Players, Games and Events APIs with service discovery, health checks and telemetry wired in. |
+| **Projects as resources** | `AddProject<...>()` runs the Users, Games and Events APIs with service discovery, health checks and telemetry wired in. |
 | **Containers as resources** | `AddRabbitMQ("messaging").WithManagementPlugin()` starts a broker with its management UI. |
 | **Azure emulators** | `AddAzureStorage("storage").RunAsEmulator(...)` runs Azurite for table storage, so no Azure subscription is needed. |
-| **Persistent containers** | `WithLifetime(ContainerLifetime.Persistent)` keeps Azurite, and your players, alive between runs. |
+| **Persistent containers** | `WithLifetime(ContainerLifetime.Persistent)` keeps Azurite, and your users, alive between runs. |
 | **Generated secret parameters** | `AddParameter(..., new GenerateParameterDefault { ... }, secret: true, persist: true)` creates the RabbitMQ password and the JWT signing key on first run and stores them in user secrets. |
 | **Reference expressions** | `ReferenceExpression.Create($"{host}:{port}")` builds the Dapr component's broker address from the live RabbitMQ endpoint, so it is never written to a file. |
 | **Dapr sidecars** | The [Community Toolkit](https://github.com/CommunityToolkit/Aspire) adds `AddDapr()`, `AddDaprComponent(...)` and `WithDaprSidecar(...)`, so each API gets its own `daprd` that loads the shared `pubsub` component. |
-| **Client integrations** | `AddAzureTableServiceClient("tables")` in the Players data project gets its connection from the AppHost by name, and adds health checks and tracing. |
+| **Client integrations** | `AddAzureTableServiceClient("tables")` in the Users data project gets its connection from the AppHost by name, and adds health checks and tracing. |
 | **Startup ordering** | `WaitFor(messaging)` and `WaitFor(tables)` keep each API from starting before its dependencies are healthy. |
 | **YARP gateway** | `AddYarp("gateway")` builds its routes in code from a validated table ([`GatewayRoutes.cs`](src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost/GatewayRoutes.cs)), so the browser talks to one origin. |
 | **JavaScript apps** | `AddJavaScriptApp("frontend", ..., "start:aspire")` runs `ng serve` on a port Aspire assigns and passes it the gateway URL. |
@@ -122,7 +122,7 @@ Read it top to bottom. It is short and every block has a comment.
 ## Architecture
 
 <p align="center">
-<img src="docs/assets/architecture.svg" alt="Architecture: the browser loads the Angular frontend and calls the YARP gateway, which routes /users to players-api and /games to games-api. Each API has a Dapr sidecar publishing to the pubsub component backed by RabbitMQ. players-api stores data in Azurite tables. events-api streams server-sent events straight to the browser." width="100%">
+<img src="docs/assets/architecture.svg" alt="Architecture: the browser loads the Angular frontend and calls the YARP gateway, which routes /users to users-api and /games to games-api. Each API has a Dapr sidecar publishing to the pubsub component backed by RabbitMQ. users-api stores data in Azurite tables. events-api streams server-sent events straight to the browser." width="100%">
 </p>
 
 **Request path.** The browser only knows relative URLs such as `/api/users/me`. An Angular
@@ -131,7 +131,7 @@ that owns it:
 
 | Prefix | Module | API resource |
 |---|---|---|
-| `/users` | Players | `hexmaster-battleship-players-api` |
+| `/users` | Users | `hexmaster-battleship-users-api` |
 | `/games` | Games | `hexmaster-battleship-games-api` |
 
 Platform paths such as `health`, `alive`, `openapi` and `dapr` are reserved and never routed, so
@@ -151,16 +151,65 @@ server-sent events.
 |---|---|---|
 | `frontend` | JavaScript app | The game. Click its endpoint. |
 | `gateway` | YARP | The single backend origin the browser calls. |
-| `hexmaster-battleship-players-api` | Project | Anonymous identity and tokens. Its traces show every token call. |
+| `hexmaster-battleship-users-api` | Project | Anonymous identity and tokens. Its traces show every token call. |
 | `hexmaster-battleship-games-api` | Project | Game lifecycle (in progress). |
 | `hexmaster-battleship-events-api` | Project | Server-sent events stream. |
+| `devbot` | Bot (local runs only) | A bot opponent that joins your game when nobody else does. Its properties show its preset, auto-join and games; its commands change them. See [Play against the dev bot](#play-against-the-dev-bot). |
 | `*-dapr-cli` | Dapr sidecar | Sidecar logs: the `pubsub` component loading and every subscription. |
 | `messaging` | Container | RabbitMQ. Its `management` URL opens the management UI. The user is `rabbitmq-username` (default `guest`) and the password is the generated `rabbitmq-password`; both appear in the resource details. |
 | `storage` / `tables` | Azurite | Users and refresh tokens. |
 
-Open **Traces** and create a player in the app. You'll see one trace go from the gateway into the
-Players API, through the `CreateTokens` use-case span and down to table storage. What else the
+Open **Traces** and create a user in the app. You'll see one trace go from the gateway into the
+Users API, through the `CreateTokens` use-case span and down to table storage. What else the
 dashboard shows is described under [Observability](#observability).
+
+Each API resource also has an **API reference** link. It opens a [Scalar](https://scalar.com)
+page on that API's own endpoint, built from its OpenAPI document, where you can read and call
+every endpoint. The reference is served only in Development and never through the gateway.
+
+---
+
+## Play against the dev bot
+
+You don't need a second browser to play a whole game. In local runs, the AppHost also starts
+`devbot`, a bot opponent that plays through the gateway as its own user, **Dev Bot**.
+
+1. Create a game in the app and leave it alone.
+2. If nobody joins within **10 seconds**, the bot joins as player two, places a random fleet and
+   gets ready.
+3. Place your ships and get ready. The game starts, and the bot fires one shot about a second
+   after it gets the turn, until the game ends.
+
+The grace period lets two people testing in two browsers still take the seat themselves. The bot
+plays any number of games at once.
+
+**Commands.** Run them from the `devbot` resource on the dashboard, or with the Aspire CLI. Each
+one is available only while the bot is healthy.
+
+| Command | CLI | What it does |
+|---|---|---|
+| *Set intelligence* | `aspire resource devbot set-intelligence --intelligence Random` | Switches the preset. It applies from the bot's next shot in every game. |
+| *Enable auto-join* | `aspire resource devbot enable-auto-join` | Joins new games again after the grace period. It is offered only while auto-join is off. |
+| *Disable auto-join* | `aspire resource devbot disable-auto-join` | Stops joining new games. Games in progress continue. It is offered only while auto-join is on. |
+| *Join game* | `aspire resource devbot join-game --code K7Q2M9XA` | Joins that game now, whatever auto-join says. It fails with a message for an unknown, full or already started game. |
+
+**Presets**, weakest first. They are deterministic shot strategies, not an LLM. The API never says
+when a ship is sunk, so the bot only knows its own hits and misses.
+
+| Preset | How it chooses a shot |
+|---|---|
+| `Random` | Any cell it has not shot at. |
+| `HuntAndTarget` (default) | Random until it hits, then the cells next to its hits, extending a line of hits first. |
+| `HuntWithParity` | Like `HuntAndTarget`, but it hunts only on the checkerboard cells where column + row is even. |
+| `ProbabilityDensity` | The cell where the remaining ships fit in the most ways, given its hits and misses. |
+
+The `devbot` properties `devbot.intelligence`, `devbot.auto-join` and `devbot.games` show the
+current state within a few seconds of a change. The start values are set in `AppHost.cs` with
+`WithIntelligence`, `WithJoinGracePeriod` and `WithShotDelay`.
+
+**After an AppHost restart** the bot starts fresh: it keeps no preset and no games. To let it
+finish a game in progress, run *Join game* with that game's code. The bot reads the game and
+fires when it has the turn.
 
 ---
 
@@ -177,9 +226,10 @@ battleship/
 │   ├── Shared/                           integration event catalog and sender (+ tests)
 │   ├── Core/                             CQRS and domain building blocks + integration event catalog and sender
 │   │   └── *.Tests/                      Core.Tests and IntegrationEvents.Tests
-│   ├── Players/                          anonymous identity: module, Api, Data.TableStorage, Abstractions, Tests
+│   ├── Users/                            anonymous identity: module, Api, Data.TableStorage, Abstractions, Tests
 │   ├── Games/                            game lifecycle: module, Api, Abstractions, Tests
 │   ├── Events/                           SSE fan-out: module, Api, Abstractions, Tests
+│   ├── DevTools/                         the dev bot opponent for local runs (+ tests)
 │   └── Frontend/                         Angular 22 + Angular Material, zoneless, signals
 ├── docs/
 │   ├── design-system.md / .html          the visual contract (tokens, components, instruments)
@@ -198,9 +248,9 @@ under `Features/` (a command or query with its handler) and endpoint groups unde
 
 ## Services
 
-### Players: anonymous identity
+### Users: anonymous identity
 
-Visitors never register. The Players API gives each visitor an anonymous user with a signed
+Visitors never register. The Users API gives each visitor an anonymous user with a signed
 access token and an opaque refresh token. Every endpoint is under `/users`:
 
 | Endpoint | Auth | Returns |
@@ -209,8 +259,13 @@ access token and an opaque refresh token. Every endpoint is under `/users`:
 | `POST /users/tokens/refresh` | anonymous | `200` with a new pair for `{ "refreshToken": "..." }`. The presented token is used up. `401` for an unknown, expired, used or revoked token. |
 | `GET /users/me` | bearer access token | `200` with the caller's `id` and `displayName` |
 
-[`HexMaster.Battleship.Players.Api.http`](src/Players/HexMaster.Battleship.Players.Api/HexMaster.Battleship.Players.Api.http)
-has ready-made requests. The frontend keeps the refresh token in `localStorage`, so a returning
+[`HexMaster.Battleship.Users.Api.http`](src/Users/HexMaster.Battleship.Users.Api/HexMaster.Battleship.Users.Api.http)
+has ready-made requests. You can also try the endpoints from the Users API's **API reference**
+link on the dashboard: open **Test Request** on `POST /users/tokens` and send it, copy the
+`accessToken` from the response, paste it into **Bearer Token** in the **Authentication** box at
+the top of the page, and **Test Request** on `GET /users/me` returns your user.
+
+The frontend keeps the refresh token in `localStorage`, so a returning
 visitor is recognised, and the access token in `sessionStorage`, so it ends with the browser
 session.
 
@@ -232,37 +287,53 @@ docker rm -f <name>
 
 #### Signing key
 
-Access tokens are HS256 JWTs signed with `Players:Tokens:SigningKey`, a string of at least 32
+Access tokens are HS256 JWTs signed with `Users:Tokens:SigningKey`, a string of at least 32
 bytes. Every API that validates tokens reads the same key. An API that has no key, or a shorter
 one, refuses to start and names the missing setting.
 
-Under `aspire run` the key is the AppHost parameter `players-signing-key`. It is generated on
+Under `aspire run` the key is the AppHost parameter `users-signing-key`. It is generated on
 the first run and stored in the AppHost's user secrets, so tokens stay valid across restarts. To
 choose the key yourself:
 
 ```shell
-dotnet user-secrets set "Parameters:players-signing-key" "<at least 32 characters>" \
+dotnet user-secrets set "Parameters:users-signing-key" "<at least 32 characters>" \
   --project src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost
 ```
 
-To run the Players API on its own (`dotnet run` without the AppHost), give it the key and a
+To run the Users API on its own (`dotnet run` without the AppHost), give it the key and a
 table storage connection through its own user secrets, with Azurite on its default ports:
 
 ```shell
 docker run -d -p 10002:10002 mcr.microsoft.com/azure-storage/azurite azurite-table --tableHost 0.0.0.0
-dotnet user-secrets set "Players:Tokens:SigningKey" "<at least 32 characters>" --project src/Players/HexMaster.Battleship.Players.Api
-dotnet user-secrets set "ConnectionStrings:tables" "UseDevelopmentStorage=true" --project src/Players/HexMaster.Battleship.Players.Api
+dotnet user-secrets set "Users:Tokens:SigningKey" "<at least 32 characters>" --project src/Users/HexMaster.Battleship.Users.Api
+dotnet user-secrets set "ConnectionStrings:tables" "UseDevelopmentStorage=true" --project src/Users/HexMaster.Battleship.Users.Api
 ```
+
+> [!NOTE]
+> **Upgrading from the Players service.** The identity service used to be called Players, with
+> its key under `Players:Tokens:SigningKey`, the AppHost parameter `players-signing-key` and the
+> issuer `battleship-players`. The first run after the rename generates a new `users-signing-key`,
+> and access tokens with the old issuer or key are refused. Refresh tokens live in table storage,
+> so while Azurite keeps its data a returning browser refreshes once and carries on as the same
+> user with new tokens. A browser whose refresh token is unknown (for example after removing the
+> Azurite container) gets `401` on refresh, and the app asks for a name again.
+> The old secrets are no longer read and can be removed:
+>
+> ```shell
+> dotnet user-secrets remove "Parameters:players-signing-key" \
+>   --project src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost
+> dotnet user-secrets remove "Players:Tokens:SigningKey" --project src/Users/HexMaster.Battleship.Users.Api
+> ```
 
 #### Token lifetimes
 
 | Key | Default | Meaning |
 |---|---|---|
-| `Players:Tokens:AccessTokenLifetime` | `00:15:00` | How long an access token is valid |
-| `Players:Tokens:RefreshTokenLifetime` | `90.00:00:00` | How long a refresh token is valid; it is replaced on every refresh |
-| `Players:Tokens:ClockSkew` | `00:00:30` | Tolerance when checking expiry (at most 30 seconds) |
-| `Players:Tokens:Issuer` | `battleship-players` | `iss` claim of every access token |
-| `Players:Tokens:Audience` | `battleship` | `aud` claim of every access token |
+| `Users:Tokens:AccessTokenLifetime` | `00:15:00` | How long an access token is valid |
+| `Users:Tokens:RefreshTokenLifetime` | `90.00:00:00` | How long a refresh token is valid; it is replaced on every refresh |
+| `Users:Tokens:ClockSkew` | `00:00:30` | Tolerance when checking expiry (at most 30 seconds) |
+| `Users:Tokens:Issuer` | `battleship-users` | `iss` claim of every access token |
+| `Users:Tokens:Audience` | `battleship` | `aud` claim of every access token |
 
 </details>
 
@@ -275,7 +346,7 @@ the [Roadmap](#roadmap).
 ### Events: real time to the browser
 
 The Events API (Dapr app id `events-api`) subscribes to topic `integration-events` on the
-`pubsub` component and serves a server-sent events stream at `GET /events?playerId=<id>`. Each
+`pubsub` component and serves a server-sent events stream at `GET /events?userId=<id>`. Each
 message carries:
 
 - `id`: a per-process sequence number
@@ -285,14 +356,14 @@ message carries:
 After 15 idle seconds the stream writes a `heartbeat` without an id. A client that reconnects
 with `Last-Event-ID` first receives the events it missed, from a replay buffer.
 
-Publishers put one envelope on the topic, and its `target` decides who receives it: `player`
-(the listed players), `game` (the listed participants) or `all` (everyone).
+Publishers put one envelope on the topic, and its `target` decides who receives it: `user`
+(the listed users), `game` (the listed participants) or `all` (everyone).
 
 ```json
 {
   "id": "e-1",
   "type": "shot-fired",
-  "target": "player",
+  "target": "user",
   "targetIds": ["A"],
   "occurredAt": "2026-10-13T10:00:00Z",
   "payload": { "x": 3, "y": 5 }
@@ -302,21 +373,21 @@ Publishers put one envelope on the topic, and its `target` decides who receives 
 <details>
 <summary><b>Try it by hand</b></summary>
 
-While the AppHost runs, hold a stream open for player `A`:
+While the AppHost runs, hold a stream open for user `A`:
 
 ```shell
-curl -N "http://localhost:5317/events?playerId=A"
+curl -N "http://localhost:5317/events?userId=A"
 ```
 
 and publish from a second terminal:
 
 ```shell
 dapr publish --publish-app-id events-api --pubsub pubsub --topic integration-events \
-  --data '{"id":"e-1","type":"shot-fired","target":"player","targetIds":["A"],"occurredAt":"2026-10-13T10:00:00Z","payload":{"x":3,"y":5}}'
+  --data '{"id":"e-1","type":"shot-fired","target":"user","targetIds":["A"],"occurredAt":"2026-10-13T10:00:00Z","payload":{"x":3,"y":5}}'
 ```
 
 The curl terminal prints `event: shot-fired`, `data: {"x":3,"y":5}` and `id: 1`. An envelope
-targeting another player is not printed. Invalid envelopes are logged and dropped.
+targeting another user is not printed. Invalid envelopes are logged and dropped.
 
 </details>
 
@@ -373,10 +444,10 @@ Every backend service sends traces, metrics and structured logs through OpenTele
 
 **Naming.** Each module owns an `Observability/` folder with an `ActivitySource`, a metrics class
 built on `IMeterFactory`, and source-generated `LoggerMessage` definitions. Sources and meters are
-named after the assembly (`HexMaster.Battleship.Players`, `HexMaster.Battleship.Events`, ...), so
+named after the assembly (`HexMaster.Battleship.Users`, `HexMaster.Battleship.Events`, ...), so
 ServiceDefaults registers them all with one `HexMaster.Battleship.*` wildcard. Metrics are named
 `module.thing` with a unit and a description; custom attributes carry a domain prefix
-(`player.id`, `game.code`, `event.type`).
+(`user.id`, `player.id`, `game.code`, `event.type`).
 
 **Use-case spans.** Every command and query handler is registered with `AddCommandHandler` or
 `AddQueryHandler`, which wraps it in a decorator. The decorator opens an `Internal` span named
@@ -394,9 +465,9 @@ fan-out, so one trace runs publisher API → sidecar → RabbitMQ → Events API
 | Metric | Unit | Tags | Meaning |
 |---|---|---|---|
 | `battleship.use_case.duration` | `s` | `use_case`, `outcome` | Duration of every command and query handler |
-| `players.tokens.issued` | `{token}` | | Token pairs issued to new anonymous users |
-| `players.tokens.refreshed` | `{token}` | | Token pairs issued for a refresh token |
-| `players.tokens.refused` | `{token}` | `reason` | Refused refresh tokens (`unknown_token`, `expired_token`, `token_used_already`, `unknown_user`, `revoked_user`) |
+| `users.tokens.issued` | `{token}` | | Token pairs issued to new anonymous users |
+| `users.tokens.refreshed` | `{token}` | | Token pairs issued for a refresh token |
+| `users.tokens.refused` | `{token}` | `reason` | Refused refresh tokens (`unknown_token`, `expired_token`, `token_used_already`, `unknown_user`, `revoked_user`) |
 | `games.created` | `{game}` | | Games created |
 | `integration_events.published` | `{event}` | `event.type` | Events handed to the Dapr sidecar |
 | `integration_events.publish_failed` | `{event}` | `event.type` | Events that could not be published |
@@ -409,20 +480,20 @@ fan-out, so one trace runs publisher API → sidecar → RabbitMQ → Events API
 
 | Signal | Dashboard page | What to look for |
 |---|---|---|
-| Use-case spans | **Traces** | `CreateTokens`, `RefreshTokens`, `GetCurrentUser`, `CreateGame` under the HTTP server span, with `player.id`, `game.id` or `token.refusal_reason` |
+| Use-case spans | **Traces** | `CreateTokens`, `RefreshTokens`, `GetCurrentUser`, `CreateGame` under the HTTP server span, with `user.id`, `player.id`, `game.id` or `token.refusal_reason` |
 | Pub/sub hop | **Traces** | `publish integration-events`, the `daprd` spans, `process integration-events` and `deliver` in one trace |
 | Business metrics | **Metrics** | Pick a service, then the `HexMaster.Battleship.*` meter |
-| Structured logs | **Structured logs** | Event ids 1000s (Players), 2000s (Events), 3000s (integration events), 4000s (Games), 5000s (use-case failures); each entry links to its trace |
+| Structured logs | **Structured logs** | Event ids 1000s (Users), 2000s (Events), 3000s (integration events), 4000s (Games), 5000s (use-case failures); each entry links to its trace |
 
-**Walkthrough.** Start the app and create a player. In **Traces**, open the Players API trace and
-select the `CreateTokens` span: it carries `player.id`. In **Metrics**, select
-`hexmaster-battleship-players-api` and the `HexMaster.Battleship.Players` meter:
-`players.tokens.issued` went up by one. In **Structured logs**, filter on the Players API and find
+**Walkthrough.** Start the app and create a user. In **Traces**, open the Users API trace and
+select the `CreateTokens` span: it carries `user.id`. In **Metrics**, select
+`hexmaster-battleship-users-api` and the `HexMaster.Battleship.Users` meter:
+`users.tokens.issued` went up by one. In **Structured logs**, filter on the Users API and find
 `Issued a token pair to new user ...`; its trace link opens the same trace.
 
 Tokens, secrets and display names never appear in a span, metric or log, and user, player and
 game ids are never metric tags (they may appear on spans and in logs for troubleshooting).
-A hygiene test in `HexMaster.Battleship.Players.Tests` guards this.
+A hygiene test in `HexMaster.Battleship.Users.Tests` guards this.
 
 <details>
 <summary><b>Instrument a new handler or module</b></summary>
@@ -473,7 +544,7 @@ cd src/Frontend && npm test           # Vitest + axe accessibility checks
 ```
 
 > [!NOTE]
-> The repository and API tests in `HexMaster.Battleship.Players.Tests` need table storage. They
+> The repository and API tests in `HexMaster.Battleship.Users.Tests` need table storage. They
 > use Azurite on its default ports (`UseDevelopmentStorage=true`), or the connection string in
 > `BATTLESHIP_TESTS_TABLES`. When neither answers, they are skipped with a reason. To run them
 > against the emulator that `aspire run` started, point the variable at its table port, which
@@ -531,8 +602,8 @@ alike. Skills, prompts and agents are mirrored between `.claude/` and `.github/`
 | AppHost exits with *"Dapr prerequisite missing"* | Install the Dapr CLI and/or run `dapr init`, then start again. |
 | Sidecars keep restarting | Check that Docker is running and that `dapr init` finished, then read the `*-dapr-cli` console logs on the dashboard. |
 | Every `/api/` call fails in the browser | You started `ng serve` on its own. Start through `aspire run`, so `public/config.json` points at the gateway. |
-| Old players are still there | Azurite is persistent on purpose. Remove its container to reset (see [Players](#players-anonymous-identity)). |
-| An API refuses to start over the signing key | `Players:Tokens:SigningKey` is missing or shorter than 32 bytes. Under Aspire, check the `players-signing-key` parameter. |
+| Old users are still there | Azurite is persistent on purpose. Remove its container to reset (see [Users](#users-anonymous-identity)). |
+| An API refuses to start over the signing key | `Users:Tokens:SigningKey` is missing or shorter than 32 bytes. Under Aspire, check the `users-signing-key` parameter. |
 
 ---
 

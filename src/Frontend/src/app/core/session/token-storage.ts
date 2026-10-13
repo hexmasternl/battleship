@@ -1,6 +1,6 @@
 import { InjectionToken, Service, inject } from '@angular/core';
 
-/** The token pair the Players service returns from both token endpoints. */
+/** The token pair the Users service returns from both token endpoints. */
 export interface TokenPair {
   readonly accessToken: string;
   /** ISO-8601 instant. */
@@ -42,7 +42,7 @@ export const SESSION_STORAGE = new InjectionToken<() => Storage>('SESSION_STORAG
 });
 
 /**
- * The player's tokens in Web Storage: the refresh token in `localStorage` so the identity survives
+ * The user's tokens in Web Storage: the refresh token in `localStorage` so the identity survives
  * a browser restart, the access token in `sessionStorage` so it never outlives the session. Every
  * access is guarded: a browser that blocks storage reads as "no tokens" instead of throwing.
  */

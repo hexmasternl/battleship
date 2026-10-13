@@ -29,13 +29,13 @@ public class EventRouterTests
     [Fact]
     public void Connect_WithLastEventId_QueuesMissedEventsBeforeLiveOnes()
     {
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
-        var missedOne = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-b"));
-        var missedTwo = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
+        var missedOne = _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-b"));
+        var missedTwo = _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
 
-        var connection = _router.Connect("player-a", missedOne.Sequence - 1);
-        var live = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        var connection = _router.Connect("user-a", missedOne.Sequence - 1);
+        var live = _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
 
         Assert.Equal(
             new[] { missedOne.Sequence, missedTwo.Sequence, live.Sequence }.Select(s => s.ToString()),
@@ -45,40 +45,40 @@ public class EventRouterTests
     [Fact]
     public void Connect_WithoutLastEventId_ReceivesLiveEventsOnly()
     {
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
 
-        var connection = _router.Connect("player-a", null);
+        var connection = _router.Connect("user-a", null);
 
         Assert.Empty(Drain(connection));
-        Assert.Equal([connection], _registry.ConnectionsFor("player-a"));
+        Assert.Equal([connection], _registry.ConnectionsFor("user-a"));
     }
 
     [Fact]
     public void Disconnect_RemovesAndCompletesTheConnection()
     {
-        var connection = _router.Connect("player-a", null);
+        var connection = _router.Connect("user-a", null);
 
         _router.Disconnect(connection);
 
-        Assert.Empty(_registry.ConnectionsFor("player-a"));
+        Assert.Empty(_registry.ConnectionsFor("user-a"));
         Assert.True(connection.Reader.Completion.IsCompleted);
     }
 
     [Fact]
     public void Route_AppendsEveryEventToTheReplayBuffer()
     {
-        var routed = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        var routed = _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
 
-        Assert.Equal([routed.Sequence.ToString()], _replayBuffer.Since(0, "player-a").Select(i => i.EventId));
+        Assert.Equal([routed.Sequence.ToString()], _replayBuffer.Since(0, "user-a").Select(i => i.EventId));
     }
 
     [Fact]
-    public void Route_PlayerEvent_ReachesOnlyThatPlayer()
+    public void Route_UserEvent_ReachesOnlyThatUser()
     {
-        var a = Connect("player-a");
-        var b = Connect("player-b");
+        var a = Connect("user-a");
+        var b = Connect("user-b");
 
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
 
         Assert.Single(Drain(a));
         Assert.Empty(Drain(b));
@@ -87,11 +87,11 @@ public class EventRouterTests
     [Fact]
     public void Route_GameEvent_ReachesListedParticipantsOnly()
     {
-        var a = Connect("player-a");
-        var b = Connect("player-b");
-        var c = Connect("player-c");
+        var a = Connect("user-a");
+        var b = Connect("user-b");
+        var c = Connect("user-c");
 
-        _router.Route(IntegrationEventEnvelopeFactory.ForGame("player-a", "player-b"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForGame("user-a", "user-b"));
 
         Assert.Single(Drain(a));
         Assert.Single(Drain(b));
@@ -101,8 +101,8 @@ public class EventRouterTests
     [Fact]
     public void Route_AllEvent_ReachesEveryone()
     {
-        var a = Connect("player-a");
-        var b = Connect("player-b");
+        var a = Connect("user-a");
+        var b = Connect("user-b");
 
         var result = _router.Route(IntegrationEventEnvelopeFactory.ForAll());
 
@@ -112,12 +112,12 @@ public class EventRouterTests
     }
 
     [Fact]
-    public void Route_PlayerWithTwoConnections_ReceivesOnEach()
+    public void Route_UserWithTwoConnections_ReceivesOnEach()
     {
-        var first = Connect("player-a");
-        var second = Connect("player-a");
+        var first = Connect("user-a");
+        var second = Connect("user-a");
 
-        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
 
         Assert.Single(Drain(first));
         Assert.Single(Drain(second));
@@ -126,23 +126,23 @@ public class EventRouterTests
     [Fact]
     public void Route_OneBrokenConnection_StillDeliversToOthersAndRemovesBrokenOne()
     {
-        var broken = Connect("player-a");
-        var healthy = Connect("player-b");
+        var broken = Connect("user-a");
+        var healthy = Connect("user-b");
         broken.Complete();
 
         var result = _router.Route(IntegrationEventEnvelopeFactory.ForAll());
 
         Assert.Equal(1, result.DeliveredTo);
         Assert.Single(Drain(healthy));
-        Assert.Empty(_registry.ConnectionsFor("player-a"));
+        Assert.Empty(_registry.ConnectionsFor("user-a"));
     }
 
     [Fact]
     public void Route_DuplicateTargetIds_DeliversOncePerConnection()
     {
-        var a = Connect("player-a");
+        var a = Connect("user-a");
 
-        _router.Route(IntegrationEventEnvelopeFactory.ForGame("player-a", "player-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForGame("user-a", "user-a"));
 
         Assert.Single(Drain(a));
     }
@@ -150,7 +150,7 @@ public class EventRouterTests
     [Fact]
     public void Route_NoMatchingConnection_DeliversToNobody()
     {
-        var result = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        var result = _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a"));
 
         Assert.Equal(0, result.DeliveredTo);
     }
@@ -158,11 +158,11 @@ public class EventRouterTests
     [Fact]
     public void Route_AssignsIncreasingSequenceAsEventIdWithTypeAndPayload()
     {
-        var a = Connect("player-a");
+        var a = Connect("user-a");
         var payload = JsonSerializer.SerializeToElement(new { x = 3, y = 7 });
 
-        var first = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a", "ships-placed"));
-        var second = _router.Route(IntegrationEventEnvelopeFactory.Create(targetIds: ["player-a"], type: "shot-fired", payload: payload));
+        var first = _router.Route(IntegrationEventEnvelopeFactory.ForUser("user-a", "ships-placed"));
+        var second = _router.Route(IntegrationEventEnvelopeFactory.Create(targetIds: ["user-a"], type: "shot-fired", payload: payload));
 
         Assert.Equal(first.Sequence + 1, second.Sequence);
 
@@ -172,9 +172,9 @@ public class EventRouterTests
         Assert.Equal(7, items[1].Data.GetProperty("y").GetInt32());
     }
 
-    private EventConnection Connect(string playerId)
+    private EventConnection Connect(string userId)
     {
-        var connection = EventConnectionFactory.Create(playerId);
+        var connection = EventConnectionFactory.Create(userId);
         _registry.Register(connection);
         return connection;
     }

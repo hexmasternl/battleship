@@ -40,20 +40,20 @@ public class DaprIntegrationEventSenderTests
     [Fact]
     public async Task SendAsync_PublishesTheEnvelopeToIntegrationEventsOnPubSub()
     {
-        var playerId = Guid.NewGuid();
-        var created = IntegrationEventFactory.PlayerCreated(playerId);
+        var userId = Guid.NewGuid();
+        var created = IntegrationEventFactory.UserCreated(userId);
 
-        await CreateSender().SendAsync(created, EventAudience.Players(playerId));
+        await CreateSender().SendAsync(created, EventAudience.Users(userId));
 
         var envelope = Assert.Single(_published);
         Assert.True(Guid.TryParse(envelope.Id, out _));
-        Assert.Equal("player.created.v1", envelope.Type);
-        Assert.Equal(EventTarget.Player, envelope.Target);
-        Assert.Equal([playerId.ToString()], envelope.TargetIds);
+        Assert.Equal("user.created.v1", envelope.Type);
+        Assert.Equal(EventTarget.User, envelope.Target);
+        Assert.Equal([userId.ToString()], envelope.TargetIds);
         Assert.Equal(_timeProvider.GetUtcNow(), envelope.OccurredAt);
         Assert.Equal(TimeSpan.Zero, envelope.OccurredAt.Offset);
-        Assert.Equal(playerId, envelope.Payload.GetProperty("playerId").GetGuid());
-        Assert.Equal(created.PlayerName, envelope.Payload.GetProperty("playerName").GetString());
+        Assert.Equal(userId, envelope.Payload.GetProperty("userId").GetGuid());
+        Assert.Equal(created.DisplayName, envelope.Payload.GetProperty("displayName").GetString());
     }
 
     [Fact]
@@ -62,6 +62,20 @@ public class DaprIntegrationEventSenderTests
         await CreateSender().SendAsync(IntegrationEventFactory.GameStarted(), EventAudience.Everyone);
 
         Assert.Equal("game.started.v1", Assert.Single(_published).Type);
+    }
+
+    [Fact]
+    public async Task SendAsync_PlayerReady_CarriesItsTypeNameAndCamelCasePayload()
+    {
+        var ready = IntegrationEventFactory.PlayerReady();
+
+        await CreateSender().SendAsync(ready, EventAudience.Game(ready.PlayerId));
+
+        var envelope = Assert.Single(_published);
+        Assert.Equal("game.player-ready.v1", envelope.Type);
+        Assert.Equal(ready.GameId, envelope.Payload.GetProperty("gameId").GetGuid());
+        Assert.Equal(ready.GameCode, envelope.Payload.GetProperty("gameCode").GetString());
+        Assert.Equal(ready.PlayerId, envelope.Payload.GetProperty("playerId").GetGuid());
     }
 
     [Fact]
@@ -80,7 +94,7 @@ public class DaprIntegrationEventSenderTests
     [Fact]
     public async Task SendAsync_Everyone_TargetsAllWithoutIds()
     {
-        await CreateSender().SendAsync(IntegrationEventFactory.PlayerUpdated(), EventAudience.Everyone);
+        await CreateSender().SendAsync(IntegrationEventFactory.UserUpdated(), EventAudience.Everyone);
 
         var envelope = Assert.Single(_published);
         Assert.Equal(EventTarget.All, envelope.Target);
@@ -91,7 +105,7 @@ public class DaprIntegrationEventSenderTests
     public async Task SendAsync_SameEventTwice_GivesEachEnvelopeItsOwnId()
     {
         var sender = CreateSender();
-        var created = IntegrationEventFactory.PlayerCreated();
+        var created = IntegrationEventFactory.UserCreated();
 
         await sender.SendAsync(created, EventAudience.Everyone);
         await sender.SendAsync(created, EventAudience.Everyone);
@@ -101,12 +115,12 @@ public class DaprIntegrationEventSenderTests
     }
 
     [Fact]
-    public async Task SendAsync_EmptyPlayerAudience_ThrowsAndPublishesNothing()
+    public async Task SendAsync_EmptyUserAudience_ThrowsAndPublishesNothing()
     {
         var sender = CreateSender();
 
         await Assert.ThrowsAsync<ArgumentException>(
-            () => sender.SendAsync(IntegrationEventFactory.PlayerCreated(), EventAudience.Players()));
+            () => sender.SendAsync(IntegrationEventFactory.UserCreated(), EventAudience.Users()));
 
         _daprClient.VerifyNoOtherCalls();
     }

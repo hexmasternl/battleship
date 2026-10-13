@@ -6,8 +6,8 @@ import {
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, defer, switchMap, throwError } from 'rxjs';
-import { PlayerSession, SESSION_CLOCK, isExpired } from './player-session';
-import { CREATE_TOKENS_URL } from './players-api';
+import { UserSession, SESSION_CLOCK, isExpired } from './user-session';
+import { CREATE_TOKENS_URL } from './users-api';
 import { TokenStorage } from './token-storage';
 
 const API_PREFIX = '/api/';
@@ -32,11 +32,11 @@ function withBearer<T>(req: HttpRequest<T>, token: string | null): HttpRequest<T
 }
 
 /**
- * Authenticates backend requests (`/api/...`) with the player's access token. Registered before the
+ * Authenticates backend requests (`/api/...`) with the user's access token. Registered before the
  * gateway interceptor, which rewrites the `/api` prefix this one matches on.
  *
  * - An access token that is missing or expires within 30 seconds is renewed first through
- *   `PlayerSession.renew()` when a refresh token is stored; concurrent requests share one renewal.
+ *   `UserSession.renew()` when a refresh token is stored; concurrent requests share one renewal.
  * - A `401` on a request that carried a token renews once and repeats the request once, marked with
  *   `RETRIED_AFTER_RENEWAL`. A failed renewal or a second `401` reaches the caller as the error.
  * - The token endpoints and requests outside `/api/` pass through untouched.
@@ -44,7 +44,7 @@ function withBearer<T>(req: HttpRequest<T>, token: string | null): HttpRequest<T
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.startsWith(API_PREFIX) || isTokenEndpoint(req.url)) return next(req);
 
-  const session = inject(PlayerSession);
+  const session = inject(UserSession);
   const storage = inject(TokenStorage);
   const now = inject(SESSION_CLOCK);
 

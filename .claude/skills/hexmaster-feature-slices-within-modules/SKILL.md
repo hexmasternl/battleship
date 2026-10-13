@@ -1,6 +1,6 @@
 ---
 name: hexmaster-feature-slices-within-modules
-description: Applies when adding a feature to a module (Players, Games or a new one), creating a command, query, handler, request or response type, deciding whether a type belongs in the module project or its Abstractions project, or writing the endpoint that dispatches to a handler. Settles the Features namespace layout and the DTO boundary.
+description: Applies when adding a feature to a module (Users, Games or a new one), creating a command, query, handler, request or response type, deciding whether a type belongs in the module project or its Abstractions project, or writing the endpoint that dispatches to a handler. Settles the Features namespace layout and the DTO boundary.
 metadata:
   source: hexmaster-coding-standards
   document: feature-slices-within-modules
@@ -41,9 +41,9 @@ Required structure when adding a feature to a module.
 
 ## In this repository
 
-Modules are `src/Players/HexMaster.Battleship.Players{,.Abstractions,.Api,.Tests}` and the
+Modules are `src/Users/HexMaster.Battleship.Users{,.Abstractions,.Api,.Tests}` and the
 equivalent under `src/Games/`. New features go in `Features/{FeatureName}/` inside
-`HexMaster.Battleship.Players` or `HexMaster.Battleship.Games`; their payloads go in the matching
+`HexMaster.Battleship.Users` or `HexMaster.Battleship.Games`; their payloads go in the matching
 `.Abstractions/DataTransferObjects/`.
 
 ## Source

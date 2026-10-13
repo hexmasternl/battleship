@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HexMaster.Battleship.DevBot.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Aspire\HexMaster.Battleship.Aspire\HexMaster.Battleship.Aspire.ServiceDefaults\HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Games\HexMaster.Battleship.Games.Abstractions\HexMaster.Battleship.Games.Abstractions.csproj" />
+    <ProjectReference Include="..\..\Shared\HexMaster.Battleship.IntegrationEvents\HexMaster.Battleship.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\Users\HexMaster.Battleship.Users.Abstractions\HexMaster.Battleship.Users.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Aspire\HexMaster.Battleship.Aspire\HexMaster.Battleship.Aspire.ServiceDefaults\AspireConstants.cs" Link="AspireConstants.cs" />
+  </ItemGroup>
+
+</Project>

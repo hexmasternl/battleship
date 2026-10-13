@@ -33,7 +33,7 @@ metadata:
 
 There is no `src/Core/HexMaster.Battleship.Core` project yet. The first change that introduces
 handlers must create it and define the handler interfaces there, instead of declaring them
-inside `HexMaster.Battleship.Players` or `HexMaster.Battleship.Games`.
+inside `HexMaster.Battleship.Users` or `HexMaster.Battleship.Games`.
 
 ## Source
 

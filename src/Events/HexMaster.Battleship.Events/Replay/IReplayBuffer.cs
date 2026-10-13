@@ -8,7 +8,7 @@ public interface IReplayBuffer
 {
     void Append(long sequence, IntegrationEventEnvelope envelope, SseItem<JsonElement> item);
 
-    // The buffered events after lastEventId that target the player, in order. Empty when
+    // The buffered events after lastEventId that target the user, in order. Empty when
     // lastEventId has already fallen out of the buffer: the client then continues live only.
-    IReadOnlyList<SseItem<JsonElement>> Since(long lastEventId, string playerId);
+    IReadOnlyList<SseItem<JsonElement>> Since(long lastEventId, string userId);
 }

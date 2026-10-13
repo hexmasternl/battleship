@@ -45,11 +45,11 @@ public sealed class GatewayCorsExtensionsTests
     {
         await using var app = Build(Environments.Development, "http://localhost:4200");
         app.UseGatewayCors();
-        app.MapGet("/players/x", () => "ok");
+        app.MapGet("/users/x", () => "ok");
         await app.StartAsync();
 
         var client = app.GetTestClient();
-        using var request = new HttpRequestMessage(HttpMethod.Options, "/players/x");
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/users/x");
         request.Headers.Add("Origin", "http://localhost:4200");
         request.Headers.Add("Access-Control-Request-Method", "GET");
 

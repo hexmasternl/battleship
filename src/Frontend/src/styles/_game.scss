@@ -1,0 +1,121 @@
+// Design system game elements (docs/design-system.md, section 8): the board, its cells and the
+// ships with their placing states. Shared by every game screen, so they live here rather than in
+// one component's styles. Values come from the `--bs-*` tokens only.
+
+// The board is a 13 x 13 grid: a header row of column letters, a header column of row numbers
+// and 144 cells. Ships sit in an overlay grid with the same tracks.
+.bs-board,
+.bs-board__ships {
+  display: grid;
+  grid-template-columns: 1.4rem repeat(12, minmax(0, 1fr));
+  grid-template-rows: 1.4rem repeat(12, minmax(0, 1fr));
+  gap: 1px;
+  padding: var(--bs-space-1);
+}
+
+.bs-board {
+  position: relative;
+  // The cells follow the available width (about 23px at 360px) up to the 520px board. The padding
+  // and border count in that width, so the board never grows past its container.
+  box-sizing: border-box;
+  width: min(100%, 520px);
+  background: var(--bs-color-grid-line);
+  border: 1px solid var(--bs-color-border);
+  border-radius: var(--bs-radius-md);
+}
+
+.bs-board__ships {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bs-board__coord {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--bs-font-body);
+  font-size: var(--bs-text-xs);
+  color: var(--bs-color-coordinate);
+  text-transform: uppercase;
+  background: var(--bs-color-bg);
+}
+
+.bs-cell {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1;
+  background: var(--bs-color-ocean);
+}
+
+.bs-ship {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 0;
+  background: linear-gradient(180deg, var(--bs-color-secondary-600), var(--bs-color-secondary-800));
+  border: 1px solid var(--bs-color-ship-edge);
+  border-radius: var(--bs-radius-full);
+  transition: box-shadow var(--bs-duration-slow) var(--bs-ease-standard);
+
+  // The bridge mark, so the fleet reads as ships rather than bars.
+  &::after {
+    content: '';
+    position: absolute;
+    width: 30%;
+    height: 42%;
+    left: 35%;
+    top: 29%;
+    background: var(--bs-color-secondary-500);
+    border-radius: var(--bs-radius-sm);
+    opacity: 0.8;
+  }
+
+  &.is-valid {
+    border-color: var(--bs-color-placement-valid);
+    box-shadow: var(--bs-glow-primary);
+  }
+
+  &.is-invalid {
+    border-color: var(--bs-color-placement-invalid);
+    box-shadow: var(--bs-glow-danger);
+    background: var(--bs-color-secondary-800)
+      repeating-linear-gradient(
+        135deg,
+        transparent 0 4px,
+        color-mix(in srgb, var(--bs-color-danger) 45%, transparent) 4px 7px
+      );
+  }
+
+  &.is-placed {
+    background: var(--bs-color-ship);
+    animation: bs-ship-settle var(--bs-duration-slow) var(--bs-ease-standard);
+  }
+}
+
+.bs-ship--v::after {
+  width: 42%;
+  height: 30%;
+  left: 29%;
+  top: 35%;
+}
+
+// A placed ship glows for the slow duration and then rests without glow.
+@keyframes bs-ship-settle {
+  from {
+    box-shadow: var(--bs-glow-secondary);
+  }
+  to {
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-ship,
+  .bs-ship.is-placed {
+    animation: none;
+    transition-duration: var(--bs-duration-fast);
+  }
+}

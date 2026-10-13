@@ -11,18 +11,7 @@ The AppHost SHALL start a gateway resource named `gateway` on every local run. T
 
 #### Scenario: Gateway starts after the APIs
 - **WHEN** the AppHost is started locally
-- **THEN** the dashboard shows a `gateway` resource that waits for the Players and Games APIs and only then reaches the running state with an HTTP endpoint
-
-### Requirement: Requests are routed by module prefix without rewriting the path
-The gateway SHALL forward a request whose first path segment is a declared module prefix to that module's API. The path and query string SHALL arrive unchanged.
-
-#### Scenario: Players request reaches the Players API
-- **WHEN** a client sends `POST <gateway>/users/tokens/refresh?x=1`
-- **THEN** the Players API receives `POST /users/tokens/refresh?x=1`
-
-#### Scenario: Games request reaches the Games API
-- **WHEN** a client sends `GET <gateway>/games/anything`
-- **THEN** the Games API receives `GET /games/anything`
+- **THEN** the dashboard shows a `gateway` resource that waits for the Users and Games APIs and only then reaches the running state with an HTTP endpoint
 
 ### Requirement: Every module prefix is declared explicitly
 The gateway's routes SHALL come from one route table that lists, per module, its API and each of its public prefixes. A module with several prefixes SHALL list each one. No route SHALL exist for a prefix missing from the table.
@@ -40,7 +29,7 @@ Endpoints meant only for the platform or for diagnostics, such as Dapr subscript
 
 #### Scenario: Smoke endpoint is not reachable through the gateway
 - **WHEN** a client sends `POST <gateway>/smoke/publish`
-- **THEN** the gateway answers `404 Not Found` and the Players API does not receive the request
+- **THEN** the gateway answers `404 Not Found` and the Users API does not receive the request
 
 ### Requirement: Module APIs serve public endpoints under their prefix
 Each module API SHALL map its public endpoints under one of the prefixes declared for it in the route table.
@@ -48,3 +37,14 @@ Each module API SHALL map its public endpoints under one of the prefixes declare
 #### Scenario: Public endpoint lives under the module prefix
 - **WHEN** a module API exposes a public endpoint
 - **THEN** its route starts with a prefix the route table declares for that module
+
+### Requirement: Requests are routed by module prefix with the path unchanged
+The gateway SHALL forward a request whose first path segment is a declared module prefix to that module's API. The path and query string SHALL arrive unchanged.
+
+#### Scenario: Users request reaches the Users API
+- **WHEN** a client sends `POST <gateway>/users/tokens/refresh?x=1`
+- **THEN** the Users API receives `POST /users/tokens/refresh?x=1`
+
+#### Scenario: Games request reaches the Games API
+- **WHEN** a client sends `GET <gateway>/games/anything`
+- **THEN** the Games API receives `GET /games/anything`

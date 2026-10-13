@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+// Mobile first: title, turn line, tabs and grid stacked.
+.play {
+  display: grid;
+  gap: var(--bs-space-4);
+  min-width: 0;
+}
+
+.play__title {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-lg);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+}
+
+// Whose turn it is, in text; the caller's own turn in the accent colour.
+.play__turn {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-md);
+  letter-spacing: var(--bs-tracking-caps);
+  text-transform: uppercase;
+  color: var(--bs-color-text-dim);
+
+  &.is-mine {
+    color: var(--bs-color-accent);
+  }
+}
+
+.play__tabs {
+  min-width: 0;
+}
+
+.play__grid {
+  padding-block: var(--bs-space-4);
+}
+
+// While the confirm snackbar is open, room below the grid so it never covers the bottom rows.
+.play.has-target {
+  padding-block-end: calc(var(--bs-space-12) + var(--bs-space-6));
+}

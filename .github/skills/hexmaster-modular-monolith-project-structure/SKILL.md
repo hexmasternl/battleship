@@ -13,7 +13,7 @@ metadata:
 
 - `src/` top level: `App/` (frontend), `Aspire/` (AppHost and ServiceDefaults), `Core/`
   (shared CQRS interfaces, `IClock`, cross-cutting abstractions), one short-named folder per
-  bounded context (`Players/`, `Games/`), and optionally `Shared/` or `IntegrationMessages/`
+  bounded context (`Users/`, `Games/`), and optionally `Shared/` or `IntegrationMessages/`
   for cross-module event contracts.
 - Each module folder holds `Company.Product.{Module}` (domain, feature slices, handlers),
   `Company.Product.{Module}.Abstractions` (public contracts), `Company.Product.{Module}.Api`
@@ -39,7 +39,7 @@ metadata:
 
 ## In this repository
 
-Company.Product is `HexMaster.Battleship`. `src/Players/` and `src/Games/` follow the module
+Company.Product is `HexMaster.Battleship`. `src/Users/` and `src/Games/` follow the module
 layout; `src/Frontend/` plays the role of `App/`. `src/Core/HexMaster.Battleship.Core` does not
 exist yet and should be created when the first shared handler interface is needed.
 

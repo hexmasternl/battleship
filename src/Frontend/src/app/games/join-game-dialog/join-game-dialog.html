@@ -1,0 +1,54 @@
+<h2 mat-dialog-title class="join-game-dialog__title">Join an existing game</h2>
+<mat-dialog-content>
+  <p class="join-game-dialog__intro" [id]="introId">
+    Enter the eight-character code the other captain shared with you.
+  </p>
+
+  <div class="bs-field join-game-dialog__field">
+    <label class="bs-field__label" [for]="inputId">Game code</label>
+    <input
+      #codeInput
+      class="bs-input join-game-dialog__code"
+      type="text"
+      autocapitalize="characters"
+      autocomplete="off"
+      spellcheck="false"
+      [id]="inputId"
+      [value]="store.code()"
+      [readOnly]="store.isJoining()"
+      [attr.aria-invalid]="store.error() !== null"
+      [attr.aria-describedby]="store.error() !== null ? introId + ' ' + errorId : introId"
+      (input)="edit(codeInput)"
+      (keydown.enter)="join()"
+    />
+  </div>
+
+  <div class="join-game-dialog__status" role="status">
+    @if (store.isJoining()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Joining the game" />
+      <p class="join-game-dialog__progress-text">Joining the game...</p>
+    }
+  </div>
+
+  @if (store.errorMessage(); as message) {
+    <p class="bs-status bs-status--danger" role="alert" [id]="errorId">{{ message }}</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button
+    class="bs-btn bs-btn--ghost"
+    type="button"
+    mat-dialog-close
+    [disabled]="store.isJoining()"
+  >
+    Cancel
+  </button>
+  <button
+    class="bs-btn bs-btn--primary"
+    type="button"
+    [disabled]="!store.canJoin()"
+    (click)="join()"
+  >
+    Join game
+  </button>
+</mat-dialog-actions>

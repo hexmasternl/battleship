@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using HexMaster.Battleship.Games.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,12 +11,17 @@ builder.AddIntegrationEvents();
 
 builder.AddGatewayCors();
 
-// Validates the access tokens the Players service issues; endpoints opt in with RequireAuthorization().
+// Validates the access tokens the Users service issues; endpoints opt in with RequireAuthorization().
 builder.AddBattleshipAuthentication();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// The OpenAPI document and the Scalar API reference, both mapped in Development only.
+builder.AddApiReference();
 builder.Services.AddProblemDetails();
+
+// Enums travel as camelCase strings (ship kind "carrier", orientation "horizontal") and are read
+// case-insensitively. GameView keeps its state by name through its own converter.
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
 
 builder.Services.AddGamesModule();
 builder.AddGamesData();
@@ -26,11 +33,7 @@ app.UseGatewayCors();
 
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapApiReference();
 
 // Unwraps CloudEvents envelopes delivered by the Dapr sidecar before routing.
 // No HTTPS redirection: the sidecar talks to this API over plain HTTP on the loopback

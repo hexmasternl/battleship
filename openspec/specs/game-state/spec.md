@@ -24,15 +24,16 @@ A game SHALL have a player one and a player two. Each player SHALL carry:
 - a player id;
 - a player name;
 - whether the player has the turn;
-- the coordinates of the player's placed ships;
-- the coordinates of the shots the player has fired;
+- whether the player is ready;
+- the player's ship placements, each a ship kind, an origin cell and an orientation, at most one per kind;
+- the shots the player has fired, each a column, a row and whether it hit;
 - the instant of the player's last activity.
 
 Player one SHALL be the player who created the game. Player two SHALL be empty until a second player joins.
 
 #### Scenario: New game slots
 - **WHEN** player A creates a game
-- **THEN** player one is A with A's name, no ship coordinates and no shot coordinates, and player two is empty
+- **THEN** player one is A with A's name, not ready, no ship placements and no shots, and player two is empty
 
 ### Requirement: Only one player has the turn
 A game SHALL have at most one player whose has-turn flag is set. Only the game itself SHALL change the turn. Switching the turn SHALL clear the flag of the current player and set it for the other player in one operation. While a game is `New`, neither player SHALL have the turn.
@@ -70,3 +71,29 @@ The Games service SHALL persist each game in table storage as one record keyed b
 #### Scenario: Local storage needs no setup
 - **WHEN** the AppHost is started locally on a machine without Azure resources
 - **THEN** the Games service stores games in the local storage emulator that the AppHost runs, and the table is created on first use
+
+### Requirement: Stored games of an earlier document version are upgraded on read
+The stored game document SHALL carry a document version. Reading a document of an earlier version SHALL upgrade it to the current shape before the game is used: a player without a ready flag SHALL be not ready, and shot coordinates without a hit flag SHALL become misses. Ship coordinates of an earlier version SHALL be dropped, because no earlier version could place ships. The next write SHALL store the current version.
+
+#### Scenario: Version 1 game is read
+- **WHEN** a game stored with document version 1, state `New` and player one A is read
+- **THEN** the game has player one A, not ready, with no ship placements and no shots, and keeps its id, code, state and activity instants
+
+#### Scenario: Upgraded game is written back
+- **WHEN** a version 1 game is read, a ship is placed and the game is stored
+- **THEN** the stored record has the current document version and holds the placement
+
+### Requirement: Concurrent updates never overwrite each other
+The Games service SHALL store an update to a game only when the game has not been changed since it was read. When another update was stored in between, the service SHALL read the game again, re-apply the change to the fresh state and store it, with at most three attempts in total. When all attempts conflict, the request SHALL fail with `409 Conflict` without storing the change.
+
+#### Scenario: Conflicting update is re-applied
+- **WHEN** two requests read the same game and both store a change, and the second write finds the game changed by the first
+- **THEN** the second request reads the game again, applies its change to the state that contains the first change, and stores it, so both changes are kept
+
+#### Scenario: Re-applied change sees the new state
+- **WHEN** a change is re-applied after a conflict and the fresh state no longer allows it
+- **THEN** the change is refused with the same response the request would have received had it read the fresh state first
+
+#### Scenario: Retries are bounded
+- **WHEN** three attempts to store a change to one game all find the game changed
+- **THEN** the request fails with `409 Conflict` and the game holds only the changes that other requests stored

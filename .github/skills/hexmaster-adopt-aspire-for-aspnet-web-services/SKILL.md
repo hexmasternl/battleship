@@ -36,7 +36,7 @@ apps, Blazor, gRPC. Domain-only libraries, console tools and test harnesses may 
 ## In this repository
 
 `src/Aspire/HexMaster.Battleship.Aspire/` holds the AppHost and ServiceDefaults. The AppHost
-registers the Games and Players APIs. When a change adds a resource such as RabbitMQ, Dapr or a
+registers the Games and Users APIs. When a change adds a resource such as RabbitMQ, Dapr or a
 database, declare it in the AppHost and reference it from the API project rather than
 configuring it in appsettings only.
 

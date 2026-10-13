@@ -1,0 +1,35 @@
+<div class="bs-board play-board">
+  <div class="play-board__grid" role="table" aria-label="Your waters, columns A to L, rows 1 to 12">
+    <div class="play-board__row" role="row">
+      <span class="bs-board__coord" role="columnheader">
+        <span class="bs-visually-hidden">Row</span>
+      </span>
+      @for (column of columns; track column) {
+        <span class="bs-board__coord" role="columnheader">{{ column }}</span>
+      }
+    </div>
+    @for (row of rows(); track row.label) {
+      <div class="play-board__row" role="row">
+        <span class="bs-board__coord" role="rowheader">{{ row.label }}</span>
+        @for (item of row.cells; track item.key) {
+          <span class="bs-cell" role="cell" [attr.aria-label]="item.label">
+            @if (item.shot; as shot) {
+              <battle-shot-marker [hit]="shot.hit" [fresh]="item.fresh" />
+            }
+          </span>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="bs-board__ships" aria-hidden="true">
+    @for (placed of placedShips(); track placed.kind) {
+      <div
+        class="bs-ship fleet-grid__ship"
+        [class.bs-ship--v]="placed.vertical"
+        [style.grid-column]="placed.area.column"
+        [style.grid-row]="placed.area.row"
+      ></div>
+    }
+  </div>
+</div>

@@ -5,8 +5,8 @@ Defines how a known player creates a new game: the request the frontend sends, h
 
 ## Requirements
 
-### Requirement: Creating a game requires a known player
-The Games API SHALL expose `POST /games`, reachable from the frontend as `/api/games` through the gateway. It SHALL accept a request only with a valid access token issued by the Players service, and SHALL respond `401 Unauthorized` without creating anything when the token is missing, expired or invalid.
+### Requirement: Creating a game requires a known user
+The Games API SHALL expose `POST /games`, reachable from the frontend as `/api/games` through the gateway. It SHALL accept a request only with a valid access token issued by the Users service, and SHALL respond `401 Unauthorized` without creating anything when the token is missing, expired or invalid.
 
 #### Scenario: No token
 - **WHEN** `POST /games` is called without an `Authorization` header
@@ -17,11 +17,11 @@ The Games API SHALL expose `POST /games`, reachable from the frontend as `/api/g
 - **THEN** the response is `401 Unauthorized` and no game is stored
 
 ### Requirement: The creator is taken from the token
-The Games API SHALL take the creating player's id from the token subject and the player's name from the token name claim. It SHALL ignore any player identity sent in the request body.
+The Games API SHALL make the calling user player one of the new game: the player id SHALL be the user id from the token subject, and the player name SHALL be the user's display name from the token name claim. It SHALL ignore any player identity sent in the request body.
 
 #### Scenario: Identity from the token
-- **WHEN** player A with name `Admiral Nelson` calls `POST /games` with A's access token
-- **THEN** the new game's player one has A's id and the name `Admiral Nelson`
+- **WHEN** user A with display name `Admiral Nelson` calls `POST /games` with A's access token
+- **THEN** the new game's player one has player id equal to A's user id and the player name `Admiral Nelson`
 
 ### Requirement: A new game starts empty and waiting
 A created game SHALL be in state `New`, with the caller as player one, an empty player two, neither player having the turn, empty ship and shot coordinates, and last activity set to the creation instant.

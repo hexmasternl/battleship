@@ -1,0 +1,75 @@
+:host {
+  display: grid;
+  gap: var(--bs-space-3);
+}
+
+.players__title {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-md);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+}
+
+.players {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--bs-space-2);
+}
+
+.players__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bs-space-2);
+  padding: var(--bs-space-3) var(--bs-space-4);
+  background: var(--bs-color-surface);
+  border: 1px solid var(--bs-color-border);
+  border-radius: var(--bs-radius-md);
+  color: var(--bs-color-text);
+
+  // No second player yet: dim text on the page-level surface, where it still reaches AA.
+  &.is-absent {
+    color: var(--bs-color-text-dim);
+    border-style: dashed;
+  }
+}
+
+.players__name {
+  display: flex;
+  align-items: center;
+  gap: var(--bs-space-2);
+  font-family: var(--bs-font-heading);
+  color: var(--bs-color-text-strong);
+  overflow-wrap: anywhere;
+
+  .is-absent & {
+    color: var(--bs-color-text-dim);
+  }
+}
+
+.players__you {
+  padding: 0 var(--bs-space-2);
+  font-family: var(--bs-font-body);
+  font-size: var(--bs-text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-caps);
+  color: var(--bs-color-accent);
+  border: 1px solid var(--bs-color-accent);
+  border-radius: var(--bs-radius-full);
+}
+
+.players__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bs-space-1);
+  font-size: var(--bs-text-sm);
+
+  .is-ready & {
+    color: var(--bs-color-success);
+  }
+}

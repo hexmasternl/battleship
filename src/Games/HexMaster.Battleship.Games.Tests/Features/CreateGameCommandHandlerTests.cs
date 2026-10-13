@@ -107,7 +107,7 @@ public class CreateGameCommandHandlerTests
         var response = await _handler.Handle(new CreateGameCommand(playerId, "Admiral Nelson"), CancellationToken.None);
 
         Assert.Equal(new GameCreatedEvent(response.GameId, response.GameCode, playerId), sent);
-        Assert.Equal(EventTarget.Player, audience!.Value.Target);
+        Assert.Equal(EventTarget.User, audience!.Value.Target);
         Assert.Equal(new[] { playerId.ToString() }, audience.Value.TargetIds);
     }
 

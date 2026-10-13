@@ -20,7 +20,8 @@ public static class IntegrationEventEndpoints
 
     public static IEndpointRouteBuilder MapIntegrationEventEndpoints(this IEndpointRouteBuilder app, PubSubOptions pubSub)
     {
-        var group = app.MapGroup("/integration-events").WithTags("Integration events");
+        // Only the sidecar calls this, so it is left out of the OpenAPI document and the API reference.
+        var group = app.MapGroup("/integration-events").WithTags("Integration events").ExcludeFromDescription();
 
         group.MapPost("", Receive)
             .WithTopic(pubSub.Name, pubSub.Topic)

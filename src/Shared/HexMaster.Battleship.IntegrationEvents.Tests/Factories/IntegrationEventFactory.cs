@@ -1,6 +1,6 @@
 using Bogus;
 using HexMaster.Battleship.IntegrationEvents.Games;
-using HexMaster.Battleship.IntegrationEvents.Players;
+using HexMaster.Battleship.IntegrationEvents.Users;
 
 namespace HexMaster.Battleship.IntegrationEvents.Tests.Factories;
 
@@ -11,10 +11,10 @@ public static class IntegrationEventFactory
 
     public static string GameCode() => Faker.Random.String2(8, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789");
 
-    public static PlayerCreatedEvent PlayerCreated(Guid? playerId = null) =>
-        new(playerId ?? Guid.NewGuid(), Faker.Internet.UserName());
+    public static UserCreatedEvent UserCreated(Guid? userId = null) =>
+        new(userId ?? Guid.NewGuid(), Faker.Internet.UserName());
 
-    public static PlayerUpdatedEvent PlayerUpdated() =>
+    public static UserUpdatedEvent UserUpdated() =>
         new(Guid.NewGuid(), Faker.Internet.UserName());
 
     public static GameCreatedEvent GameCreated() =>
@@ -23,16 +23,24 @@ public static class IntegrationEventFactory
     public static GameJoinedEvent GameJoined() =>
         new(Guid.NewGuid(), GameCode(), Guid.NewGuid(), Faker.Internet.UserName());
 
+    public static GamePlayerReadyEvent PlayerReady() =>
+        new(Guid.NewGuid(), GameCode(), Guid.NewGuid());
+
     public static GameStartedEvent GameStarted() =>
         new(Guid.NewGuid(), GameCode(), Guid.NewGuid());
 
-    public static GameShotFiredEvent ShotFired(string? gameCode = null, Guid? playerId = null, int? column = null, int? row = null) =>
+    public static GameShotFiredEvent ShotFired(
+        string? gameCode = null, Guid? playerId = null, int? column = null, int? row = null, bool? hit = null) =>
         new(
             Guid.NewGuid(),
             gameCode ?? GameCode(),
             playerId ?? Guid.NewGuid(),
-            column ?? Faker.Random.Int(0, 9),
-            row ?? Faker.Random.Int(0, 9));
+            column ?? Faker.Random.Int(0, 11),
+            row ?? Faker.Random.Int(0, 11),
+            hit ?? Faker.Random.Bool());
+
+    public static GameTurnChangedEvent TurnChanged(string? gameCode = null, Guid? playerWithTurnId = null) =>
+        new(Guid.NewGuid(), gameCode ?? GameCode(), playerWithTurnId ?? Guid.NewGuid());
 
     public static GameEndedEvent GameEnded(GameEndReason? reason = null, Guid? winnerId = null) =>
         new(Guid.NewGuid(), GameCode(), reason ?? GameEndReason.Completed, winnerId);

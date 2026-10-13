@@ -26,12 +26,12 @@ public static class IntegrationEventEnvelopeValidator
 
         if (!Enum.IsDefined(envelope.Target))
         {
-            errors[nameof(envelope.Target)] = ["The target kind must be 'player', 'game' or 'all'."];
+            errors[nameof(envelope.Target)] = ["The target kind must be 'user', 'game' or 'all'."];
         }
-        else if (envelope.Target is EventTarget.Player or EventTarget.Game
+        else if (envelope.Target is EventTarget.User or EventTarget.Game
                  && (envelope.TargetIds is null || !envelope.TargetIds.Any(id => !string.IsNullOrWhiteSpace(id))))
         {
-            errors[nameof(envelope.TargetIds)] = ["A player or game event must list at least one target player id."];
+            errors[nameof(envelope.TargetIds)] = ["A user or game event must list at least one target user id."];
         }
 
         return errors;

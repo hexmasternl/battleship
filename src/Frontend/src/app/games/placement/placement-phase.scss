@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+// Mobile first: players, board and ships stacked in that order.
+.placement {
+  display: grid;
+  grid-template-areas:
+    'title'
+    'players'
+    'board'
+    'ships';
+  gap: var(--bs-space-5);
+  min-width: 0;
+}
+
+.placement__title {
+  grid-area: title;
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-lg);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+}
+
+.placement__players {
+  grid-area: players;
+}
+
+.placement__board {
+  grid-area: board;
+  min-width: 0;
+  display: grid;
+  gap: var(--bs-space-3);
+  align-content: start;
+}
+
+// The line under the board naming the active ship.
+.placement__selection {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: var(--bs-space-2);
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text);
+}
+
+.placement__ready {
+  justify-self: start;
+}
+
+.placement__hint {
+  margin: 0;
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text-dim);
+}
+
+.placement__ships {
+  grid-area: ships;
+  display: grid;
+  gap: var(--bs-space-4);
+  align-content: start;
+}
+
+// --bs-bp-md (768px): the board on the left over both rows, players top right, ships bottom right.
+@media (min-width: 768px) {
+  .placement {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'title title'
+      'board players'
+      'board ships';
+    column-gap: var(--bs-space-8);
+  }
+}

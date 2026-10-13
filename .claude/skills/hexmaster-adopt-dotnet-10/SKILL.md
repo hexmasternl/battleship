@@ -25,7 +25,7 @@ metadata:
 
 ## In this repository
 
-All projects under `src/` (Players, Games, Aspire AppHost and ServiceDefaults, test projects)
+All projects under `src/` (Users, Games, Aspire AppHost and ServiceDefaults, test projects)
 already target `net10.0`. Keep new module, data, integration and test projects on the same
 target.
 

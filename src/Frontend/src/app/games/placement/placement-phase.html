@@ -1,0 +1,67 @@
+<section class="placement" aria-labelledby="placement-title">
+  <h2 id="placement-title" class="placement__title">Place your fleet</h2>
+
+  <battle-players-panel
+    class="placement__players"
+    [me]="store.me()"
+    [opponent]="store.opponent()"
+  />
+
+  <div class="placement__board">
+    <battle-placement-board
+      [ships]="store.placedShips()"
+      [activeKind]="store.activeKind()"
+      [preview]="store.preview()"
+      [readOnly]="!store.canEdit()"
+      (cellActivated)="store.cellActivated($event)"
+      (shipActivated)="store.activate($event)"
+      (cleared)="store.clearActive()"
+      (shipDragStarted)="store.dragStart($event)"
+      (dragMoved)="dragMoved($event)"
+      (dragEnded)="store.dragEnd()"
+      (rotateRequested)="store.rotateActive()"
+    />
+
+    <div class="placement__selection" aria-live="polite">
+      @if (store.activeShip(); as active) {
+        @if (active.placed) {
+          <span
+            >{{ active.name }} selected. Tap a cell to move it, or the rotate icon to turn it.</span
+          >
+        } @else {
+          <span>{{ active.name }} selected. Tap a cell to place it.</span>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="placement__ships">
+    <battle-ship-list
+      [ships]="store.unplacedFleet()"
+      [activeKind]="store.activeKind()"
+      [readOnly]="!store.canEdit()"
+      (shipActivated)="store.activate($event)"
+      (shipDragStarted)="store.dragStart($event)"
+      (dragMoved)="dragMoved($event)"
+      (dragEnded)="store.dragEnd()"
+    />
+
+    @if (store.isReady()) {
+      <p class="bs-status bs-status--info" role="status">
+        Your fleet is ready. Waiting for your opponent&hellip;
+      </p>
+    } @else {
+      <button
+        type="button"
+        class="bs-btn bs-btn--primary placement__ready"
+        [disabled]="!store.canReady()"
+        (click)="store.markReady()"
+      >
+        {{ store.readying() ? 'Declaring ready…' : 'Ready' }}
+      </button>
+      @if (store.unplacedFleet().length > 0) {
+        <p class="placement__hint">Place all five ships to declare ready.</p>
+      }
+    }
+  </div>
+</section>

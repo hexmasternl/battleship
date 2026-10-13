@@ -11,12 +11,13 @@ public class IntegrationEventSerializationTests
 
     public static TheoryData<object, string[]> PayloadShapes() => new()
     {
-        { IntegrationEventFactory.PlayerCreated(), ["playerId", "playerName"] },
-        { IntegrationEventFactory.PlayerUpdated(), ["playerId", "playerName"] },
+        { IntegrationEventFactory.UserCreated(), ["userId", "displayName"] },
+        { IntegrationEventFactory.UserUpdated(), ["userId", "displayName"] },
         { IntegrationEventFactory.GameCreated(), ["gameId", "gameCode", "playerId"] },
         { IntegrationEventFactory.GameJoined(), ["gameId", "gameCode", "playerId", "playerName"] },
         { IntegrationEventFactory.GameStarted(), ["gameId", "gameCode", "playerWithTurnId"] },
-        { IntegrationEventFactory.ShotFired(), ["gameId", "gameCode", "playerId", "column", "row"] },
+        { IntegrationEventFactory.ShotFired(), ["gameId", "gameCode", "playerId", "column", "row", "hit"] },
+        { IntegrationEventFactory.TurnChanged(), ["gameId", "gameCode", "playerWithTurnId"] },
         { IntegrationEventFactory.GameEnded(winnerId: Guid.NewGuid()), ["gameId", "gameCode", "reason", "winnerId"] }
     };
 
@@ -32,10 +33,10 @@ public class IntegrationEventSerializationTests
     }
 
     [Fact]
-    public void Serialize_ShotFired_CarriesGameCodePlayerColumnAndRow()
+    public void Serialize_ShotFired_CarriesGameCodePlayerColumnRowAndHit()
     {
         var playerId = Guid.NewGuid();
-        var shot = IntegrationEventFactory.ShotFired("ABCD1234", playerId, column: 3, row: 7);
+        var shot = IntegrationEventFactory.ShotFired("ABCD1234", playerId, column: 3, row: 7, hit: true);
 
         var payload = JsonSerializer.SerializeToElement(shot, Web);
 
@@ -44,6 +45,21 @@ public class IntegrationEventSerializationTests
         Assert.Equal(playerId, payload.GetProperty("playerId").GetGuid());
         Assert.Equal(3, payload.GetProperty("column").GetInt32());
         Assert.Equal(7, payload.GetProperty("row").GetInt32());
+        Assert.True(payload.GetProperty("hit").GetBoolean());
+    }
+
+    [Fact]
+    public void Serialize_TurnChanged_CarriesGameCodeAndPlayerWithTurn()
+    {
+        var playerWithTurnId = Guid.NewGuid();
+        var turn = IntegrationEventFactory.TurnChanged("ABCD1234", playerWithTurnId);
+
+        var payload = JsonSerializer.SerializeToElement(turn, Web);
+
+        Assert.Equal(turn.GameId, payload.GetProperty("gameId").GetGuid());
+        Assert.Equal("ABCD1234", payload.GetProperty("gameCode").GetString());
+        Assert.Equal(playerWithTurnId, payload.GetProperty("playerWithTurnId").GetGuid());
+        Assert.Equal("game.turn-changed.v1", GameTurnChangedEvent.EventType);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using CommunityToolkit.Aspire.Hosting.Dapr;
 using HexMaster.Battleship.Aspire;
 using HexMaster.Battleship.Aspire.AppHost;
+using HexMaster.Battleship.Aspire.AppHost.DevBot;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -53,18 +54,18 @@ var pubsub = builder.AddDaprComponent(AspireConstants.PubSubName, "pubsub.rabbit
     .WithMetadata("deletedWhenUnused", "false")
     .WithMetadata("requeueInFailure", "true");
 
-// Table storage for the Players service (users, refresh tokens) and the Games service (games).
+// Table storage for the Users service (users, refresh tokens) and the Games service (games).
 // Locally this is the Azurite emulator, so no Azure subscription is needed; the persistent
 // lifetime keeps users and games across AppHost restarts.
 var storage = builder.AddAzureStorage("storage")
     .RunAsEmulator(emulator => emulator.WithLifetime(ContainerLifetime.Persistent));
 var tables = storage.AddTables("tables");
 
-// The key the Players service signs access tokens with and every API validates them with. Generated
-// on first run and persisted in the AppHost's user secrets (Parameters:players-signing-key), so
+// The key the Users service signs access tokens with and every API validates them with. Generated
+// on first run and persisted in the AppHost's user secrets (Parameters:users-signing-key), so
 // tokens stay valid across restarts; set that secret to choose a key yourself.
 var signingKey = builder.AddParameter(
-    "players-signing-key",
+    "users-signing-key",
     new GenerateParameterDefault { MinLength = 48, Special = false },
     secret: true,
     persist: true);
@@ -77,16 +78,18 @@ var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(Gatew
         .WithOptions(new DaprSidecarOptions { AppId = "games-api", Config = daprConfig })
         .WithReference(pubsub))
     .WithReference(tables)
-    .WithEnvironment("Players__Tokens__SigningKey", signingKey)
+    .WithEnvironment("Users__Tokens__SigningKey", signingKey)
+    .WithApiReferenceUrl()
     .WaitFor(messaging)
     .WaitFor(tables);
 
-var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(GatewayRoutes.PlayersApi)
+var usersApi = builder.AddProject<Projects.HexMaster_Battleship_Users_Api>(GatewayRoutes.UsersApi)
     .WithDaprSidecar(sidecar => sidecar
-        .WithOptions(new DaprSidecarOptions { AppId = "players-api", Config = daprConfig })
+        .WithOptions(new DaprSidecarOptions { AppId = "users-api", Config = daprConfig })
         .WithReference(pubsub))
     .WithReference(tables)
-    .WithEnvironment("Players__Tokens__SigningKey", signingKey)
+    .WithEnvironment("Users__Tokens__SigningKey", signingKey)
+    .WithApiReferenceUrl()
     .WaitFor(messaging)
     .WaitFor(tables);
 
@@ -96,6 +99,7 @@ var eventsApi = builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("he
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "events-api", Config = daprConfig })
         .WithReference(pubsub))
+    .WithApiReferenceUrl()
     .WaitFor(messaging);
 
 // The gateway is the single backend endpoint for the frontend. It routes each declared module
@@ -104,7 +108,7 @@ var eventsApi = builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("he
 Dictionary<string, IResourceBuilder<ProjectResource>> moduleApis = new()
 {
     [GatewayRoutes.GamesApi] = gamesApi,
-    [GatewayRoutes.PlayersApi] = playersApi,
+    [GatewayRoutes.UsersApi] = usersApi,
 };
 
 GatewayRoutes.Validate(GatewayRoutes.Modules);
@@ -150,5 +154,16 @@ foreach (var api in moduleApis.Values)
 eventsApi
     .WithEnvironment("Events__AllowedOrigins__0", frontend.GetEndpoint("http"))
     .WithEnvironment("Events__AllowedOrigins__1", "http://localhost:4200");
+
+// A bot opponent for local runs, so one developer can play a whole game alone. It plays through the
+// gateway as its own user and joins a new game nobody else joined within the grace period. Its
+// commands (set intelligence, auto-join, join game) are on the devbot resource in the dashboard.
+if (builder.ExecutionContext.IsRunMode)
+{
+    builder.AddBattleshipBot("devbot", gateway, pubsub, daprConfig)
+        .WithIntelligence("HuntAndTarget")
+        .WithJoinGracePeriod(TimeSpan.FromSeconds(10))
+        .WithShotDelay(TimeSpan.FromSeconds(1));
+}
 
 builder.Build().Run();

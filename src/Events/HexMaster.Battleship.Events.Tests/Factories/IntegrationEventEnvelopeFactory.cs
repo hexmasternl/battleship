@@ -11,7 +11,7 @@ public static class IntegrationEventEnvelopeFactory
     private static readonly Faker Faker = new();
 
     public static IntegrationEventEnvelope Create(
-        EventTarget target = EventTarget.Player,
+        EventTarget target = EventTarget.User,
         IReadOnlyList<string>? targetIds = null,
         string? type = null,
         string? id = null,
@@ -24,11 +24,11 @@ public static class IntegrationEventEnvelopeFactory
             Faker.Date.RecentOffset(),
             payload ?? JsonSerializer.SerializeToElement(new { x = Faker.Random.Int(0, 9), y = Faker.Random.Int(0, 9) }));
 
-    public static IntegrationEventEnvelope ForPlayer(string playerId, string? type = null) =>
-        Create(EventTarget.Player, [playerId], type);
+    public static IntegrationEventEnvelope ForUser(string userId, string? type = null) =>
+        Create(EventTarget.User, [userId], type);
 
-    public static IntegrationEventEnvelope ForGame(params string[] playerIds) =>
-        Create(EventTarget.Game, playerIds);
+    public static IntegrationEventEnvelope ForGame(params string[] userIds) =>
+        Create(EventTarget.Game, userIds);
 
     public static IntegrationEventEnvelope ForAll() => Create(EventTarget.All, []);
 }
