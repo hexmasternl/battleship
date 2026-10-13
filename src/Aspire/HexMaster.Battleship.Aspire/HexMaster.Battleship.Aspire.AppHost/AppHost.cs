@@ -154,4 +154,11 @@ eventsApi
     .WithEnvironment("Events__AllowedOrigins__0", frontend.GetEndpoint("http"))
     .WithEnvironment("Events__AllowedOrigins__1", "http://localhost:4200");
 
+if (builder.ExecutionContext.IsRunMode)
+{
+    HexMaster.Battleship.Aspire.AppHost.DevBot.BattleshipBotSpike.AddBattleshipBotSpike(builder, "devbot", pubsub, daprConfig)
+        .WithReference(gateway)
+        .WaitFor(gateway);
+}
+
 builder.Build().Run();
