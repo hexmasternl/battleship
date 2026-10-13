@@ -2,7 +2,7 @@
 
 ## 1. Gateway route ownership skill
 
-- [ ] 1.1 Write `.claude/skills/yarp-gateway-routes/SKILL.md` following design.md (triggers; detection of new `*.Api` projects and new public prefixes; a route proposal listing module, API resource and every prefix one by one; explicit user approval before any prefix is added, renamed or removed; never route internal endpoints; edit `GatewayRoutes` and run its tests after approval). Verify the frontmatter description names the triggers.
+- [x] 1.1 Write `.claude/skills/yarp-gateway-routes/SKILL.md` following design.md (triggers; detection of new `*.Api` projects and new public prefixes; a route proposal listing module, API resource and every prefix one by one; explicit user approval before any prefix is added, renamed or removed; never route internal endpoints; edit `GatewayRoutes` and run its tests after approval). Verify the frontmatter description names the triggers.
 - [ ] 1.2 Mirror the skill to `.github/skills/yarp-gateway-routes/SKILL.md`, wording tool-specific steps conditionally, and verify with the `sync-agent-config` skill's `check-sync.ps1` reporting no drift.
 - [ ] 1.3 Add a line to `CLAUDE.md` saying that gateway routes are owned by the `yarp-gateway-routes` skill, and verify the Copilot instructions counterpart (if any) carries the same line per the sync check.
 
