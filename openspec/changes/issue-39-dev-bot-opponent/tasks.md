@@ -12,7 +12,7 @@
 - [x] 2.3 Add `HuntWithParity`. Verify with tests that hunting shots satisfy `(column + row) % 2 == 0`, that the strategy falls back when parity cells run out, and that target mode is the same as `HuntAndTarget`.
 - [x] 2.4 Add `ProbabilityDensity` (placement counting with hit weighting). Verify with tests that on an empty board it prefers centre cells over corners, that it never picks a shot cell, and that after a hit it picks an adjacent cell.
 - [x] 2.5 Add `RandomFleet.Create(Random)`. Verify with tests that 1,000 seeded fleets all lie on the 12×12 board, never overlap, contain exactly the five `Fleet` kinds, and that two seeds give different fleets.
-- [ ] 2.6 Add a strategy test that plays each preset to completion against 200 seeded random fleets and asserts the average shots to win order as Random > HuntAndTarget > HuntWithParity ≥ ProbabilityDensity. Verify that the test passes in under 10 seconds.
+- [x] 2.6 Add a strategy test that plays each preset to completion against 200 seeded random fleets and asserts the average shots to win order as Random > HuntAndTarget > HuntWithParity ≥ ProbabilityDensity. Verify that the test passes in under 10 seconds.
 
 ## 3. Identity and games client
 
