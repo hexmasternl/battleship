@@ -24,7 +24,7 @@
 
 ## 6. Get game slice and endpoint
 
-- [ ] 6.1 Add the `GameView`, `PlayerView`, `OpponentView` (no ships property), `ShipView` and `ShotView` DTOs, `GameViewMapper.ToView(game, callerId)`, and `GetGameQuery`/`GetGameQueryHandler` with the `games.get` activity (design D4, D5); verify unit tests for the mapper (creator alone with null opponent, player two's view, opponent ships absent) and the handler (not found, not a player, success, no write) pass
+- [x] 6.1 Add the `GameView`, `PlayerView`, `OpponentView` (no ships property), `ShipView` and `ShotView` DTOs, `GameViewMapper.ToView(game, callerId)`, and `GetGameQuery`/`GetGameQueryHandler` with the `games.get` activity (design D4, D5); verify unit tests for the mapper (creator alone with null opponent, player two's view, opponent ships absent) and the handler (not found, not a player, success, no write) pass
 - [ ] 6.2 Add `GET /games/{code}` to `GamesEndpoints` with camelCase string enums on the Games API JSON options; verify `WebApplicationFactory` tests for `401`, `404` unknown, malformed and not-a-player, lower-case code, and a `200` body whose JSON contains none of the opponent's ships pass
 
 ## 7. Place ship slice and endpoint
