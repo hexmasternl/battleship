@@ -72,6 +72,8 @@ See proposal.md for motivation. Observed state:
 
 **Smoke endpoints follow the endpoint-organisation standard.** They live in `Endpoints/SmokeEndpoints.cs` of each API as a `MapSmokeEndpoints()` group extension, mapped only when `IsDevelopment()`. The Games handler is a minimal-API lambda carrying `[Topic("pubsub", "smoke")]`, which `MapSubscribeHandler()` turns into the subscription the sidecar reads.
 
+**Integration test waits for the subscription, not only for health (task 4.1).** A sidecar resource is healthy as soon as `dapr run` is up, but it registers the app's topic subscriptions with RabbitMQ a second or two later. The first run of the test published before the `games-api-smoke` queue existed and the exchange dropped the event. The test therefore polls the Games sidecar's `GET /v1.0/metadata` until `subscriptions` lists `smoke` on `pubsub` before it publishes. Real producers do not need this: by the time a game event is published, every subscriber sidecar has long been running, and durable queues (`durable: true`, `deletedWhenUnused: false`) keep messages for subscribers that restart.
+
 **Verified `Aspire.Hosting.RabbitMQ` API (13.6.1).** `AddRabbitMQ(name, IResourceBuilder<ParameterResource>? userName = null, IResourceBuilder<ParameterResource>? password = null, int? port = null)`, `WithManagementPlugin(int? port = null)`, and on the resource `PrimaryEndpoint`, `ManagementEndpoint`, `UserNameParameter`, `PasswordParameter`, `ConnectionStringExpression`.
 
 ## Open Questions
