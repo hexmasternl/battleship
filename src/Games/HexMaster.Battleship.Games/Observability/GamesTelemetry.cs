@@ -16,4 +16,9 @@ public static class GamesTelemetry
     public const string GameCodeAttribute = "game.code";
     public const string PlayerIdAttribute = "player.id";
     public const string CodeAttemptsAttribute = "game.code_attempts";
+    public const string JoinOutcomeAttribute = "game.join.outcome";
+    public const string UpdateAttemptAttribute = "game.update.attempt";
+
+    // Span events.
+    public const string UpdateConflictEvent = "game.update.conflict";
 }
