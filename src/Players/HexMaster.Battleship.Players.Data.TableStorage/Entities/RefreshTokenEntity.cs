@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace HexMaster.Battleship.Players.Data.Entities;
+namespace HexMaster.Battleship.Players.Data.TableStorage.Entities;
 
 // A row of the refreshtokens table, keyed by the Base64Url SHA-256 hash of the token value. The
 // value itself is never stored.

@@ -14,7 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\HexMaster.Battleship.Aspire\HexMaster.Battleship.Aspire.ServiceDefaults\HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HexMaster.Battleship.Players\HexMaster.Battleship.Players.csproj" />
-    <ProjectReference Include="..\HexMaster.Battleship.Players.Data\HexMaster.Battleship.Players.Data.csproj" />
+    <ProjectReference Include="..\HexMaster.Battleship.Players.Data.TableStorage\HexMaster.Battleship.Players.Data.TableStorage.csproj" />
   </ItemGroup>
 
 </Project>

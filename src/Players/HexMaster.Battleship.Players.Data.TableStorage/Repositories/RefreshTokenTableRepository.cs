@@ -4,10 +4,10 @@ using Azure.Data.Tables;
 using HexMaster.Battleship.Core.DomainModels;
 using HexMaster.Battleship.Players.Abstractions.DomainModels;
 using HexMaster.Battleship.Players.Abstractions.Repositories;
-using HexMaster.Battleship.Players.Data.Entities;
+using HexMaster.Battleship.Players.Data.TableStorage.Entities;
 using HexMaster.Battleship.Players.DomainModels;
 
-namespace HexMaster.Battleship.Players.Data.Repositories;
+namespace HexMaster.Battleship.Players.Data.TableStorage.Repositories;
 
 public sealed class RefreshTokenTableRepository(TableServiceClient service)
     : TableRepository(service, TableName), IRefreshTokenRepository

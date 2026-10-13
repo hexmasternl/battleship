@@ -1,6 +1,6 @@
 using HexMaster.Battleship.Core.DomainModels;
 using HexMaster.Battleship.Players.Abstractions.Repositories;
-using HexMaster.Battleship.Players.Data.Repositories;
+using HexMaster.Battleship.Players.Data.TableStorage.Repositories;
 using HexMaster.Battleship.Players.DomainModels;
 using HexMaster.Battleship.Players.Services;
 using HexMaster.Battleship.Players.Tests.Factories;
