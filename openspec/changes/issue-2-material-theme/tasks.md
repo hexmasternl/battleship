@@ -2,7 +2,7 @@
 
 ## 1. Design system tokens in the frontend
 
-- [ ] 1.1 Create `src/Frontend/src/styles/_tokens.scss` with the `--bs-*` token block copied verbatim from `docs/design-system.md` onto `:root`, `@use` it from `src/styles.scss`, and verify a throwaway Node script that extracts name/value pairs from both files reports no difference
+- [x] 1.1 Create `src/Frontend/src/styles/_tokens.scss` with the `--bs-*` token block copied verbatim from `docs/design-system.md` onto `:root`, `@use` it from `src/styles.scss`, and verify a throwaway Node script that extracts name/value pairs from both files reports no difference
 - [ ] 1.2 Record the token-diff command in a "Theming" section of `src/Frontend/README.md` and verify it runs as written from the repository root
 
 ## 2. Material palettes and theme
