@@ -82,7 +82,7 @@ var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(Gatew
     .WaitFor(messaging)
     .WaitFor(tables);
 
-var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(GatewayRoutes.PlayersApi)
+var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Users_Api>(GatewayRoutes.PlayersApi)
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "players-api", Config = daprConfig })
         .WithReference(pubsub))

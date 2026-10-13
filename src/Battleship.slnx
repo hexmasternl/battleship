@@ -21,12 +21,12 @@
     <Project Path="Games/HexMaster.Battleship.Games.Tests/HexMaster.Battleship.Games.Tests.csproj" Id="3465d902-1fc1-4fcb-b5a7-0908ab415ec1" />
     <Project Path="Games/HexMaster.Battleship.Games/HexMaster.Battleship.Games.csproj" Id="5a32d682-5bae-45db-adf8-6ba89b184996" />
   </Folder>
-  <Folder Name="/Players/">
-    <Project Path="Players/HexMaster.Battleship.Players.Abstractions/HexMaster.Battleship.Players.Abstractions.csproj" Id="b8806fa1-7a45-4f65-b6c0-b4f8ded181a4" />
-    <Project Path="Players/HexMaster.Battleship.Players.Api/HexMaster.Battleship.Players.Api.csproj" />
-    <Project Path="Players/HexMaster.Battleship.Players.Data.TableStorage/HexMaster.Battleship.Players.Data.TableStorage.csproj" />
-    <Project Path="Players/HexMaster.Battleship.Players.Tests/HexMaster.Battleship.Players.Tests.csproj" Id="17539180-ad5f-4817-81bd-b9c9ca795be3" />
-    <Project Path="Players/HexMaster.Battleship.Players/HexMaster.Battleship.Players.csproj" Id="1dce1f8c-299d-4918-a9df-a55c2411152e" />
+  <Folder Name="/Users/">
+    <Project Path="Users/HexMaster.Battleship.Users.Abstractions/HexMaster.Battleship.Users.Abstractions.csproj" Id="b8806fa1-7a45-4f65-b6c0-b4f8ded181a4" />
+    <Project Path="Users/HexMaster.Battleship.Users.Api/HexMaster.Battleship.Users.Api.csproj" />
+    <Project Path="Users/HexMaster.Battleship.Users.Data.TableStorage/HexMaster.Battleship.Users.Data.TableStorage.csproj" />
+    <Project Path="Users/HexMaster.Battleship.Users.Tests/HexMaster.Battleship.Users.Tests.csproj" Id="17539180-ad5f-4817-81bd-b9c9ca795be3" />
+    <Project Path="Users/HexMaster.Battleship.Users/HexMaster.Battleship.Users.csproj" Id="1dce1f8c-299d-4918-a9df-a55c2411152e" />
   </Folder>
   <Folder Name="/Shared/">
     <Project Path="Shared/HexMaster.Battleship.IntegrationEvents.Tests/HexMaster.Battleship.IntegrationEvents.Tests.csproj" />

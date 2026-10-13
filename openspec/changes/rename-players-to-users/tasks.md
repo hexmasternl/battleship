@@ -6,7 +6,7 @@
 
 ## 2. Users module
 
-- [ ] 2.1 `git mv` `src/Players` to `src/Users` and every `HexMaster.Battleship.Players*` project directory and `.csproj` to `HexMaster.Battleship.Users*` (design D1); rename namespaces, `AddUsersModule`, `UsersDataRegistration.AddUsersData`, `UsersEndpoints.MapUsersEndpoints`, `UsersApiFactory`, the `.http` file, and fix `ProjectReference`, `InternalsVisibleTo` and `Battleship.slnx` (keeping project `Id`s); verify the solution builds and `HexMaster.Battleship.Users.Tests` passes with the same test count as before
+- [x] 2.1 `git mv` `src/Players` to `src/Users` and every `HexMaster.Battleship.Players*` project directory and `.csproj` to `HexMaster.Battleship.Users*` (design D1); rename namespaces, `AddUsersModule`, `UsersDataRegistration.AddUsersData`, `UsersEndpoints.MapUsersEndpoints`, `UsersApiFactory`, the `.http` file, and fix `ProjectReference`, `InternalsVisibleTo` and `Battleship.slnx` (keeping project `Id`s); verify the solution builds and `HexMaster.Battleship.Users.Tests` passes with the same test count as before
 - [ ] 2.2 Change `TokenOptions` and `BearerTokenValidationOptions` to section `Users:Tokens` and default issuer `battleship-users` (design D2); update the Users, Games and ServiceDefaults tests' configuration keys and test issuer; add tests that startup names `Users:Tokens:SigningKey` and that a token with issuer `battleship-players` is refused; verify all .NET tests pass
 
 ## 3. AppHost and gateway
