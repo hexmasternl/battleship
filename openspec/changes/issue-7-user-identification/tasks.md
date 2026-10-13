@@ -40,5 +40,5 @@
 
 ## 7. Documentation and verification
 
-- [ ] 7.1 Document in `README.md` how to run locally (container runtime, `aspire run`, Azurite), how to set the signing key with `dotnet user-secrets set "Players:Tokens:SigningKey" ...` for the Players API and the AppHost parameter, and the token lifetimes, and verify the documented commands run as written
+- [x] 7.1 Document in `README.md` how to run locally (container runtime, `aspire run`, Azurite), how to set the signing key with `dotnet user-secrets set "Players:Tokens:SigningKey" ...` for the Players API and the AppHost parameter, and the token lifetimes, and verify the documented commands run as written
 - [ ] 7.2 Run `dotnet build src/Battleship.slnx` and `dotnet test src/Battleship.slnx --collect:"XPlat Code Coverage"` and verify every test passes and line coverage of `HexMaster.Battleship.Players` is at least 80%; run `npm run build` and `npm test` in `src/Frontend` and verify both pass

@@ -39,6 +39,77 @@ If the AppHost stops immediately with a message about Dapr, the Dapr CLI is not 
 To stop everything, press `Ctrl+C` in the terminal that runs `aspire run`, or run
 `aspire stop` from the same folder.
 
+## Player identity
+
+Visitors never register. The Players API gives each visitor an anonymous user with a signed
+access token and an opaque refresh token. Every Players endpoint is under `/users`, which is
+also the Players prefix on the gateway:
+
+| Endpoint | Auth | Returns |
+|---|---|---|
+| `POST /users/tokens` | anonymous | `201` with a new user's token pair; the body `{ "displayName": "..." }` is optional (a nautical call sign is generated without it) |
+| `POST /users/tokens/refresh` | anonymous | `200` with a new pair for `{ "refreshToken": "..." }`; the presented token is used up. `401` for an unknown, expired, used or revoked token |
+| `GET /users/me` | bearer access token | `200` with the caller's `id` and `displayName` |
+
+The frontend calls them as `/api/users/...`; its interceptor sends them to the gateway.
+`src/Players/HexMaster.Battleship.Players.Api/HexMaster.Battleship.Players.Api.http` has
+ready-made requests.
+
+### Storage: Azurite
+
+Users and refresh tokens live in Azure Table Storage (tables `users` and `refreshtokens`,
+created on first use). Locally the AppHost runs the `storage` resource as the
+[Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) emulator
+container, so `aspire run` needs Docker but no Azure account. The container has a persistent
+lifetime: it keeps running, and keeps its data, when the AppHost stops. To start from empty
+tables, remove it (`docker ps --filter ancestor=mcr.microsoft.com/azure-storage/azurite`
+shows its `storage-...` name, then `docker rm -f <name>`).
+
+### Signing key
+
+Access tokens are HS256 JWTs signed with `Players:Tokens:SigningKey`, a string of at least 32
+bytes. Every API that validates tokens reads the same key, and an API that has no key, or a
+shorter one, refuses to start and names the missing setting.
+
+Under `aspire run` the key is the AppHost parameter `players-signing-key`. It is generated on
+the first run and stored in the AppHost's user secrets, so tokens stay valid across restarts.
+To choose the key yourself:
+
+```shell
+dotnet user-secrets set "Parameters:players-signing-key" "<at least 32 characters>" --project src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost
+```
+
+To run the Players API on its own (`dotnet run` without the AppHost), give it the key and a
+table storage connection through its own user secrets, with Azurite listening on its default
+ports:
+
+```shell
+docker run -d -p 10002:10002 mcr.microsoft.com/azure-storage/azurite azurite-table --tableHost 0.0.0.0
+dotnet user-secrets set "Players:Tokens:SigningKey" "<at least 32 characters>" --project src/Players/HexMaster.Battleship.Players.Api
+dotnet user-secrets set "ConnectionStrings:tables" "UseDevelopmentStorage=true" --project src/Players/HexMaster.Battleship.Players.Api
+```
+
+### Token lifetimes
+
+| Key | Default | Meaning |
+|---|---|---|
+| `Players:Tokens:AccessTokenLifetime` | `00:15:00` | How long an access token is valid |
+| `Players:Tokens:RefreshTokenLifetime` | `90.00:00:00` | How long a refresh token is valid; it is replaced on every refresh |
+| `Players:Tokens:ClockSkew` | `00:00:30` | Tolerance when checking expiry (at most 30 seconds) |
+| `Players:Tokens:Issuer` | `battleship-players` | `iss` claim of every access token |
+| `Players:Tokens:Audience` | `battleship` | `aud` claim of every access token |
+
+The frontend keeps the refresh token in `localStorage`, so a returning visitor is recognised,
+and the access token in `sessionStorage`, so it ends with the browser session.
+
+### Storage tests
+
+The repository and API tests in `HexMaster.Battleship.Players.Tests` need table storage. They
+use Azurite on its default ports (`UseDevelopmentStorage=true`), or the connection string in
+the `BATTLESHIP_TESTS_TABLES` environment variable, and are skipped with a reason when neither
+answers. To run them against the emulator `aspire run` started, point the variable at its
+table port (shown on the `storage` resource on the dashboard).
+
 ## Real-time events
 
 The Events API (`hexmaster-battleship-events-api`, Dapr app id `events-api`) pushes
