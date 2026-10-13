@@ -5,7 +5,8 @@
 
 .DESCRIPTION
   Compares skills (.claude/skills <-> .github/skills), custom commands
-  (.claude/commands <-> .github/prompts) and MCP servers (.mcp.json <-> .vscode/mcp.json)
+  (.claude/commands <-> .github/prompts), custom agents (.claude/agents <-> .github/agents)
+  and MCP servers (.mcp.json <-> .vscode/mcp.json)
   after applying the text rewrites documented in SKILL.md. Prints one line per problem and
   exits 1 when anything is out of sync, 0 when both sides agree.
 
@@ -127,6 +128,29 @@ if (Test-Path $claudeCommands) {
 if (Test-Path $copilotPrompts) {
     foreach ($p in Get-ChildItem $copilotPrompts -File -Filter '*.prompt.md') {
         if (-not $matchedPrompts.Contains($p.Name)) { Report 'command' ".github/prompts/$($p.Name) has no matching file under .claude/commands" }
+    }
+}
+
+# ---------------------------------------------------------------- agents
+$claudeAgents = Join-Path $Root '.claude/agents'
+$copilotAgents = Join-Path $Root '.github/agents'
+$matchedAgents = [System.Collections.Generic.HashSet[string]]::new()
+if (Test-Path $claudeAgents) {
+    foreach ($agent in Get-ChildItem $claudeAgents -File -Filter '*.md') {
+        $agentFile = "$($agent.BaseName).agent.md"
+        $agentPath = Join-Path $copilotAgents $agentFile
+        if (-not (Test-Path $agentPath)) { Report 'agent' ".claude/agents/$($agent.Name) has no .github/agents/$agentFile"; continue }
+        [void]$matchedAgents.Add($agentFile)
+        $c = Split-FrontMatter (Read-Text $agent.FullName)
+        $p = Split-FrontMatter (Read-Text $agentPath)
+        if (-not $p.Front.ContainsKey('description')) { Report 'agent' ".github/agents/$agentFile has no description" }
+        elseif ($c.Front['description'] -ne $p.Front['description']) { Report 'agent' "description differs: .claude/agents/$($agent.Name) vs .github/agents/$agentFile" }
+        if ((ConvertTo-Copilot $c.Body) -ne $p.Body) { Report 'agent' "body differs (after rewrites): .claude/agents/$($agent.Name) vs .github/agents/$agentFile" }
+    }
+}
+if (Test-Path $copilotAgents) {
+    foreach ($p in Get-ChildItem $copilotAgents -File -Filter '*.agent.md') {
+        if (-not $matchedAgents.Contains($p.Name)) { Report 'agent' ".github/agents/$($p.Name) has no matching file under .claude/agents" }
     }
 }
 

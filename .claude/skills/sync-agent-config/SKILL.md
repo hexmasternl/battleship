@@ -22,6 +22,7 @@ the same change and the drift check passes. Never commit one side alone.
 | Skill | `.claude/skills/<name>/SKILL.md` (+ any supporting files) | `.github/skills/<name>/SKILL.md` (+ the same supporting files) |
 | Custom command | `.claude/commands/<name>.md` | `.github/prompts/<name>.prompt.md` |
 | Namespaced command | `.claude/commands/<ns>/<name>.md` (invoked as `/<ns>:<name>`) | `.github/prompts/<ns>-<name>.prompt.md` (invoked as `/<ns>-<name>`) |
+| Custom agent | `.claude/agents/<name>.md` | `.github/agents/<name>.agent.md` |
 | MCP server | `.mcp.json`, key `mcpServers.<name>` | `.vscode/mcp.json`, key `servers.<name>` |
 
 Not mirrored, because they are tool-specific or per-developer:
@@ -95,6 +96,15 @@ The body is copied with the text rewrites above. See `.claude/commands/issue.md`
 Removing a command means deleting both files. If that empties a namespace directory
 under `.claude/commands/`, remove the directory too.
 
+### Agents
+
+A custom agent follows the same frontmatter mapping as a command: `description` is
+required and identical on both sides; `name`, `tools`, `model` and `color` are dropped
+on the Copilot side (Copilot derives the agent name from the file name and has its own
+tool names). The body is copied with the text rewrites above. See
+`.claude/agents/angular-frontend.md` and `.github/agents/angular-frontend.agent.md` for a
+worked pair. Removing an agent means deleting both files.
+
 ### MCP servers
 
 `.mcp.json` (Claude Code) and `.vscode/mcp.json` (Copilot in VS Code) both describe the
@@ -131,8 +141,8 @@ them; do not remove that line, or the Copilot MCP configuration stops being comm
    pwsh -File .github/skills/sync-agent-config/scripts/check-sync.ps1
    ```
 
-   It lists skills, commands and MCP servers that exist on only one side, and files whose
-   contents still differ after the text rewrites. Exit code 0 means in sync.
+   It lists skills, commands, agents and MCP servers that exist on only one side, and files
+   whose contents still differ after the text rewrites. Exit code 0 means in sync.
    If `pwsh` is not available, do the comparison by hand: `diff -r .claude/skills .github/skills`
    must show only the rewrites listed above, every command must have a prompt and vice versa,
    and the server name sets in both MCP files must be equal.
@@ -150,6 +160,6 @@ them; do not remove that line, or the Copilot MCP configuration stops being comm
   `.github/skills/sync-agent-config/`, and has a command (`/sync-agent-config` in both tools)
   that runs it. It is marked `sync: verbatim`, so after editing it copy the directory as-is
   (`cp -r`, no rewrites) and rerun the check.
-- **Agents.** If `.claude/agents/<name>.md` custom agents are ever added, mirror them to
-  `.github/agents/<name>.agent.md` with the same frontmatter mapping as commands. The drift
-  check does not cover agents today.
+- **Agents.** Custom agents are mirrored per the Agents section above and the drift check
+  covers them. Both sides' instruction files point to an agent by its base name
+  (`angular-frontend`); keep that pointer the same in `CLAUDE.md` and `.github/copilot-instructions.md`.

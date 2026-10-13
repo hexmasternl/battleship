@@ -15,3 +15,7 @@ Every OpenSpec change is governed by the `openspec-git-flow` skill (`.claude/ski
 ## GitHub issues and changes
 
 The `openspec-github-issues` skill (`/issue`) triages issues, labels and types them, proposes a linked change, and keeps the issue in sync through implementation and archive. Issue to change links live in `openspec/changes/<name>/github-issue.yaml`.
+
+## Frontend work uses the Angular agent
+
+The Angular app under `src/Frontend/` (Angular 22, Angular Material 22.2.2, zoneless, signals) is built by the `angular-frontend` agent (`.claude/agents/angular-frontend.md`). Use it for any screen, component, store, form, Material or frontend test work. It keeps component data in a local immutable state store exposed as read-only signals.

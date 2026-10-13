@@ -73,7 +73,7 @@ Wraps `openspec-apply-change`. Implementation never happens in the main worktree
    fi
    ```
    When resuming, use the `worktree <path>` line that precedes the matching `branch` line in `git worktree list --porcelain`; never create a second worktree for the same change.
-3. **Move the session into the worktree.** In Claude Code use ``cd` into the worktree directory. Every build, test, edit and git command for the implementation runs from the worktree. The worktree has its own copy of `openspec/`, so `openspec` commands there resolve the right root.
+3. **Move the session into the worktree.** In Claude Code use `EnterWorktree` with `path` set to the worktree directory (it is registered, so the tool accepts it). In other agents `cd` into it. Every build, test, edit and git command for the implementation runs from the worktree. The worktree has its own copy of `openspec/`, so `openspec` commands there resolve the right root.
 4. **Implement with frequent, logical commits.** Run the apply workflow task by task. After each task is done and verified (`dotnet build` and the relevant `dotnet test` from the worktree), tick its checkbox in `tasks.md` and commit the code and `tasks.md` together with the commit format above. One task per commit at minimum; a large task may take several commits, each a coherent step that builds. Never leave a session with completed work uncommitted.
 5. **Finish.** When every task is checked:
    - Run the full build and test suite for `src/Battleship.slnx` from the worktree. Fix failures before continuing; do not push red.
