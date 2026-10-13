@@ -2,6 +2,7 @@ import { Component, effect, inject, input, untracked } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
+import { GamePlayPhase } from '../game-play/game-play-phase';
 import { PlacementPhase } from '../placement/placement-phase';
 import { GamePageStore } from './game-page.store';
 
@@ -12,7 +13,7 @@ import { GamePageStore } from './game-page.store';
  */
 @Component({
   selector: 'battle-game-page',
-  imports: [MatButtonModule, MatProgressSpinnerModule, PlacementPhase, RouterLink],
+  imports: [GamePlayPhase, MatButtonModule, MatProgressSpinnerModule, PlacementPhase, RouterLink],
   providers: [GamePageStore],
   templateUrl: './game-page.html',
   styleUrl: './game-page.scss',

@@ -1,0 +1,48 @@
+// The board recipe (`.bs-board`, `.bs-cell`) is global, see styles/_game.scss.
+:host {
+  display: block;
+}
+
+.play-board {
+  margin-inline: auto;
+}
+
+// The grid and its rows only carry ARIA roles; their children sit in the board's CSS grid.
+.play-board__grid,
+.play-board__row {
+  display: contents;
+}
+
+.target-grid__cell {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: crosshair;
+
+  &:hover:not([aria-disabled]) {
+    background: var(--bs-color-accent-subtle);
+  }
+
+  &:focus-visible {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: calc(-1 * var(--bs-focus-width));
+    z-index: 3;
+  }
+
+  &[aria-disabled] {
+    cursor: default;
+  }
+
+  // The selected target: an accent ring with the primary glow, inside the cell.
+  &.is-target {
+    background: var(--bs-color-accent-subtle);
+    box-shadow:
+      inset 0 0 0 var(--bs-focus-width) var(--bs-color-accent),
+      var(--bs-glow-primary);
+    z-index: 2;
+  }
+}

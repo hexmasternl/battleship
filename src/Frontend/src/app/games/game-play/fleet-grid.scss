@@ -1,0 +1,19 @@
+// The board recipe (`.bs-board`, `.bs-cell`, `.bs-ship`) is global, see styles/_game.scss.
+:host {
+  display: block;
+}
+
+.play-board {
+  margin-inline: auto;
+}
+
+// The table and its rows only carry ARIA roles; their children sit in the board's CSS grid.
+.play-board__grid,
+.play-board__row {
+  display: contents;
+}
+
+// A committed ship at rest: the placed fill without the settle glow of the placing stage.
+.fleet-grid__ship {
+  background: var(--bs-color-ship);
+}

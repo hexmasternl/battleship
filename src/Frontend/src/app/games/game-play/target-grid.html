@@ -1,0 +1,40 @@
+<div class="bs-board play-board" [class.is-read-only]="!canShoot()">
+  <div
+    class="play-board__grid"
+    role="grid"
+    aria-label="The opponent's waters, columns A to L, rows 1 to 12"
+  >
+    <div class="play-board__row" role="row">
+      <span class="bs-board__coord" role="columnheader">
+        <span class="bs-visually-hidden">Row</span>
+      </span>
+      @for (column of columns; track column) {
+        <span class="bs-board__coord" role="columnheader">{{ column }}</span>
+      }
+    </div>
+    @for (row of rows(); track row.label) {
+      <div class="play-board__row" role="row">
+        <span class="bs-board__coord" role="rowheader">{{ row.label }}</span>
+        @for (item of row.cells; track item.key) {
+          <span class="bs-cell" role="gridcell">
+            <button
+              type="button"
+              class="target-grid__cell"
+              [class.is-target]="item.target"
+              [attr.data-cell]="item.key"
+              [attr.tabindex]="item.tabStop ? 0 : -1"
+              [attr.aria-label]="item.label"
+              [attr.aria-disabled]="!item.selectable || null"
+              (click)="select(item.cell, item.selectable)"
+              (keydown)="move($event, item.cell)"
+            >
+              @if (item.shot; as shot) {
+                <battle-shot-marker [hit]="shot.hit" />
+              }
+            </button>
+          </span>
+        }
+      </div>
+    }
+  </div>
+</div>
