@@ -27,7 +27,7 @@
 ## 6. Frontend create-game flow
 
 - [x] 6.1 Add `games/games-api.ts` (`createGame` posting `/api/games`) and `games/create-game-dialog/` (`CreateGameDialog` with its component-scoped `CreateGameStore`, confirm/cancel, progress, error with retry, double-confirm guard, styles from the central SASS variables) (design D6); verify dialog and store specs for success result, cancel, failure with retry and ignored second confirm pass
-- [ ] 6.2 Turn the hero "Create a new game" into a button whose handler runs `ensurePlayer()` (with `PlayerNameDialog` when unknown), then `CreateGameDialog`, then navigates to `/games/{code}`; keep "Join an existing game" as #7 left it; verify hero specs for known, unknown-then-confirm, cancel with focus return, failure and pending-refresh scenarios of the welcome-page delta pass
+- [x] 6.2 Turn the hero "Create a new game" into a button whose handler runs `ensurePlayer()` (with `PlayerNameDialog` when unknown), then `CreateGameDialog`, then navigates to `/games/{code}`; keep "Join an existing game" as #7 left it; verify hero specs for known, unknown-then-confirm, cancel with focus return, failure and pending-refresh scenarios of the welcome-page delta pass
 - [ ] 6.3 Replace the `games/new` route with `games/:gameCode` lazy-loading a `GamePlaceholder` panel that names the code; update `app.routes.spec.ts`; verify the route specs pass and `npm run build` in `src/Frontend` succeeds
 
 ## 7. Integration check
