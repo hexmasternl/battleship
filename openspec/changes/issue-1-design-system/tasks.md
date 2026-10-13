@@ -10,7 +10,7 @@
 
 - [x] 2.1 Create `docs/design-system.md` with the Introduction, Colour (bases, scales with hex values and derivation formula, semantic roles, contrast table from 1.3), Typography, Spacing and radius, Breakpoints, Effects and Motion sections, each listing token name and value, and verify every token from 1.2 appears in it
 - [x] 2.2 Add the Components section (buttons, inputs, cards and panels, status messages, each with all states and the effect token each state uses), the Game elements section (grid, ships, placing states, cell states with their non-colour cues) and the Instruments section (radar, sonar, compass, RPM gauge), and verify each element lists the tokens it consumes
-- [ ] 2.3 Add the "Maintaining this document" section with the scale-generation formula, the contrast command and the token-diff command from design.md, and verify both commands run as written from the repository root
+- [x] 2.3 Add the "Maintaining this document" section with the scale-generation formula, the contrast command and the token-diff command from design.md, and verify both commands run as written from the repository root
 
 ## 3. Showcase page
 
@@ -22,6 +22,6 @@
 
 ## 4. Agreement and final checks
 
-- [ ] 4.1 Run the token-diff command from 2.3 and verify it reports no difference between the markdown and the HTML
-- [ ] 4.2 Re-run the contrast script against the final token values and verify the table in `docs/design-system.md` matches the output
-- [ ] 4.3 Open the page with web fonts blocked and verify every section stays readable on the fallback stacks, then record the fallback check in the Maintaining section
+- [x] 4.1 Run the token-diff command from 2.3 and verify it reports no difference between the markdown and the HTML
+- [x] 4.2 Re-run the contrast script against the final token values and verify the table in `docs/design-system.md` matches the output
+- [x] 4.3 Open the page with web fonts blocked and verify every section stays readable on the fallback stacks, then record the fallback check in the Maintaining section

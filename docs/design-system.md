@@ -612,3 +612,192 @@ The authoritative block. The showcase embeds exactly this; the command in sectio
   --bs-focus-offset: 2px;
 }
 ```
+
+---
+
+## 11. Maintaining this document
+
+Three things keep this document and the showcase honest: the colour scales are generated, not hand-tuned; the contrast table is measured, not asserted; and the two files are diffed for token agreement. Run the commands below from the repository root in a Bash shell (Git Bash on Windows). Node is required and is already present for the OpenSpec CLI.
+
+### 11.1 Regenerating the colour scales
+
+The formula is in [section 1.2](#12-how-the-tints-and-shades-are-derived). The generator below implements it. Save it as `palette.mjs` anywhere outside the repository, run `node palette.mjs css`, and paste the printed lines over the scale blocks in the token reference (section 10) and in `design-system.html`. Running it without arguments prints the scales as JSON and checks that every scale is monotonic in lightness and contains its base colour.
+
+<details>
+<summary>palette.mjs</summary>
+
+```js
+// Throwaway palette generator for the Battleship design system.
+// Usage: node palette.mjs            -> prints scales as JSON and runs the checks
+//        node palette.mjs css        -> prints the colour part of the token block
+import { writeFileSync } from "node:fs";
+
+const BASES = {
+  bg: "#011627",
+  primary: "#00c0ff",
+  secondary: "#2f87ff",
+  text: "#b2c2d4",
+  textDim: "#7a8694",
+  danger: "#ff2146",
+};
+
+// ---------- colour maths (sRGB <-> OKLab <-> OKLCH) ----------
+const hexToRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+const rgbToHex = (rgb) =>
+  "#" + rgb.map((c) => Math.round(Math.min(1, Math.max(0, c)) * 255).toString(16).padStart(2, "0")).join("");
+const toLin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const toSrgb = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+
+function rgbToOklab([r, g, b]) {
+  [r, g, b] = [r, g, b].map(toLin);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ];
+}
+function oklabToLinRgb([L, a, b]) {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+}
+const labToLch = ([L, a, b]) => [L, Math.hypot(a, b), ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360];
+const lchToLab = ([L, C, H]) => [L, C * Math.cos((H * Math.PI) / 180), C * Math.sin((H * Math.PI) / 180)];
+const inGamut = (lin) => lin.every((c) => c >= -1e-6 && c <= 1 + 1e-6);
+
+// Reduce chroma until the colour fits sRGB, then convert.
+function lchToHex([L, C, H]) {
+  let lo = 0, hi = C, best = lchToLab([L, 0, H]);
+  if (inGamut(oklabToLinRgb(lchToLab([L, C, H])))) best = lchToLab([L, C, H]);
+  else for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (inGamut(oklabToLinRgb(lchToLab([L, mid, H])))) { lo = mid; best = lchToLab([L, mid, H]); } else hi = mid;
+  }
+  return rgbToHex(oklabToLinRgb(best).map(toSrgb));
+}
+const hexToLch = (h) => labToLch(rgbToOklab(hexToRgb(h)));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+// ---------- scale generation ----------
+const bgLch = hexToLch(BASES.bg);
+// Tint: move L toward 1 and C toward 0 by t, hue fixed.
+const tint = ([L, C, H], t) => [lerp(L, 1, t), lerp(C, 0, t), H];
+// Shade: move L and C toward the background's L and C by t, hue fixed.
+const shade = ([L, C, H], t) => [lerp(L, bgLch[0], t), lerp(C, bgLch[1], t), H];
+
+const TINTS = { 50: 0.9, 100: 0.78, 200: 0.6, 300: 0.4, 400: 0.2 };
+const SHADES = { 600: 0.22, 700: 0.42, 800: 0.62, 900: 0.8 };
+const TEXT_TINTS = { 50: 0.72, 100: 0.48, 200: 0.24 };
+const TEXT_SHADES = { 400: 0.15, 500: 0.3, 600: 0.45, 700: 0.6, 800: 0.75, 900: 0.88 };
+
+function scale(baseHex, baseStep, tints, shades) {
+  const base = hexToLch(baseHex);
+  const out = {};
+  for (const [step, t] of Object.entries(tints)) out[step] = lchToHex(tint(base, t));
+  out[baseStep] = baseHex;
+  for (const [step, t] of Object.entries(shades)) out[step] = lchToHex(shade(base, t));
+  return Object.fromEntries(Object.entries(out).sort((a, b) => a[0] - b[0]));
+}
+
+const scales = {
+  primary: scale(BASES.primary, 500, TINTS, SHADES),
+  secondary: scale(BASES.secondary, 500, TINTS, SHADES),
+  danger: scale(BASES.danger, 500, TINTS, SHADES),
+  text: scale(BASES.text, 300, TEXT_TINTS, TEXT_SHADES),
+};
+// Surfaces: background lightness +0.035 and chroma +0.004 per step, hue fixed.
+const surface = { 0: BASES.bg };
+for (let n = 1; n <= 4; n++) surface[n] = lchToHex([bgLch[0] + 0.035 * n, bgLch[1] + 0.004 * n, bgLch[2]]);
+// Success: primary rotated to hue 150. Warning: danger rotated to hue 80. L and C kept, chroma clipped to gamut.
+const rotate = (hex, H, dL = 0) => { const [L, C] = hexToLch(hex); return lchToHex([L + dL, C, H]); };
+const derived = {
+  success: { 500: rotate(BASES.primary, 150), 800: lchToHex(shade(hexToLch(rotate(BASES.primary, 150)), 0.62)) },
+  warning: { 500: rotate(BASES.danger, 80, 0.15), 800: lchToHex(shade(hexToLch(rotate(BASES.danger, 80, 0.15)), 0.62)) },
+};
+
+// ---------- checks ----------
+const problems = [];
+for (const [name, sc] of Object.entries(scales)) {
+  const steps = Object.keys(sc).map(Number);
+  const Ls = steps.map((s) => hexToLch(sc[s])[0]);
+  for (let i = 1; i < Ls.length; i++) if (!(Ls[i] < Ls[i - 1])) problems.push(`${name}: lightness not decreasing at step ${steps[i]}`);
+  const baseStep = name === "text" ? 300 : 500;
+  if (sc[baseStep] !== BASES[name]) problems.push(`${name}: base missing at ${baseStep}`);
+}
+const sL = [0, 1, 2, 3, 4].map((n) => hexToLch(surface[n])[0]);
+for (let i = 1; i < sL.length; i++) if (!(sL[i] > sL[i - 1])) problems.push(`surface: not lighter at ${i}`);
+if (surface[0] !== BASES.bg) problems.push("surface-0 is not the background");
+
+const result = { bases: BASES, scales, surface, derived, bgLch: bgLch.map((v) => +v.toFixed(4)) };
+writeFileSync(new URL("./palette.json", import.meta.url), JSON.stringify(result, null, 2));
+
+const PRE = "--bs" + "-color-"; // split so the token-diff check does not read this script as a token
+if (process.argv[2] === "css") {
+  const lines = [];
+  for (const [name, sc] of Object.entries(scales))
+    for (const [step, hex] of Object.entries(sc)) {
+      const isBase = hex === BASES[name];
+      lines.push(`  ${PRE}${name}-${step}: ${isBase ? `var(${PRE}${name}-base)` : hex};`);
+    }
+  for (const [n, hex] of Object.entries(surface)) lines.push(`  ${PRE}surface-${n}: ${n === "0" ? `var(${PRE}bg-base)` : hex};`);
+  for (const [name, sc] of Object.entries(derived)) for (const [step, hex] of Object.entries(sc)) lines.push(`  ${PRE}${name}-${step}: ${hex};`);
+  console.log(lines.join("\n"));
+} else {
+  console.log(JSON.stringify(result, null, 2));
+  console.log(problems.length ? "CHECKS FAILED:\n" + problems.join("\n") : "CHECKS PASSED: scales monotonic, bases present, surfaces ascend");
+  if (problems.length) process.exit(1);
+}
+```
+
+</details>
+
+### 11.2 Measuring contrast
+
+Reads the token block from this document, resolves every `var()` reference, and prints the table in section 1.8. Exit code 1 means a pair fails its threshold. Paste the output over the table whenever a colour changes.
+
+```bash
+node -e '
+const fs=require("fs"),src=fs.readFileSync("docs/design-system.md","utf8"),t={};
+for(const m of src.matchAll(/(--bs-[a-z0-9-]+)\s*:\s*([^;\n]+);/g))t[m[1]]=t[m[1]]||m[2].trim();
+const r=v=>{let g=0;while(/var\(/.test(v)&&g++<20)v=v.replace(/var\((--[a-z0-9-]+)\)/g,(_,n)=>t[n]);return v};
+const L=h=>{const[a,b,c]=[1,3,5].map(i=>parseInt(h.substr(i,2),16)/255).map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);return .2126*a+.7152*b+.0722*c};
+const C=(f,b)=>{const[x,y]=[L(f),L(b)].sort((p,q)=>q-p);return(x+.05)/(y+.05)};
+const P=[
+["--bs-color-text","--bs-color-bg",4.5,"body"],["--bs-color-text","--bs-color-surface-1",4.5,"body"],["--bs-color-text","--bs-color-surface-2",4.5,"body"],["--bs-color-text","--bs-color-surface-3",4.5,"body"],["--bs-color-text","--bs-color-surface-4",4.5,"body"],
+["--bs-color-text-dim","--bs-color-bg",4.5,"body"],["--bs-color-text-dim","--bs-color-surface-1",4.5,"body"],["--bs-color-text-dim-raised","--bs-color-surface-2",4.5,"body"],["--bs-color-text-dim-raised","--bs-color-surface-3",4.5,"body"],["--bs-color-text-dim-raised","--bs-color-surface-4",4.5,"body"],
+["--bs-color-text-strong","--bs-color-bg",4.5,"body"],
+["--bs-color-accent","--bs-color-bg",4.5,"body (links, readouts)"],["--bs-color-accent","--bs-color-surface-2",4.5,"body (links, readouts)"],
+["--bs-color-text-on-accent","--bs-color-accent",4.5,"body (primary button)"],["--bs-color-text-on-accent","--bs-color-accent-hover",4.5,"body (primary button hover)"],["--bs-color-text-on-accent","--bs-color-accent-active",4.5,"body (primary button active)"],
+["--bs-color-text-on-accent","--bs-color-secondary",4.5,"body (secondary button)"],["--bs-color-text-on-accent","--bs-color-secondary-hover",4.5,"body (secondary button hover)"],["--bs-color-text-on-accent","--bs-color-secondary-active",4.5,"body (secondary button active)"],
+["--bs-color-text-on-danger","--bs-color-danger",3,"large (danger button label, bold 1.25rem)"],["--bs-color-text-on-danger","--bs-color-danger-active",4.5,"body (danger button active)"],
+["--bs-color-text","--bs-color-danger-surface",4.5,"body (danger status)"],["--bs-color-text","--bs-color-success-surface",4.5,"body (success status)"],["--bs-color-text","--bs-color-warning-surface",4.5,"body (warning status)"],
+["--bs-color-danger","--bs-color-bg",3,"large (danger heading)"],["--bs-color-success","--bs-color-bg",4.5,"body (success text)"],["--bs-color-warning","--bs-color-bg",4.5,"body (warning text)"],
+["--bs-color-coordinate","--bs-color-bg",4.5,"body (grid coordinates)"],["--bs-color-text-strong","--bs-color-ship",4.5,"body (ship label)"]];
+let bad=0;console.log("| Foreground | Background | Ratio | Needs | Use | Result |\n|---|---|---|---|---|---|");
+for(const[f,b,n,u]of P){const F=r(t[f]),B=r(t[b]),c=C(F,B),ok=c>=n;bad+=!ok;console.log(`| \`${f}\` (${F}) | \`${b}\` (${B}) | ${c.toFixed(2)}:1 | ${n}:1 | ${u} | ${ok?"pass":"FAIL"} |`)}
+process.exit(bad?1:0)'
+```
+
+### 11.3 Checking that the document and the page agree
+
+Every token name mentioned in this document must be defined in the page and the other way round. Empty output and the trailing message mean the sets are identical.
+
+```bash
+diff <(grep -oE -- '--bs-[a-z0-9-]+' docs/design-system.md | sort -u) \
+     <(grep -oE -- '--bs-[a-z0-9-]+' docs/design-system.html | sort -u) \
+  && echo "token sets identical"
+```
+
+### 11.4 Checking the page in a browser
+
+Open `docs/design-system.html` straight from disk. It must render every section with no console errors, animate the radar, sonar and gauge, and stop animating when the operating system asks for reduced motion (in Chrome DevTools: Rendering, "Emulate CSS media feature prefers-reduced-motion"). Resize from 360px to 1920px: the document must never scroll horizontally. Block `fonts.googleapis.com` and `fonts.gstatic.com` (DevTools, Network request blocking) and confirm every section stays readable on the fallback stacks.
+
+**Last fallback check:** 2026-10-13, headless Chrome with both font hosts blocked. No web font loaded; headings fell back to Segoe UI, body and panel text to Courier New. Every section rendered, the 31 automated page checks (console errors, states, focus ring, board geometry, animations, reduced motion, widths 360 to 1920px) passed.
