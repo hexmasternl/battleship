@@ -33,8 +33,9 @@ metadata:
 
 ## In this repository
 
-The Players module is the natural owner of the SubjectId to UserId mapping and of the
-`IUserResolver` implementation. Game commands and events reference players by their internal
+The Users module is the natural owner of the SubjectId to UserId mapping and of the
+`IUserResolver` implementation. The Games module refers to users as players: a player id is the
+user's internal `Guid` id, and game commands and events reference players by that internal
 `Guid` id only.
 
 ## Source

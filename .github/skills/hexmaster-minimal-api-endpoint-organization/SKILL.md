@@ -11,7 +11,7 @@ metadata:
 
 ## Rules
 
-- Each base route (`/orders`, `/players`, `/games`) gets its own file in the API project's
+- Each base route (`/orders`, `/users`, `/games`) gets its own file in the API project's
   `Endpoints/` folder, named `{Feature}Endpoints.cs` (PascalCase, plural for resources).
 - The file exposes one static extension method
   `Map{Feature}Endpoints(this IEndpointRouteBuilder app)` that creates the group with
@@ -34,7 +34,7 @@ metadata:
 
 ## In this repository
 
-Create `Endpoints/PlayerEndpoints.cs` in `HexMaster.Battleship.Players.Api` and
+Create `Endpoints/UserEndpoints.cs` in `HexMaster.Battleship.Users.Api` and
 `Endpoints/GameEndpoints.cs` in `HexMaster.Battleship.Games.Api`, and remove the template
 weather forecast endpoint from `Program.cs` when the first real endpoint lands.
 

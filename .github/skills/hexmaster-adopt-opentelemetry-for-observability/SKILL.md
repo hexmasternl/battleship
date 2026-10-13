@@ -33,7 +33,7 @@ Required for every backend service: APIs, workers, background services.
 - Never use high-cardinality tags (user ids, emails) on metrics and never put PII, tokens or
   passwords in tags or logs.
 - Follow OpenTelemetry semantic conventions for HTTP, database and messaging attributes; prefix
-  custom attributes with the domain (`order.`, `player.`, `game.`).
+  custom attributes with the domain (`order.`, `user.`, `player.`, `game.`).
 - Logs are structured (message templates with named placeholders) and carry TraceId and SpanId;
   configure `AddOpenTelemetry` on logging with formatted message, scopes and parsed state.
 - Exporter endpoints, service name and version come from `OTEL_*` environment variables.

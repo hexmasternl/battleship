@@ -81,7 +81,7 @@ gh issue edit <n> --body-file body.new.md
 
 ## Context
 
-- **Services**: <players, games, ...>
+- **Services**: <users, games, ...>
 - **Where**: <endpoints, handlers, components or files involved, with paths>
 - **Current behaviour**: <what the code does today, as observed>
 

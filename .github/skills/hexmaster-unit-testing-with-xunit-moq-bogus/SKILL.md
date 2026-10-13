@@ -30,7 +30,7 @@ metadata:
 
 ## In this repository
 
-`HexMaster.Battleship.Players.Tests` and `HexMaster.Battleship.Games.Tests` already have the
+`HexMaster.Battleship.Users.Tests` and `HexMaster.Battleship.Games.Tests` already have the
 xUnit and coverlet references. Add `Moq` and `Bogus` to them when the first handler or domain
 test needs them, and keep factories in a `Factories/` folder per test project.
 

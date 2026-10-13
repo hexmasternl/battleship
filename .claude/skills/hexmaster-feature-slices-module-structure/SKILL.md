@@ -80,7 +80,7 @@ and `Mock<ILogger<...>>`, uses a `Faker`, and covers the happy path, the domain 
 
 ## In this repository
 
-Company.Product is `HexMaster.Battleship`; current modules are `Players` and `Games`.
+Company.Product is `HexMaster.Battleship`; current modules are `Users` and `Games`.
 
 ## Source
 
