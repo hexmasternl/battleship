@@ -6,15 +6,15 @@ Defines how the frontend application consumes the server's real-time event strea
 
 ## Requirements
 
-### Requirement: The application opens one event stream for the current player
-The frontend SHALL provide a single application-wide events service that opens the server's event stream for the current player identity on request and keeps at most one stream open per application instance. Opening the stream again while it is open SHALL NOT create a second connection.
+### Requirement: The application opens one event stream for the current user
+The frontend SHALL provide a single application-wide events service that opens the server's event stream for the current user identity on request and keeps at most one stream open per application instance. Opening the stream again while it is open SHALL NOT create a second connection.
 
 #### Scenario: First connect opens the stream
-- **WHEN** the application asks the events service to connect for player A
-- **THEN** exactly one stream to the server's events endpoint is opened carrying A's identity
+- **WHEN** the application asks the events service to connect for user A
+- **THEN** exactly one stream to the server's events endpoint is opened carrying A's user id as the `userId` query parameter
 
 #### Scenario: Repeated connect is idempotent
-- **WHEN** the stream is already open and the application asks the events service to connect again for the same player
+- **WHEN** the stream is already open and the application asks the events service to connect again for the same user
 - **THEN** no second stream is opened and the existing one stays in use
 
 ### Requirement: Received events are surfaced with their type and payload

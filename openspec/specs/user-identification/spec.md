@@ -6,7 +6,7 @@ Defines how an anonymous visitor becomes a uniquely identified user of Battleshi
 ## Requirements
 
 ### Requirement: An anonymous request creates a user and issues tokens
-The Players service SHALL accept an unauthenticated request to create tokens, create a user with a unique identifier and a display name, persist that user, and respond with an access token, a refresh token, and the expiry instant of each.
+The Users service SHALL accept an unauthenticated request to create tokens, create a user with a unique identifier and a display name, persist that user, and respond with an access token, a refresh token, and the expiry instant of each.
 
 #### Scenario: Tokens are created with a display name
 - **WHEN** an unauthenticated client posts a create-tokens request with the display name `Admiral Nelson`
@@ -25,11 +25,15 @@ The Players service SHALL accept an unauthenticated request to create tokens, cr
 - **THEN** the response status is `400 Bad Request` with a problem-details body and no user is created
 
 ### Requirement: Access tokens are signed, short-lived and carry the user identity
-Every access token SHALL be a JSON Web Token signed by the Players service, SHALL carry the user identifier as its subject and the display name as a claim, and SHALL expire after the configured access token lifetime, which defaults to 15 minutes.
+Every access token SHALL be a JSON Web Token signed by the Users service, SHALL carry the user identifier as its subject and the display name as a claim, and SHALL expire after the configured access token lifetime, which defaults to 15 minutes. The issuer SHALL default to `battleship-users`.
 
 #### Scenario: Access token claims
 - **WHEN** an issued access token is decoded
 - **THEN** its subject equals the user's identifier, it carries the user's display name, its issuer and audience equal the configured values, and its expiry is the issue time plus the configured access token lifetime
+
+#### Scenario: Default issuer
+- **WHEN** an access token is issued without an issuer configured
+- **THEN** its issuer is `battleship-users`
 
 #### Scenario: Tampered access token is rejected
 - **WHEN** a client presents an access token whose payload was altered after signing
@@ -47,7 +51,7 @@ Every refresh token SHALL be an unpredictable random value of at least 256 bits.
 - **THEN** the response status is `401 Unauthorized` and no tokens are issued
 
 ### Requirement: A valid refresh token is exchanged for a new token pair with rotation
-The Players service SHALL accept a refresh request carrying a refresh token and, when the token is known, unexpired and not yet used, and the user exists and is not revoked, SHALL respond with a new access token and a new refresh token, invalidate the presented refresh token, and record the user's last-seen time.
+The Users service SHALL accept a refresh request carrying a refresh token and, when the token is known, unexpired and not yet used, and the user exists and is not revoked, SHALL respond with a new access token and a new refresh token, invalidate the presented refresh token, and record the user's last-seen time.
 
 #### Scenario: Successful refresh
 - **WHEN** a client posts a refresh request with a refresh token issued moments ago
@@ -70,14 +74,14 @@ The Players service SHALL accept a refresh request carrying a refresh token and,
 - **THEN** the response status is `400 Bad Request` with a problem-details body
 
 ### Requirement: The system keeps a record of every known user
-For every user the Players service SHALL persist the unique identifier, the display name, the creation time, the last-seen time and a revoked flag, and SHALL be able to find the user by identifier.
+For every user the Users service SHALL persist the unique identifier, the display name, the creation time, the last-seen time and a revoked flag, and SHALL be able to find the user by identifier.
 
 #### Scenario: User record after creation
 - **WHEN** tokens were created for a new user
 - **THEN** the user record holds the identifier that is the access token's subject, the display name, a creation time equal to the issue time, a last-seen time equal to the creation time, and the revoked flag cleared
 
 ### Requirement: A user can read their own identity
-The Players service SHALL expose an endpoint that requires a valid access token and returns the identifier and display name of the user the token belongs to.
+The Users service SHALL expose an endpoint that requires a valid access token and returns the identifier and display name of the user the token belongs to.
 
 #### Scenario: Authenticated identity read
 - **WHEN** a client calls the current-user endpoint with a valid access token
@@ -88,23 +92,23 @@ The Players service SHALL expose an endpoint that requires a valid access token 
 - **THEN** the response status is `401 Unauthorized`
 
 ### Requirement: Token configuration is validated at startup
-The Players service SHALL read the signing key, issuer, audience and token lifetimes from configuration and SHALL refuse to start when the signing key is missing or shorter than 32 bytes.
+The Users service SHALL read the signing key, issuer, audience and token lifetimes from the `Users:Tokens` configuration section and SHALL refuse to start when the signing key is missing or shorter than 32 bytes.
 
 #### Scenario: Missing signing key
-- **WHEN** the Players API starts without a configured signing key
-- **THEN** startup fails with an error naming the missing configuration key, and the service does not listen for requests
+- **WHEN** the Users API starts without a configured signing key
+- **THEN** startup fails with an error naming the missing configuration key `Users:Tokens:SigningKey`, and the service does not listen for requests
 
 #### Scenario: Configured lifetimes are applied
 - **WHEN** the access token lifetime is configured as 5 minutes and tokens are created
 - **THEN** the access token expiry is 5 minutes after issue and the refresh token expiry remains 90 days after issue
 
 ### Requirement: Identity data is stored in Azure Table Storage and runs locally on the emulator
-The Players service SHALL persist users and refresh tokens in Azure Table Storage, and the local development environment SHALL provide that storage through the Azurite emulator without any Azure account.
+The Users service SHALL persist users and refresh tokens in Azure Table Storage, and the local development environment SHALL provide that storage through the Azurite emulator without any Azure account.
 
 #### Scenario: Local run without Azure
 - **WHEN** the Aspire AppHost is started on a machine with a container runtime and no Azure credentials
-- **THEN** an Azurite resource starts, the Players API is healthy, and creating tokens succeeds and leaves a user row in the emulator
+- **THEN** an Azurite resource starts, the Users API is healthy, and creating tokens succeeds and leaves a user row in the emulator
 
 #### Scenario: Tables are created on demand
-- **WHEN** the Players API handles its first request against an empty storage account
+- **WHEN** the Users API handles its first request against an empty storage account
 - **THEN** the users and refresh token tables exist afterwards without manual provisioning

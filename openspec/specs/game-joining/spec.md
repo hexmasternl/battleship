@@ -5,7 +5,7 @@ Defines how a known player joins an existing game as player two: the request the
 
 ## Requirements
 ### Requirement: Joining a game requires a known player
-The Games API SHALL expose `POST /games/{game-code}/join`, reachable from the frontend as `/api/games/{game-code}/join` through the gateway. It SHALL accept a request only with a valid access token issued by the Players service, and SHALL respond `401 Unauthorized` without changing any game when the token is missing, expired or invalid.
+The Games API SHALL expose `POST /games/{game-code}/join`, reachable from the frontend as `/api/games/{game-code}/join` through the gateway. It SHALL accept a request only with a valid access token issued by the Users service, and SHALL respond `401 Unauthorized` without changing any game when the token is missing, expired or invalid.
 
 #### Scenario: No token
 - **WHEN** `POST /games/K7Q2M9XA/join` is called without an `Authorization` header

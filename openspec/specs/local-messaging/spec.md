@@ -29,11 +29,11 @@ The AppHost SHALL model a Dapr pub/sub component named `pubsub` whose message br
 - **THEN** the `pubsub` component still connects without any file in the repository being edited
 
 ### Requirement: Each API runs with a Dapr sidecar that loads the component
-The Games API and the Players API SHALL each run with a Dapr sidecar that loads the `pubsub` component, and each API SHALL reach its sidecar through the endpoint configuration the AppHost injects.
+The Games API and the Users API SHALL each run with a Dapr sidecar that loads the `pubsub` component, and each API SHALL reach its sidecar through the endpoint configuration the AppHost injects.
 
 #### Scenario: Sidecars are present for both APIs
 - **WHEN** the AppHost is running
-- **THEN** the dashboard shows a Dapr sidecar for the Games API and one for the Players API, each with the `pubsub` component loaded
+- **THEN** the dashboard shows a Dapr sidecar for the Games API and one for the Users API, each with the `pubsub` component loaded
 
 #### Scenario: API locates its sidecar from configuration
 - **WHEN** an API process starts under the AppHost
@@ -43,7 +43,7 @@ The Games API and the Players API SHALL each run with a Dapr sidecar that loads 
 Any service with a sidecar SHALL be able to publish an event to a topic on `pubsub` and SHALL be able to declare a subscription to a topic on `pubsub` that delivers each published event to a handler in that service.
 
 #### Scenario: Event crosses from one API to the other
-- **WHEN** the Players API publishes an integration event to the `integration-events` topic on `pubsub`, to which the Events API subscribes
+- **WHEN** the Users API publishes an integration event to the `integration-events` topic on `pubsub`, to which the Events API subscribes
 - **THEN** the Events API handler receives the event within five seconds on a local run
 
 #### Scenario: Subscription is discoverable by the sidecar

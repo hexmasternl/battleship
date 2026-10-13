@@ -24,12 +24,12 @@ When Aspire starts the frontend, the app SHALL get the gateway URL from a runtim
 - **WHEN** the app starts and the runtime configuration file is missing or has no gateway URL
 - **THEN** the app logs a clear error naming the missing setting, and requests that start with `/api/` fail instead of being sent to an unintended host
 
-### Requirement: Requests under /api are sent to the gateway
+### Requirement: Requests under /api are forwarded to the gateway
 The frontend SHALL rewrite every HTTP request whose path starts with `/api/` to the gateway base URL followed by the rest of the path, with `/api` stripped and the query string kept. Other requests SHALL pass through unchanged.
 
-#### Scenario: Players call is rewritten
-- **WHEN** the app sends `GET /api/players/me?x=1`
-- **THEN** the request goes to `<gateway>/players/me?x=1`
+#### Scenario: Users call is rewritten
+- **WHEN** the app sends `GET /api/users/me?x=1`
+- **THEN** the request goes to `<gateway>/users/me?x=1`
 
 #### Scenario: Non-api request is untouched
 - **WHEN** the app requests `/config.json` or an absolute URL that does not start with `/api/`
