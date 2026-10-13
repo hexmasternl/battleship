@@ -24,6 +24,8 @@ public static class Extensions
 
         builder.AddDefaultHealthChecks();
 
+        builder.AddDaprMessaging();
+
         builder.Services.AddServiceDiscovery();
 
         builder.Services.ConfigureHttpClientDefaults(http =>

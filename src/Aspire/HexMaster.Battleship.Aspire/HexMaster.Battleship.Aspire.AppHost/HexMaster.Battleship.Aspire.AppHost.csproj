@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.6.1" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.Dapr" Version="13.6.0-preview.1.261001-0243" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Games\HexMaster.Battleship.Games.Api\HexMaster.Battleship.Games.Api.csproj" />
     <ProjectReference Include="..\..\..\Players\HexMaster.Battleship.Players.Api\HexMaster.Battleship.Players.Api.csproj" />
   </ItemGroup>

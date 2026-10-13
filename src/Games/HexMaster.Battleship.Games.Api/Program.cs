@@ -1,3 +1,5 @@
+using HexMaster.Battleship.Games.Api.Endpoints;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -5,6 +7,11 @@ builder.AddServiceDefaults();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<SmokeEventStore>();
+}
 
 var app = builder.Build();
 
@@ -14,9 +21,16 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapSmokeEndpoints();
 }
 
-app.UseHttpsRedirection();
+// Unwraps CloudEvents envelopes delivered by the Dapr sidecar before routing.
+// No HTTPS redirection: the sidecar talks to this API over plain HTTP on the loopback
+// interface, and a redirect would break subscription discovery and event delivery.
+app.UseCloudEvents();
+
+// Lets the sidecar discover this API's topic subscriptions (GET /dapr/subscribe).
+app.MapSubscribeHandler();
 
 var summaries = new[]
 {

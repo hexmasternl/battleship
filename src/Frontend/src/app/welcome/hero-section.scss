@@ -1,0 +1,204 @@
+// Full-viewport hero. Background: a vertical gradient from the page background through the
+// panel surface and back, sonar rings in the grid-line colour, and a horizon line in the subtle
+// accent. Every colour is a design system token; there are no image files.
+:host {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    var(--bs-color-bg) 0%,
+    var(--bs-color-surface) 55%,
+    var(--bs-color-bg) 100%
+  );
+  color: var(--bs-color-text);
+  font-family: var(--bs-font-body);
+  line-height: var(--bs-leading-body);
+}
+
+:host::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.55;
+  background:
+    linear-gradient(
+      180deg,
+      transparent calc(62% - 1px),
+      var(--bs-color-accent-subtle) 62%,
+      transparent calc(62% + 1px)
+    ),
+    repeating-radial-gradient(
+      circle at 50% 62%,
+      var(--bs-color-grid-line) 0 1px,
+      transparent 1px 56px
+    );
+}
+
+.hero__inner {
+  box-sizing: border-box;
+  width: min(100%, var(--bs-container));
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding: var(--bs-space-10) var(--bs-gutter);
+  display: grid;
+  align-content: center;
+}
+
+// The jumbotron: one column on phones, two equal columns from the lg breakpoint (1024px).
+.hero__jumbotron {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bs-space-6);
+  align-items: stretch;
+}
+
+.hero__welcome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bs-space-4);
+  min-width: 0;
+  box-shadow: var(--bs-shadow-3);
+}
+
+.hero__eyebrow {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-sm);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-caps);
+  color: var(--bs-color-accent);
+  text-shadow: var(--bs-glow-text-primary);
+}
+
+.hero__title {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-3xl);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  line-height: var(--bs-leading-tight);
+  color: var(--bs-color-text-strong);
+  overflow-wrap: anywhere;
+}
+
+.hero__intro {
+  margin: 0;
+  max-width: 60ch;
+  font-size: var(--bs-text-md);
+}
+
+.hero__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bs-space-3);
+  margin-top: auto;
+  padding-top: var(--bs-space-2);
+}
+
+// ---- Radar motif (section 9 of the design system), tucked behind the content.
+.hero__radar {
+  position: absolute;
+  top: var(--bs-space-4);
+  right: var(--bs-space-4);
+  z-index: -1;
+  width: clamp(140px, 24vw, 300px);
+  height: auto;
+  border-radius: var(--bs-radius-full);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.hero__radar-ring,
+.hero__radar-line {
+  fill: none;
+  stroke: var(--bs-color-grid-line);
+  stroke-width: 1;
+}
+
+.hero__radar-sweep-start {
+  stop-color: var(--bs-color-accent);
+  stop-opacity: 0;
+}
+
+.hero__radar-sweep-end {
+  stop-color: var(--bs-color-accent);
+  stop-opacity: 0.75;
+}
+
+.hero__radar-beam {
+  stroke: var(--bs-color-accent);
+  stroke-width: 1.5;
+}
+
+.hero__radar-sweep {
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+  animation: hero-spin var(--bs-duration-sweep) var(--bs-ease-linear) infinite;
+}
+
+.hero__radar-blip,
+.hero__radar-centre {
+  fill: var(--bs-color-accent);
+}
+
+.hero__radar-blip {
+  animation: hero-pulse var(--bs-duration-sweep) var(--bs-ease-standard) infinite;
+}
+
+.hero__radar-blip:nth-of-type(2) {
+  animation-delay: calc(var(--bs-duration-sweep) / -2);
+}
+
+@keyframes hero-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hero-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+// ---- Breakpoints: literal values of --bs-bp-sm (480px) and --bs-bp-lg (1024px).
+@media (min-width: 480px) {
+  .hero__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero__jumbotron {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+// ---- Reduced motion: the radar shows a static frame.
+@media (prefers-reduced-motion: reduce) {
+  .hero__radar-sweep,
+  .hero__radar-blip {
+    animation: none;
+  }
+
+  .hero__radar-sweep {
+    transform: rotate(40deg);
+  }
+
+  .hero__radar-blip {
+    opacity: 1;
+  }
+}

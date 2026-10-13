@@ -1,3 +1,5 @@
+using HexMaster.Battleship.Players.Api.Endpoints;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -14,9 +16,16 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapSmokeEndpoints();
 }
 
-app.UseHttpsRedirection();
+// Unwraps CloudEvents envelopes delivered by the Dapr sidecar before routing.
+// No HTTPS redirection: the sidecar talks to this API over plain HTTP on the loopback
+// interface, and a redirect would break subscription discovery and event delivery.
+app.UseCloudEvents();
+
+// Lets the sidecar discover this API's topic subscriptions (GET /dapr/subscribe).
+app.MapSubscribeHandler();
 
 var summaries = new[]
 {
