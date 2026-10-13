@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Custom Angular Material theme from the Battleship design system
+affected_areas:
+  - frontend
