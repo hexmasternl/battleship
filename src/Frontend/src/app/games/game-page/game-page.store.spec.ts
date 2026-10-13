@@ -14,7 +14,13 @@ import {
   opponent,
   ship,
 } from '../../../testing/game-views';
-import { GamePageStore, isReloadEventFor, shotFiredFrom, turnChangedFrom } from './game-page.store';
+import {
+  GamePageStore,
+  gameEndedFrom,
+  isReloadEventFor,
+  shotFiredFrom,
+  turnChangedFrom,
+} from './game-page.store';
 
 describe('isReloadEventFor', () => {
   const event = (type: string, payload: unknown) =>
@@ -983,5 +989,250 @@ describe('GamePageStore placement', () => {
       expect(store.canEdit()).toBe(false);
       expect(store.canReady()).toBe(false);
     });
+  });
+});
+
+describe('gameEndedFrom', () => {
+  const event = (type: string, payload: unknown) =>
+    ({ type, id: '1', payload }) as Parameters<typeof gameEndedFrom>[0];
+
+  it('reads the winner of an ended game, and no winner when it is absent', () => {
+    const payload = { gameId: 'g', gameCode: GAME_CODE, reason: 'completed' };
+    expect(gameEndedFrom(event('game.ended.v1', { ...payload, winnerId: ME_ID }))).toEqual({
+      winnerId: ME_ID,
+    });
+    expect(gameEndedFrom(event('game.ended.v1', payload))).toEqual({ winnerId: null });
+    expect(gameEndedFrom(event('game.ended.v1', { ...payload, winnerId: null }))).toEqual({
+      winnerId: null,
+    });
+  });
+
+  it('rejects other event types and payloads that are not objects', () => {
+    expect(gameEndedFrom(event('game.turn-changed.v1', { winnerId: ME_ID }))).toBeNull();
+    expect(gameEndedFrom(event('game.ended.v1', null))).toBeNull();
+  });
+});
+
+describe('GamePageStore end of the game', () => {
+  let api: FakeGamesApi;
+  let events: FakeEventsService;
+  let store: GamePageStore;
+
+  const LAST_CELL = { column: 4, row: 6 };
+
+  beforeEach(() => {
+    api = new FakeGamesApi();
+    events = new FakeEventsService();
+    TestBed.configureTestingModule({
+      providers: [
+        provideFakeGamesApi(api),
+        provideFakeEvents(events),
+        { provide: MatSnackBar, useValue: { open: vi.fn() } },
+        GamePageStore,
+      ],
+    });
+    store = TestBed.inject(GamePageStore);
+  });
+
+  /** A started game in which the caller has the turn, unless overridden. */
+  function startedView(overrides: Partial<GameView> = {}): GameView {
+    return gameView({
+      state: 'started',
+      me: me({ ready: true, hasTurn: true, ships: FULL_FLEET }),
+      opponent: opponent({ ready: true }),
+      ...overrides,
+    });
+  }
+
+  async function loaded(view: GameView): Promise<void> {
+    const done = store.load(GAME_CODE);
+    api.last('getGame').resolve(view);
+    await done;
+  }
+
+  /** Fires at the last cell and answers the shot as a hit with the given game state. */
+  async function firedLastShot(state: 'started' | 'completed'): Promise<void> {
+    store.selectTarget(LAST_CELL);
+    const done = store.fireAtTarget();
+    api.last('fireShot').resolve({ ...LAST_CELL, hit: true, state });
+    await done;
+  }
+
+  const ended = (code: string, winnerId?: string) =>
+    events.emit('game.ended.v1', {
+      gameId: 'game-1',
+      gameCode: code,
+      reason: 'completed',
+      ...(winnerId === undefined ? {} : { winnerId }),
+    });
+
+  it('is not ended and has no outcome while the game runs', async () => {
+    await loaded(startedView());
+    expect(store.isEnded()).toBe(false);
+    expect(store.outcome()).toBeNull();
+    expect(store.winnerId()).toBeNull();
+  });
+
+  it.each([
+    [ME_ID, 'won'],
+    [OPPONENT_ID, 'lost'],
+    [null, 'neutral'],
+  ] as const)('ends with winner %s as %s, and nobody has the turn', async (winnerId, outcome) => {
+    await loaded(startedView({ opponent: opponent({ ready: true, hasTurn: true }) }));
+    store.selectTarget(LAST_CELL);
+
+    store.endGame(winnerId);
+
+    expect(store.phase()).toBe('completed');
+    expect(store.isEnded()).toBe(true);
+    expect(store.winnerId()).toBe(winnerId);
+    expect(store.outcome()).toBe(outcome);
+    expect(store.myTurn()).toBe(false);
+    expect(store.opponent()?.hasTurn).toBe(false);
+    expect(store.canShoot()).toBe(false);
+    expect(store.target()).toBeNull();
+  });
+
+  it('is idempotent: a second end changes nothing, not even the winner', async () => {
+    await loaded(startedView());
+    store.endGame(ME_ID);
+    const first = store.state();
+
+    store.endGame(OPPONENT_ID);
+    store.endGame(null);
+
+    expect(store.state()).toBe(first);
+    expect(store.outcome()).toBe('won');
+  });
+
+  it('does nothing before a game is loaded', () => {
+    void store.load(GAME_CODE);
+    const before = store.state();
+    store.endGame(ME_ID);
+    expect(store.state()).toBe(before);
+  });
+
+  it('ends as won when the caller own shot is answered with state completed', async () => {
+    await loaded(startedView());
+    await firedLastShot('completed');
+
+    expect(store.outcome()).toBe('won');
+    expect(store.winnerId()).toBe(ME_ID);
+    expect(store.myShots()).toEqual([{ ...LAST_CELL, hit: true }]);
+    expect(store.myTurn()).toBe(false);
+    expect(store.shotStatus()).toBe('idle');
+    // No event stream needed, and no extra request.
+    expect(api.of('getGame').length).toBe(1);
+  });
+
+  it('keeps playing when a shot is answered with state started', async () => {
+    await loaded(startedView());
+    await firedLastShot('started');
+    expect(store.isEnded()).toBe(false);
+    expect(store.outcome()).toBeNull();
+  });
+
+  it('shows a loaded completed game as ended with the winner from the view', async () => {
+    await loaded(
+      startedView({
+        state: 'completed',
+        winnerId: OPPONENT_ID,
+        me: me({ ready: true, ships: FULL_FLEET }),
+        opponent: opponent({ ready: true, shots: [{ column: 0, row: 0, hit: true }] }),
+      }),
+    );
+    expect(store.isEnded()).toBe(true);
+    expect(store.outcome()).toBe('lost');
+    expect(store.stage()).toBe('play');
+    expect(store.opponentShots()).toEqual([{ column: 0, row: 0, hit: true }]);
+    expect(store.canShoot()).toBe(false);
+  });
+
+  it('ends on game.ended.v1 for this game and reads the game once more', async () => {
+    await loaded(startedView({ me: me({ ready: true, ships: FULL_FLEET }) }));
+    ended(GAME_CODE, OPPONENT_ID);
+
+    expect(store.outcome()).toBe('lost');
+    expect(api.of('getGame').length).toBe(2);
+
+    api.last('getGame').resolve(
+      startedView({
+        state: 'completed',
+        winnerId: OPPONENT_ID,
+        me: me({ ready: true, ships: FULL_FLEET }),
+        opponent: opponent({ ready: true, shots: [{ column: 0, row: 8, hit: true }] }),
+      }),
+    );
+    await flushPromises();
+    expect(store.opponentShots()).toEqual([{ column: 0, row: 8, hit: true }]);
+    expect(store.outcome()).toBe('lost');
+  });
+
+  it('matches the game code of the end event in any casing', async () => {
+    await loaded(startedView());
+    ended(GAME_CODE.toLowerCase(), ME_ID);
+    expect(store.outcome()).toBe('won');
+  });
+
+  it('ends without a winner on an end event without one', async () => {
+    await loaded(startedView());
+    ended(GAME_CODE);
+    expect(store.outcome()).toBe('neutral');
+  });
+
+  it('ignores game.ended.v1 for another game', async () => {
+    await loaded(startedView());
+    const before = store.state();
+    ended('ZZZZ9999', OPPONENT_ID);
+    expect(store.state()).toBe(before);
+    expect(store.isEnded()).toBe(false);
+    expect(api.of('getGame').length).toBe(1);
+  });
+
+  it('reads the game once however often the end arrives, also after the response', async () => {
+    await loaded(startedView());
+    await firedLastShot('completed');
+    const afterResponse = store.state();
+
+    ended(GAME_CODE, ME_ID);
+    ended(GAME_CODE, ME_ID);
+
+    expect(store.state()).toBe(afterResponse);
+    expect(store.outcome()).toBe('won');
+    expect(api.of('getGame').length).toBe(2);
+  });
+
+  it('keeps the boards and the end when the reconciling read fails', async () => {
+    const shots = [{ column: 3, row: 3, hit: false }];
+    await loaded(startedView({ opponent: opponent({ ready: true, shots }) }));
+    ended(GAME_CODE, OPPONENT_ID);
+    const afterEnd = store.state();
+
+    api.last('getGame').reject({ kind: 'network', status: 0 });
+    await flushPromises();
+
+    expect(store.state()).toBe(afterEnd);
+    expect(store.status()).toBe('loaded');
+    expect(store.opponentShots()).toEqual(shots);
+    expect(store.outcome()).toBe('lost');
+  });
+
+  it('keeps the end when the reconciling read finds no game', async () => {
+    await loaded(startedView());
+    ended(GAME_CODE, ME_ID);
+    api.last('getGame').reject({ kind: 'game-not-found', status: 404 });
+    await flushPromises();
+    expect(store.status()).toBe('loaded');
+    expect(store.outcome()).toBe('won');
+  });
+
+  it('does not undo the end with an answer that predates it', async () => {
+    await loaded(startedView());
+    const reload = store.reload();
+    store.endGame(OPPONENT_ID);
+    api.last('getGame').resolve(startedView());
+    await reload;
+    expect(store.isEnded()).toBe(true);
+    expect(store.outcome()).toBe('lost');
   });
 });

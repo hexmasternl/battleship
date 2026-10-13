@@ -133,6 +133,24 @@ export function shotFiredFrom(event: RealtimeEvent): FiredShot | null {
   return { playerId: p.playerId, column: p.column, row: p.row, hit: p.hit };
 }
 
+/** How a finished game ended for the caller: won, lost, or ended without a winner. */
+export type GameOutcome = 'won' | 'lost' | 'neutral';
+
+/** A `game.ended.v1` event: the game is over, with its winner if it has one. */
+export interface GameEnded {
+  readonly winnerId: string | null;
+}
+
+/**
+ * The end a `game.ended.v1` event reports, or `null` for any other event. A missing or non-string
+ * `winnerId` (an end for another reason than a sunk fleet) reads as no winner.
+ */
+export function gameEndedFrom(event: RealtimeEvent): GameEnded | null {
+  const p = event.payload;
+  if (event.type !== 'game.ended.v1' || typeof p !== 'object' || p === null) return null;
+  return { winnerId: 'winnerId' in p && typeof p.winnerId === 'string' ? p.winnerId : null };
+}
+
 /** The player a `game.turn-changed.v1` event gives the turn, or `null` for any other event. */
 export function turnChangedFrom(event: RealtimeEvent): string | null {
   const p = event.payload;
@@ -169,6 +187,10 @@ export function loadStarted(state: GamePageState, code: string): GamePageState {
  * their way the local fleet is kept, so an answer that predates them does not undo them on screen.
  */
 export function gameLoaded(state: GamePageState, game: GameView): GamePageState {
+  // A game never leaves `completed`: an answer that predates the end does not undo it on screen.
+  if (isCompleted(state) && game.state !== 'completed') {
+    return state.status === 'loaded' ? state : { ...state, status: 'loaded' };
+  }
   const shown =
     state.pendingSaves > 0 && state.game !== null
       ? { ...game, me: { ...game.me, ships: state.game.me.ships } }
@@ -367,6 +389,38 @@ export function turnChanged(state: GamePageState, playerWithTurnId: string): Gam
   return withSelectableTarget({ ...state, game: { ...game, me, opponent }, shotStatus });
 }
 
+/** Whether the game shown is over: `completed`, by a sunk fleet or by an end event. */
+export function isCompleted(state: GamePageState): boolean {
+  return state.game?.state === 'completed';
+}
+
+/**
+ * The game ended, with `winnerId` as the winner (`null`: no winner). The game becomes `completed`,
+ * nobody has the turn and a selected target is dropped. Idempotent: a game that is already
+ * completed is left as it is, so a second end (the event after the response, a replay) changes
+ * nothing. Without a game on screen there is nothing to end; the load that follows shows the end.
+ */
+export function gameEnded(state: GamePageState, winnerId: string | null): GamePageState {
+  const game = state.game;
+  if (game === null || isCompleted(state)) return state;
+  const me = { ...game.me, hasTurn: false };
+  const opponent = game.opponent === null ? null : { ...game.opponent, hasTurn: false };
+  return {
+    ...state,
+    game: { ...game, state: 'completed', winnerId, me, opponent },
+    target: null,
+    shotStatus: state.shotStatus === 'fired' ? 'idle' : state.shotStatus,
+  };
+}
+
+/** How the game ended for the caller, or `null` while it is not over. */
+export function outcomeOf(state: GamePageState): GameOutcome | null {
+  const game = state.game;
+  if (game === null || !isCompleted(state)) return null;
+  if (game.winnerId === null) return 'neutral';
+  return game.winnerId === game.me.playerId ? 'won' : 'lost';
+}
+
 /**
  * The state of one game page: the caller's view of the game, how loading it went and the
  * placement or the shot in progress. Provided by `GamePage`, so it lives and dies with the page.
@@ -378,6 +432,11 @@ export function turnChanged(state: GamePageState, playerWithTurnId: string): Gam
  * During play the caller selects a target, confirms it and fires one shot per turn. A shot is
  * drawn only once the server recorded it (no optimistic markers); the turn moves only by a turn
  * change event or a reload.
+ *
+ * The game ends by a `game.ended.v1` event for its code, by the caller's own shot answered with
+ * state `completed` (the caller won), or by loading a completed game. Ending is idempotent, so
+ * the event and the response arriving both have the effect of one. After the first end event the
+ * game is read once more to reconcile the final boards; a failure of that read changes nothing.
  */
 @Injectable()
 export class GamePageStore {
@@ -391,6 +450,8 @@ export class GamePageStore {
   #reloadAgain = false;
   /** The tail of the save queue; each placement waits for the one before it. Not rendered. */
   #saves: Promise<void> = Promise.resolve();
+  /** Whether the end event's reconciling read was made; it is made once per page. Not rendered. */
+  #reconciled = false;
 
   readonly state = this.#state.asReadonly();
   readonly code = computed(() => this.#state().code);
@@ -398,6 +459,22 @@ export class GamePageStore {
   readonly game = computed(() => this.#state().game);
   /** The game's lifecycle state, `null` until a game is loaded. */
   readonly phase = computed(() => this.#state().game?.state ?? null);
+  /**
+   * What the page shows of a loaded game: placement for a new game, the boards while it is played
+   * and after it was completed (read only), and a notice for any other end.
+   */
+  readonly stage = computed(() => {
+    const phase = this.phase();
+    if (phase === null) return null;
+    if (phase === 'new') return 'placement';
+    return phase === 'started' || phase === 'completed' ? 'play' : 'over';
+  });
+  /** The winner of a completed game; `null` while it runs or when it ended without one. */
+  readonly winnerId = computed(() => this.#state().game?.winnerId ?? null);
+  /** Whether the game is over: the boards are read only and the result is shown. */
+  readonly isEnded = computed(() => isCompleted(this.#state()));
+  /** How the game ended for the caller, `null` while it is not over. */
+  readonly outcome = computed(() => outcomeOf(this.#state()));
   readonly me = computed(() => this.#state().game?.me ?? null);
   readonly opponent = computed(() => this.#state().game?.opponent ?? null);
   /** The caller's ships on the board. */
@@ -624,9 +701,14 @@ export class GamePageStore {
     this.#state.update(shotSent);
     try {
       const shot = await this.#api.fireShot(code, target.column, target.row);
-      this.#state.update((current) =>
-        current.code === code ? shotRecorded(current, shot) : current,
-      );
+      this.#state.update((current) => {
+        if (current.code !== code) return current;
+        const recorded = shotRecorded(current, shot);
+        // Only the shooter can sink the last ship: a completed game after the shot is a win.
+        return shot.state === 'completed' && recorded.game !== null
+          ? gameEnded(recorded, recorded.game.me.playerId)
+          : recorded;
+      });
     } catch (error) {
       const reason = error instanceof FireShotFailure ? error.reason : 'failed';
       this.#state.update((current) => shotRefused(current, reason));
@@ -642,6 +724,32 @@ export class GamePageStore {
   /** A `game.turn-changed.v1` event for this game arrived. */
   applyTurnChanged(playerWithTurnId: string): void {
     this.#state.update((s) => turnChanged(s, playerWithTurnId));
+  }
+
+  /**
+   * The game ended with `winnerId` as the winner, or without one (`null`). Idempotent; see
+   * `gameEnded`.
+   */
+  endGame(winnerId: string | null): void {
+    this.#state.update((s) => gameEnded(s, winnerId));
+  }
+
+  /**
+   * A `game.ended.v1` event for this game arrived: the game ends, then is read once more so the
+   * final boards hold every shot, also one whose event was lost. The read is made once per page;
+   * when it fails the boards stay as they are.
+   */
+  async applyGameEnded(ended: GameEnded): Promise<void> {
+    this.endGame(ended.winnerId);
+    if (this.#reconciled) return;
+    this.#reconciled = true;
+    const code = this.code();
+    try {
+      const game = await this.#api.getGame(code);
+      this.#state.update((s) => (s.code === code ? gameLoaded(s, game) : s));
+    } catch {
+      // The end is shown already; the boards as they stand are the best there is.
+    }
   }
 
   /** Resolves once every placement sent so far has been answered. */
@@ -670,6 +778,11 @@ export class GamePageStore {
     const shot = shotFiredFrom(event);
     if (shot !== null) {
       this.applyShotFired(shot);
+      return;
+    }
+    const ended = gameEndedFrom(event);
+    if (ended !== null) {
+      void this.applyGameEnded(ended);
       return;
     }
     const playerWithTurnId = turnChangedFrom(event);
