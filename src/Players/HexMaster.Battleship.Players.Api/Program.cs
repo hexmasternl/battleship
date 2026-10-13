@@ -14,6 +14,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddPlayersModule();
+builder.AddPlayersData();
 
 var app = builder.Build();
 
