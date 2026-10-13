@@ -16,7 +16,7 @@
 
 ## 3. Identity and games client
 
-- [ ] 3.1 Add a typed games client over the gateway (`https+http://gateway/api`) for tokens, join, get game, place ship, ready and (behind the #18 contract) shots, mapping problem types to results. Verify with `HttpMessageHandler` mock tests for each status code the specs list.
+- [x] 3.1 Add a typed games client over the gateway (`https+http://gateway/api`) for tokens, join, get game, place ship, ready and (behind the #18 contract) shots, mapping problem types to results. Verify with `HttpMessageHandler` mock tests for each status code the specs list.
 - [ ] 3.2 Add the token store and bearer `DelegatingHandler`: create the `Dev Bot` user at start, refresh one minute before expiry and once on `401`, and create a new user when a refresh fails. Verify with tests that use a fake clock.
 
 ## 4. Sessions, discovery and admin API
