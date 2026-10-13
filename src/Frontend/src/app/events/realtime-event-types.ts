@@ -3,15 +3,20 @@
  * integration event envelope's `type`).
  *
  * `EventSource` only dispatches a named event to a listener registered for that exact name, so
- * every type a publisher sends must be listed here or the browser silently drops it. This list is
- * kept in step by hand with the publishers that reference `HexMaster.Battleship.Events.Abstractions`;
- * adding a new event type is a change on both sides.
+ * every type the backend publishes must be listed here or the browser silently drops it. The names
+ * come from the integration event catalog in `HexMaster.Battleship.IntegrationEvents`
+ * (`src/Core/HexMaster.Battleship.IntegrationEvents`, see its README.md), which is the source of
+ * truth for every versioned event type. A name added to or removed from that catalog must be
+ * mirrored here.
  */
 export const REALTIME_EVENT_TYPES = [
-  'shot-fired',
-  'ships-placed',
-  'game-started',
-  'turn-changed',
+  'player.created.v1',
+  'player.updated.v1',
+  'game.created.v1',
+  'game.joined.v1',
+  'game.started.v1',
+  'game.shot-fired.v1',
+  'game.ended.v1',
 ] as const;
 
 /** One of the event types the frontend listens for. */

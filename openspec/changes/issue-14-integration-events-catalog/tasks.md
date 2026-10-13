@@ -25,7 +25,7 @@
 
 ## 5. Frontend event names
 
-- [ ] 5.1 Replace the placeholder entries in `src/Frontend/src/app/events/realtime-event-types.ts` with the seven catalog type names, update its comment to name `HexMaster.Battleship.IntegrationEvents` as the source, and switch sample types in `events.service` specs to catalog names (design D7); verify `npm test` and `npm run build` in `src/Frontend` pass
+- [x] 5.1 Replace the placeholder entries in `src/Frontend/src/app/events/realtime-event-types.ts` with the seven catalog type names, update its comment to name `HexMaster.Battleship.IntegrationEvents` as the source, and switch sample types in `events.service` specs to catalog names (design D7); verify `npm test` and `npm run build` in `src/Frontend` pass
 
 ## 6. Integration check
 
