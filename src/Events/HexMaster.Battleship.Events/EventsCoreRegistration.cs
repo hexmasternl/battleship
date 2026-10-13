@@ -1,6 +1,7 @@
 using HexMaster.Battleship.Events.Connections;
 using HexMaster.Battleship.Events.Replay;
 using HexMaster.Battleship.Events.Routing;
+using HexMaster.Battleship.Events.Streaming;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ public static class EventsCoreRegistration
     public static IServiceCollection AddEventsCore(this IServiceCollection services)
     {
         services.AddOptions<ReplayOptions>().BindConfiguration(ReplayOptions.ConfigurationSection);
+        services.AddOptions<StreamOptions>().BindConfiguration(StreamOptions.ConfigurationSection);
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<IConnectionRegistry, ConnectionRegistry>();

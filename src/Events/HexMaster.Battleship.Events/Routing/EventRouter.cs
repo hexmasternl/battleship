@@ -4,18 +4,55 @@ using HexMaster.Battleship.Events.Connections;
 using HexMaster.Battleship.Events.Replay;
 using HexMaster.Battleship.Events.Streaming;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace HexMaster.Battleship.Events.Routing;
 
 public sealed class EventRouter(
     IConnectionRegistry registry,
     IReplayBuffer replayBuffer,
+    IOptions<StreamOptions> streamOptions,
     ILogger<EventRouter> logger) : IEventRouter
 {
     private long _sequence;
 
-    // Routing is serialised so every connection sees events in sequence order.
+    // Routing and connecting are serialised so every connection sees events in sequence
+    // order, and a reconnecting client gets each missed event exactly once: either from the
+    // replay or live, never both.
     private readonly Lock _lock = new();
+
+    public EventConnection Connect(string playerId, long? lastEventId)
+    {
+        var connection = new EventConnection(playerId, streamOptions.Value.ChannelCapacity, logger);
+
+        lock (_lock)
+        {
+            registry.Register(connection);
+
+            if (lastEventId is { } lastId)
+            {
+                foreach (var item in replayBuffer.Since(lastId, playerId))
+                {
+                    connection.TryWrite(item);
+                }
+            }
+        }
+
+        logger.LogInformation(
+            "Opened event stream {ConnectionId} for player {PlayerId} after event {LastEventId}",
+            connection.Id, playerId, lastEventId);
+
+        return connection;
+    }
+
+    public void Disconnect(EventConnection connection)
+    {
+        registry.Unregister(connection);
+
+        logger.LogInformation(
+            "Closed event stream {ConnectionId} of player {PlayerId}",
+            connection.Id, connection.PlayerId);
+    }
 
     public RouteResult Route(IntegrationEventEnvelope envelope)
     {

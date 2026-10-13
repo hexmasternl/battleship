@@ -4,7 +4,9 @@ using HexMaster.Battleship.Events.Connections;
 using HexMaster.Battleship.Events.Replay;
 using HexMaster.Battleship.Events.Routing;
 using HexMaster.Battleship.Events.Tests.Factories;
+using HexMaster.Battleship.Events.Streaming;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace HexMaster.Battleship.Events.Tests.Routing;
 
@@ -16,7 +18,49 @@ public class EventRouterTests
 
     public EventRouterTests()
     {
-        _router = new EventRouter(_registry, _replayBuffer, NullLogger<EventRouter>.Instance);
+        _router = new EventRouter(
+            _registry,
+            _replayBuffer,
+            Options.Create(new StreamOptions()),
+            NullLogger<EventRouter>.Instance);
+    }
+
+    [Fact]
+    public void Connect_WithLastEventId_QueuesMissedEventsBeforeLiveOnes()
+    {
+        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        var missedOne = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-b"));
+        var missedTwo = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+
+        var connection = _router.Connect("player-a", missedOne.Sequence - 1);
+        var live = _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+
+        Assert.Equal(
+            new[] { missedOne.Sequence, missedTwo.Sequence, live.Sequence }.Select(s => s.ToString()),
+            Drain(connection).Select(i => i.EventId));
+    }
+
+    [Fact]
+    public void Connect_WithoutLastEventId_ReceivesLiveEventsOnly()
+    {
+        _router.Route(IntegrationEventEnvelopeFactory.ForPlayer("player-a"));
+
+        var connection = _router.Connect("player-a", null);
+
+        Assert.Empty(Drain(connection));
+        Assert.Equal([connection], _registry.ConnectionsFor("player-a"));
+    }
+
+    [Fact]
+    public void Disconnect_RemovesAndCompletesTheConnection()
+    {
+        var connection = _router.Connect("player-a", null);
+
+        _router.Disconnect(connection);
+
+        Assert.Empty(_registry.ConnectionsFor("player-a"));
+        Assert.True(connection.Reader.Completion.IsCompleted);
     }
 
     [Fact]
