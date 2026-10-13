@@ -3,6 +3,7 @@ using HexMaster.Battleship.DevBot.Endpoints;
 using HexMaster.Battleship.DevBot.Events;
 using HexMaster.Battleship.DevBot.Identity;
 using HexMaster.Battleship.DevBot.Sessions;
+using OpenTelemetry.Instrumentation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,16 @@ builder.Services.AddSingleton<GameSessions>();
 builder.Services.AddSingleton<IntegrationEventHandler>();
 builder.Services.AddHostedService<ReconcileTimerService>();
 
+builder.Services.AddProblemDetails();
+
+// The AppHost polls /admin/state every two seconds; keep those requests out of the traces.
+builder.Services.PostConfigure<AspNetCoreTraceInstrumentationOptions>(tracing =>
+{
+    var filter = tracing.Filter;
+    tracing.Filter = context =>
+        !context.Request.Path.StartsWithSegments(AdminEndpoints.StatePath) && (filter?.Invoke(context) ?? true);
+});
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
@@ -39,6 +50,7 @@ app.UseCloudEvents();
 app.MapSubscribeHandler();
 
 app.MapIntegrationEventEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();
 
