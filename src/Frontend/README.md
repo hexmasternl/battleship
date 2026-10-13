@@ -113,6 +113,69 @@ Last measured 2026-10-13:
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 
+## Real-time events
+
+`src/app/events/` holds `EventsService`, the application-wide client for the Events API stream
+(`GET /events?playerId=<id>`, server-sent events). It wraps the browser's `EventSource`, which
+reconnects on its own and sends `Last-Event-ID` so the server replays what was missed. The service
+exposes `connect(playerId)`, `disconnect()`, `events$` (type, id and parsed JSON payload; heartbeats
+are dropped) and a `state` signal (`disconnected`, `connecting`, `open`, `reconnecting`). Nothing
+connects at start-up yet; the first screen that needs live updates calls `connect`.
+
+Every event type the server pushes must be listed in `src/app/events/realtime-event-types.ts`:
+`EventSource` only delivers named events that have a listener, so an unlisted type is lost. Unnamed
+messages are logged to the console as a warning.
+
+### Pointing the app at the Events API
+
+The base URL comes from the `EVENTS_API_URL` injection token, provided in `src/app/app.config.ts`:
+
+```ts
+{ provide: EVENTS_API_URL, useValue: 'http://localhost:5317' },
+```
+
+`http://localhost:5317` is the `http` endpoint the Aspire AppHost gives the Events API
+(`hexmaster-battleship-events-api` in the Aspire dashboard). If the dashboard shows a different
+address, change the value there; it is the base URL only, the service appends `/events`.
+
+The Events API accepts cross-origin requests only from the origins in `Events:AllowedOrigins`
+(default `http://localhost:4200`). Serve the app with plain `ng serve` on port 4200, or add your
+dev-server origin to that setting, otherwise the browser blocks the stream and the service ends in
+`disconnected` with a CORS error in the console.
+
+### Confirming that events arrive
+
+1. Start the AppHost (`aspire run` from `src/Aspire/HexMaster.Battleship.Aspire`, see the
+   repository README) and wait until the Events API is healthy in the dashboard.
+2. Start the app with `ng serve` and open `http://localhost:4200/` with the developer tools open on
+   the **Network** tab.
+3. Open the stream. Until a screen calls `connect`, either inject `EventsService` in a component
+   and call `connect('A')` for the duration of the check, or run
+   `new EventSource('http://localhost:5317/events?playerId=A')` in the browser console, which uses
+   the same request the service makes.
+4. Filter the network list on `events`. The `/events?playerId=A` request stays pending with status
+   `200` and type `eventsource`; select it and open the **EventStream** tab (Chrome and Edge). A
+   `heartbeat` row with data `null` appears every 15 seconds while the stream is idle.
+5. Publish an event for player A from a shell:
+
+   ```bash
+   dapr publish --publish-app-id events-api --pubsub pubsub --topic integration-events \
+     --data '{"id":"e-9","type":"shot-fired","target":"player","targetIds":["A"],"occurredAt":"2026-10-13T10:00:00Z","payload":{"x":3,"y":5}}'
+   ```
+
+   A `shot-fired` row appears in the EventStream tab with the server's sequence number as its id
+   and `{"x":3,"y":5}` as its data, and subscribers of `events$` receive
+   `{ type: 'shot-fired', id: '<sequence>', payload: { x: 3, y: 5 } }`.
+
+Verified on 2026-10-13 against the running AppHost: the service opened the stream (`state` read
+`connecting`, then `open`), no value was emitted during a 17-second idle period that carried a
+heartbeat, the published envelope was surfaced as
+`{"type":"shot-fired","id":"3","payload":{"x":3,"y":5}}`, and `disconnect()` closed the request and
+set `state` to `disconnected`. Port 4200 was taken by another dev server at the time, so the app ran
+on another port in Chromium with web security disabled; the CORS answer for
+`Origin: http://localhost:4200` (`Access-Control-Allow-Origin: http://localhost:4200`) was checked
+separately with `curl`, and with security enabled the other origin was blocked as described above.
+
 ## Welcome page
 
 The landing page at `/` (`src/app/welcome/`) is built from the design system tokens in
