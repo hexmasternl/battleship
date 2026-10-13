@@ -13,7 +13,7 @@ import {
   REFRESH_TOKEN_KEY,
   SESSION_STORAGE,
 } from '../core/session/token-storage';
-import { GAMES_URL } from '../games/games-api';
+import { GAMES_URL, joinGameUrl } from '../games/games-api';
 import { CONSOLE_MESSAGE_POOL, REDUCED_MOTION } from './console-scheduler';
 import { HeroSection } from './hero-section';
 
@@ -44,8 +44,30 @@ describe('HeroSection', () => {
   };
   const dialogElement = () => document.querySelector('mat-dialog-container') as HTMLElement | null;
   const dialogTitle = () => dialogElement()?.querySelector('h2')?.textContent?.trim();
-  const createButton = () => host.querySelector('.hero__actions button') as HTMLButtonElement;
-  const joinLink = () => host.querySelector('.hero__actions a') as HTMLAnchorElement;
+  const actionButtons = () =>
+    Array.from(host.querySelectorAll<HTMLButtonElement>('.hero__actions button'));
+  const createButton = () => actionButtons()[0];
+  const joinButton = () => actionButtons()[1];
+  const dialogInput = () => dialogElement()?.querySelector('input') as HTMLInputElement;
+
+  /** Types into the open dialog's input as a user would. */
+  async function typeInDialog(value: string): Promise<void> {
+    dialogInput().value = value;
+    dialogInput().dispatchEvent(new Event('input'));
+    await settle();
+  }
+
+  /** Fills in the open player-name dialog and answers the create-player request. */
+  async function createPlayerInDialog(): Promise<void> {
+    await typeInDialog('Admiral Nelson');
+    (dialogElement()?.querySelector('button[type=submit]') as HTMLButtonElement).click();
+    await settle();
+    const req = backend.expectOne(CREATE_URL);
+    expect(req.request.body).toEqual({ displayName: 'Admiral Nelson' });
+    req.flush(PAIR, { status: 201, statusText: 'Created' });
+    await firstValueFrom(dialog.afterAllClosed);
+    await settle();
+  }
 
   async function becomeKnown(): Promise<void> {
     const created = TestBed.inject(PlayerSession).createPlayer('Admiral Nelson');
@@ -72,10 +94,7 @@ describe('HeroSection', () => {
     await TestBed.configureTestingModule({
       imports: [HeroSection],
       providers: [
-        provideRouter([
-          { path: 'games/join', component: RouteStub },
-          { path: 'games/:gameCode', component: RouteStub },
-        ]),
+        provideRouter([{ path: 'games/:gameCode', component: RouteStub }]),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: PERSISTENT_STORAGE, useValue: () => local },
@@ -106,9 +125,10 @@ describe('HeroSection', () => {
     expect(host.querySelector('.hero__intro')?.textContent?.trim().length).toBeGreaterThan(0);
   });
 
-  it('offers a create button and a join link, styled by role', () => {
+  it('offers a create and a join button, styled by role', () => {
     const actions = host.querySelector('.hero__actions') as HTMLElement;
     expect(actions.children.length).toBe(2);
+    expect(actions.querySelector('a')).toBeNull();
 
     const create = createButton();
     expect(create.textContent?.trim()).toBe('Create a new game');
@@ -117,9 +137,10 @@ describe('HeroSection', () => {
     expect(create.classList.contains('bs-btn')).toBe(true);
     expect(create.classList.contains('bs-btn--primary')).toBe(true);
 
-    const join = joinLink();
+    const join = joinButton();
     expect(join.textContent?.trim()).toBe('Join an existing game');
-    expect(join.getAttribute('href')).toBe('/games/join');
+    expect(join.getAttribute('type')).toBe('button');
+    expect(join.hasAttribute('href')).toBe(false);
     expect(join.classList.contains('bs-btn')).toBe(true);
     expect(join.classList.contains('bs-btn--secondary')).toBe(true);
   });
@@ -282,45 +303,85 @@ describe('HeroSection', () => {
   });
 
   describe('"Join an existing game"', () => {
+    const JOIN_URL = joinGameUrl('K7Q2M9XA');
+
     async function activate(): Promise<void> {
-      joinLink().focus();
-      joinLink().click();
+      joinButton().focus();
+      joinButton().click();
       await settle();
     }
 
-    it('navigates a known player at once without a dialog', async () => {
+    /** Enters the code in the open join dialog, joins, and answers the join request. */
+    async function joinWith(code: string): Promise<void> {
+      await typeInDialog(code);
+      clickDialogAction('Join game');
+      await settle();
+      const req = backend.expectOne(joinGameUrl(code.toUpperCase()));
+      expect(req.request.method).toBe('POST');
+      req.flush(CREATED);
+      await firstValueFrom(dialog.afterAllClosed);
+      await settle();
+    }
+
+    it('asks a known player for a game code, with focus in the input and no navigation', async () => {
       await becomeKnown();
 
       await activate();
-
-      expect(dialogElement()).toBeNull();
-      expect(router.url).toBe('/games/join');
-    });
-
-    it('asks an unknown visitor for a name and navigates once the player is created', async () => {
-      await activate();
+      await waitForDialog();
 
       expect(router.url).toBe('/');
+      expect(dialogTitle()).toBe('Join an existing game');
+      await vi.waitFor(() => expect(document.activeElement).toBe(dialogInput()));
+      backend.expectNone(JOIN_URL);
+    });
+
+    it('joins the game and navigates to it', async () => {
+      await becomeKnown();
+      await activate();
       await waitForDialog();
+
+      await joinWith('k7q2m9xa');
+
+      expect(dialog.openDialogs.length).toBe(0);
+      expect(router.url).toBe('/games/K7Q2M9XA');
+    });
+
+    it('asks an unknown visitor for a name, then for a game code', async () => {
+      await activate();
+      await waitForDialog();
+
+      expect(router.url).toBe('/');
+      expect(dialogTitle()).toBe('Choose your player name');
       expect(dialogElement()?.contains(document.activeElement)).toBe(true);
 
-      const input = dialogElement()?.querySelector('input') as HTMLInputElement;
-      input.value = 'Admiral Nelson';
-      input.dispatchEvent(new Event('input'));
-      (dialogElement()?.querySelector('button[type=submit]') as HTMLButtonElement).click();
-      await settle();
-      const req = backend.expectOne(CREATE_URL);
-      expect(req.request.body).toEqual({ displayName: 'Admiral Nelson' });
-      req.flush(PAIR, { status: 201, statusText: 'Created' });
+      await createPlayerInDialog();
+      await waitForDialog();
+
+      expect(dialog.openDialogs.length).toBe(1);
+      expect(dialogTitle()).toBe('Join an existing game');
+      expect(router.url).toBe('/');
+      expect(local.getItem(REFRESH_TOKEN_KEY)).toBe('refresh-1');
+
+      await joinWith('K7Q2M9XA');
+      expect(router.url).toBe('/games/K7Q2M9XA');
+    });
+
+    it('stays here, sends nothing and returns focus when the join dialog is cancelled', async () => {
+      await becomeKnown();
+      await activate();
+      await waitForDialog();
+      await typeInDialog('K7Q2M9XA');
+
+      clickDialogAction('Cancel');
       await firstValueFrom(dialog.afterAllClosed);
       await settle();
 
-      expect(dialog.openDialogs.length).toBe(0);
-      expect(router.url).toBe('/games/join');
-      expect(local.getItem(REFRESH_TOKEN_KEY)).toBe('refresh-1');
+      backend.expectNone(JOIN_URL);
+      expect(router.url).toBe('/');
+      expect(document.activeElement).toBe(joinButton());
     });
 
-    it('stays on the landing page and returns focus when the dialog is cancelled', async () => {
+    it('stays here and returns focus when the name dialog is cancelled', async () => {
       await activate();
       await waitForDialog();
 
@@ -328,35 +389,58 @@ describe('HeroSection', () => {
       await firstValueFrom(dialog.afterAllClosed);
       await settle();
 
+      expect(dialog.openDialogs.length).toBe(0);
       expect(router.url).toBe('/');
       expect(local.keys()).toEqual([]);
-      expect(document.activeElement).toBe(joinLink());
+      expect(document.activeElement).toBe(joinButton());
     });
 
-    it('waits for a pending refresh and navigates without a dialog when it succeeds', async () => {
+    it('keeps the dialog open with the reason and does not navigate when the game is full', async () => {
+      await becomeKnown();
+      await activate();
+      await waitForDialog();
+
+      await typeInDialog('K7Q2M9XA');
+      clickDialogAction('Join game');
+      await settle();
+      backend
+        .expectOne(JOIN_URL)
+        .flush(
+          { type: 'https://battleship.hexmaster.nl/problems/game-full' },
+          { status: 409, statusText: 'Conflict' },
+        );
+      await settle();
+
+      expect(dialog.openDialogs.length).toBe(1);
+      expect(dialogElement()?.querySelector('[role=alert]')?.textContent?.trim()).toBe(
+        'This game already has two players.',
+      );
+      expect(router.url).toBe('/');
+    });
+
+    it('opens one dialog when activated twice', async () => {
+      await becomeKnown();
+      await activate();
+      await activate();
+      await waitForDialog();
+
+      expect(dialog.openDialogs.length).toBe(1);
+    });
+
+    it('waits for a pending refresh and asks for a game code without a name dialog', async () => {
       local.setItem(REFRESH_TOKEN_KEY, 'refresh-0');
       local.setItem(REFRESH_TOKEN_EXPIRES_AT_KEY, '2999-01-01T00:00:00Z');
       void TestBed.inject(PlayerSession).restore();
 
       await activate();
-      expect(router.url).toBe('/');
       expect(dialogElement()).toBeNull();
 
       backend.expectOne(REFRESH_URL).flush(PAIR);
       await settle();
-      await settle();
+      await waitForDialog();
 
-      expect(dialogElement()).toBeNull();
-      expect(router.url).toBe('/games/join');
-    });
-
-    it('leaves modified clicks to the browser', async () => {
-      const event = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
-      joinLink().dispatchEvent(event);
-      await settle();
-
-      expect(event.defaultPrevented).toBe(false);
-      expect(dialogElement()).toBeNull();
+      expect(dialog.openDialogs.length).toBe(1);
+      expect(dialogTitle()).toBe('Join an existing game');
       expect(router.url).toBe('/');
     });
   });

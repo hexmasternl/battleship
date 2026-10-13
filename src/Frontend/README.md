@@ -263,7 +263,7 @@ const P = [
   ['--bs-color-text-on-accent', '--bs-color-secondary-hover', 4.5, 'body: secondary button hover'],
   ['--bs-color-accent', '--bs-color-surface', 4.5, 'body: console text, eyebrow, panel-info text'],
   ['--bs-color-accent', '--bs-color-bg', 4.5, 'body: console text on the screen, section heading'],
-  ['--bs-color-text', '--bs-color-bg', 4.5, 'body: ghost link label on the coming-soon page'],
+  ['--bs-color-text', '--bs-color-bg', 4.5, 'body: ghost link label on the game placeholder page'],
   ['--bs-color-text-strong', '--bs-color-hit', 3, 'large: bold 1.25rem cross glyph on the hit marker (decorative, text alongside)'],
   ['--bs-color-text-strong', '--bs-color-sunk', 4.5, 'body: cross glyph on the sunk marker'],
 ];
@@ -300,7 +300,7 @@ process.exit(bad ? 1 : 0);
 | `--bs-color-text-on-accent` (#011627) | `--bs-color-secondary-hover` (#60a1ff) | 7.02:1 | 4.5:1 | body: secondary button hover | pass |
 | `--bs-color-accent` (#00c0ff) | `--bs-color-surface` (#041e32) | 8.07:1 | 4.5:1 | body: console text, eyebrow, panel-info text | pass |
 | `--bs-color-accent` (#00c0ff) | `--bs-color-bg` (#011627) | 8.72:1 | 4.5:1 | body: console text on the screen, section heading | pass |
-| `--bs-color-text` (#b2c2d4) | `--bs-color-bg` (#011627) | 10.09:1 | 4.5:1 | body: ghost link label on the coming-soon page | pass |
+| `--bs-color-text` (#b2c2d4) | `--bs-color-bg` (#011627) | 10.09:1 | 4.5:1 | body: ghost link label on the game placeholder page | pass |
 | `--bs-color-text-strong` (#e9eef3) | `--bs-color-hit` (#ff2146) | 3.24:1 | 3:1 | large: bold 1.25rem cross glyph on the hit marker (decorative, text alongside) | pass |
 | `--bs-color-text-strong` (#e9eef3) | `--bs-color-sunk` (#9c1d2c) | 6.85:1 | 4.5:1 | body: cross glyph on the sunk marker | pass |
 

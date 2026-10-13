@@ -17,7 +17,7 @@ export const appConfig: ApplicationConfig = {
     // that the gateway interceptor rewrites. See core/session/auth.interceptor.ts and
     // core/api-gateway.interceptor.ts.
     provideHttpClient(withInterceptors([authInterceptor, apiGatewayInterceptor])),
-    // Route `data` keys (such as the coming-soon page's `feature`) bind straight to component inputs.
+    // Route parameters (such as the game page's `gameCode`) bind straight to component inputs.
     provideRouter(routes, withComponentInputBinding()),
     // The Events API as the Aspire AppHost serves it in development (see README, "Real-time events").
     { provide: EVENTS_API_URL, useValue: 'http://localhost:5317' },
