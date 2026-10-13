@@ -1,6 +1,7 @@
 using CommunityToolkit.Aspire.Hosting.Dapr;
 using HexMaster.Battleship.Aspire;
 using HexMaster.Battleship.Aspire.AppHost;
+using HexMaster.Battleship.Aspire.AppHost.DevBot;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -154,11 +155,15 @@ eventsApi
     .WithEnvironment("Events__AllowedOrigins__0", frontend.GetEndpoint("http"))
     .WithEnvironment("Events__AllowedOrigins__1", "http://localhost:4200");
 
+// A bot opponent for local runs, so one developer can play a whole game alone. It plays through the
+// gateway as its own user and joins a new game nobody else joined within the grace period. Its
+// commands (set intelligence, auto-join, join game) are on the devbot resource in the dashboard.
 if (builder.ExecutionContext.IsRunMode)
 {
-    HexMaster.Battleship.Aspire.AppHost.DevBot.BattleshipBotSpike.AddBattleshipBotSpike(builder, "devbot", pubsub, daprConfig)
-        .WithReference(gateway)
-        .WaitFor(gateway);
+    builder.AddBattleshipBot("devbot", gateway, pubsub, daprConfig)
+        .WithIntelligence("HuntAndTarget")
+        .WithJoinGracePeriod(TimeSpan.FromSeconds(10))
+        .WithShotDelay(TimeSpan.FromSeconds(1));
 }
 
 builder.Build().Run();
