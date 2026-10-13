@@ -8,7 +8,7 @@
 
 ## 2. Event catalog
 
-- [ ] 2.1 Add `IIntegrationEvent` (static abstract `EventType`) and the seven v1 records under `Players/` and `Games/` with the payload fields from the spec, plus `GameEndReason` with its kebab-case JSON converter (design D2); add `IntegrationEventCatalog` listing every event type; verify with unit tests that type names match the format, are unique, and that every `IIntegrationEvent` in the assembly is in the catalog
+- [x] 2.1 Add `IIntegrationEvent` (static abstract `EventType`) and the seven v1 records under `Players/` and `Games/` with the payload fields from the spec, plus `GameEndReason` with its kebab-case JSON converter (design D2); add `IntegrationEventCatalog` listing every event type; verify with unit tests that type names match the format, are unique, and that every `IIntegrationEvent` in the assembly is in the catalog
 - [ ] 2.2 Add serialization tests with Bogus-built events (factories under `Factories/`) asserting camelCase payload JSON for each event, `gameCode`/`column`/`row` for shot fired, `reason` and absent `winnerId` for a server-ended game; verify `dotnet test src/Core/HexMaster.Battleship.IntegrationEvents.Tests` passes
 - [ ] 2.3 Document the catalog and the versioning rule (new version alongside, optional fields need no new version) in a `README.md` in the library folder; verify it lists all seven type names exactly as `IntegrationEventCatalog` does
 
