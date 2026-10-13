@@ -17,7 +17,7 @@
 
 ## 4. Documentation
 
-- [ ] 4.1 Mention the API reference link in the README's "Your first tour of the dashboard" section and in the Players section (try the endpoints from the reference with a pasted access token). Verify the steps work as written during a local run.
+- [x] 4.1 Mention the API reference link in the README's "Your first tour of the dashboard" section and in the Players section (try the endpoints from the reference with a pasted access token). Verify the steps work as written during a local run.
 
 ## 5. Integration check
 
