@@ -1,8 +1,0 @@
-schema: spec-driven
-created: 2026-10-13
-goal: Move IntegrationEvents from src/Core to src/Shared (ADR 0002 layout)
-affected_areas:
-  - core
-  - aspire
-  - players
-  - events

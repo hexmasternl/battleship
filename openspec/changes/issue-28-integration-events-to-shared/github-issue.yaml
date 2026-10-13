@@ -1,5 +1,0 @@
-repo: hexmasternl/battleship
-issue: 28
-url: https://github.com/hexmasternl/battleship/issues/28
-title: Move IntegrationEvents from src/Core to src/Shared (ADR 0002 layout)
-linked: 2026-10-13
