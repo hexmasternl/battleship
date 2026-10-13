@@ -112,7 +112,7 @@ public class JoinGameCommandHandlerTests
         _logger.Verify(l => l.Log(
             LogLevel.Error,
             It.IsAny<EventId>(),
-            It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains(game.GameCode, StringComparison.Ordinal)),
+            It.Is<It.IsAnyType>((state, _) => $"{state}".Contains(game.GameCode, StringComparison.Ordinal)),
             It.IsAny<HttpRequestException>(),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
