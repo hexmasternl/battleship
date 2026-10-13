@@ -57,6 +57,14 @@ var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(G
         .WithReference(pubsub))
     .WaitFor(messaging);
 
+// Pushes integration events to browsers over server-sent events. Routing state lives in the
+// process, so the service runs as a single instance.
+var eventsApi = builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("hexmaster-battleship-events-api")
+    .WithDaprSidecar(sidecar => sidecar
+        .WithOptions(new DaprSidecarOptions { AppId = "events-api" })
+        .WithReference(pubsub))
+    .WaitFor(messaging);
+
 // The gateway is the single backend endpoint for the frontend. It routes each declared module
 // prefix to that module's API with the path unchanged; anything not in GatewayRoutes (internal
 // endpoints included) gets no route. The table is owned by the yarp-gateway-routes skill.
@@ -103,5 +111,11 @@ foreach (var api in moduleApis.Values)
 {
     api.WithEnvironment("Gateway__AllowedOrigins", frontend.GetEndpoint("http"));
 }
+
+// The Events API is not behind the gateway yet: the browser opens its stream directly, so its
+// own CORS policy must allow the frontend origin of this run (and plain ng serve on 4200).
+eventsApi
+    .WithEnvironment("Events__AllowedOrigins__0", frontend.GetEndpoint("http"))
+    .WithEnvironment("Events__AllowedOrigins__1", "http://localhost:4200");
 
 builder.Build().Run();

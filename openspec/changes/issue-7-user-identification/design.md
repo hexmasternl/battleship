@@ -18,13 +18,15 @@ House standards applied: modules are feature slices (ADR 0007, ADR 0009) with en
 - Token validation is written once (ServiceDefaults) and reused by every API from one configuration section.
 - Handlers are tested without storage; storage is tested against Azurite; nothing in the module project knows Azure.
 - The first module establishes the shared `Core` project so later modules (Games, Events) start from the same base.
+- A returning visitor is recognised on the landing page without any interaction; a new visitor is asked for a player name once, at the moment they choose to create or join a game.
 
 **Non-Goals:**
 - Credential-based registration, external identity providers, or ADR 0010 style subject-id resolution (there is no external provider; the Players service is the issuer).
 - Changing a display name, deleting a user, listing users, or any admin surface.
 - Asymmetric signing keys, key rotation, Key Vault.
 - Device or session tracking beyond one refresh-token chain per issuance; a user may hold several active refresh tokens (one per browser).
-- Frontend token storage and the HTTP interceptor.
+- Attaching the access token to outgoing frontend requests (a bearer interceptor) and renewing the access token proactively while a page stays open. No frontend call needs authentication yet; the first game feature that does adds both.
+- Showing or editing the player name in the frontend.
 
 ## Decisions
 
@@ -78,6 +80,23 @@ Looking up a refresh token is a point read by hash, so no query scans. Rotation 
 
 **Testing.** Unit tests (xUnit, Moq, Bogus) for `User`, `RefreshToken`, both command handlers, the query handler, `JwtTokenService` (claims, expiry, signature) and `TokenOptions` validation, with repositories mocked. Integration tests use `WebApplicationFactory<Program>` with an Azurite container started through the Aspire testing host (`Aspire.Hosting.Testing`) or, when that proves heavy, `Testcontainers` is **not** added; instead the test fixture requires a running Azurite (`UseDevelopmentStorage=true`) and is skipped with a clear reason when it is not reachable. Coverage target 80% on the module project, measured with `coverlet.collector`.
 
+**Frontend token storage.** A small `TokenStorage` class over the Web Storage API with four keys: `battleship.refreshToken` and `battleship.refreshTokenExpiresAt` in `localStorage`, `battleship.accessToken` and `battleship.accessTokenExpiresAt` in `sessionStorage`. Every read and write is wrapped in `try`/`catch` so a browser that blocks storage degrades to "unknown player" instead of throwing. Storing a pair writes all four keys; clearing removes all four. Alternative considered: both tokens in `localStorage`. Rejected by the issue: the access token must not outlive the browser session. Alternative considered: an `HttpOnly` cookie for the refresh token. Rejected for now: it needs cookie handling and CSRF protection across the gateway, and the issue asks for local storage explicitly.
+
+**Player session store.** `PlayerSession` is a root `@Service` store (session-wide state, per the Angular agent's rules) with one private `signal<PlayerSessionState>` holding `status` (`unknown`, `restoring`, `known`) and exposing read-only `status` and `isKnown` slices. Intent methods:
+- `restore()`: if no refresh token is stored, or its stored expiry has passed (tokens are then cleared), stays `unknown`. Otherwise sets `restoring`, posts the refresh token to `/api/tokens/refresh`, stores the new pair and becomes `known`. On `401` it clears the tokens and becomes `unknown`. On a network or `5xx` failure it keeps the refresh token (the failure may be transient) and becomes `unknown`; the next `restore()` tries again. Concurrent calls share one in-flight request.
+- `createPlayer(displayName)`: posts `{ displayName }` to `/api/tokens`, stores the pair and becomes `known`; failures are returned to the caller and leave the state `unknown`.
+- `ensurePlayer()`: used by the calls to action. Waits for an in-flight restore; if the player is still unknown and a refresh token is stored, runs `restore()` once more; then reports whether the player is known.
+
+`PlayersApi` is a thin `HttpClient` wrapper with `createTokens` and `refreshTokens`, so the store is testable with `HttpTestingController`. Requests go to `/api/tokens` and `/api/tokens/refresh`; the `issue-11-yarp-local-gateway` interceptor rewrites them to the gateway.
+
+**Two tabs and rotation.** Two tabs opening the landing page at the same moment present the same refresh token; the second presentation is refused because the first rotated it. Before clearing on `401`, `restore()` reads `localStorage` again: if the stored refresh token differs from the one it presented, another tab already rotated it, so it retries once with the new value instead of clearing. Only a `401` for the token still stored clears the session.
+
+**Landing page refresh.** `WelcomePage` injects `PlayerSession` and calls `restore()` once when it is created. The page does not wait for it; the hero renders immediately. The refresh runs on every visit to `/` that has a stored refresh token, as the issue asks, even when the session already holds an access token.
+
+**Player-name component and dialog.** `shared/player-name/player-name.ts` (`battle-player-name`) is a standalone, dialog-agnostic component: a Signal Forms form with one `playerName` field (trimmed, required, 1 to 40 characters to match the backend rule), a submit button and an inline error region. Its component-scoped `PlayerNameStore` owns the form model, `submitting` and `error`, and its `submit()` intent calls `PlayerSession.createPlayer`. On success the component emits `playerCreated`; on failure it shows a retryable error and keeps the typed name. `PlayerNameDialog` hosts it in an Angular Material dialog with a heading, the component and a cancel action, and closes with `true` on `playerCreated` and `false` on cancel or Escape. The UI requires a name even though the API accepts none: the issue asks the visitor for one, and the generated call sign stays as the API's fallback for other clients.
+
+**Gated calls to action.** The hero calls to action stay links with `routerLink` so they keep link semantics, keyboard behaviour and the existing tests. A click handler calls `ensurePlayer()`; when the player is known the navigation proceeds. When not, it prevents the navigation, opens `PlayerNameDialog`, and navigates to the same route only when the dialog closes with `true`. Alternative considered: a route guard on `/games/new` and `/games/join`. Rejected: a guard cannot open a dialog without the visitor first leaving the landing page, and deep links to those routes would need a different flow; the guard can be added later when the game screens exist.
+
 ## Risks / Trade-offs
 
 - [Symmetric key shared by every API] -> acceptable for a game with one trust domain; the key never leaves configuration, and moving to RS256 only changes `JwtTokenService` and the validation parameters.
@@ -85,6 +104,9 @@ Looking up a refresh token is a point read by hash, so no query scans. Rotation 
 - [Azurite table API differences from Azure Tables] -> only point reads, conditional updates and inserts are used, all supported by Azurite; the integration test runs against the same emulator the AppHost starts.
 - [`Aspire.Azure.Data.Tables` and `Aspire.Hosting.Azure.Storage` versions must match Aspire 13.6.1] -> the first task pins the versions and builds before any code is written.
 - [Users who never refresh accumulate rows] -> out of scope now; a cleanup of expired refresh tokens is a later change and does not affect the contracts.
+- [Refresh token in `localStorage` is readable by any script on the origin] -> accepted by the issue for a game with no credentials; the token is rotated on every visit, and a strict content security policy is a later hardening step.
+- [Rotating on every landing page visit multiplies refresh token rows] -> one row per visit, each expiring after 90 days; the cleanup of consumed and expired rows already listed above covers it.
+- [Frontend depends on `issue-11-yarp-local-gateway`] -> apply that change first; the frontend tasks assume `provideHttpClient` and the `/api/` rewrite exist.
 - [Adding `Core` touches the solution shape] -> it only adds a project; nothing existing references it until Games adopts it.
 
 ## Open Questions

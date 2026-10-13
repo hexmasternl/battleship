@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Events\HexMaster.Battleship.Events.Api\HexMaster.Battleship.Events.Api.csproj" />
     <ProjectReference Include="..\..\..\Games\HexMaster.Battleship.Games.Api\HexMaster.Battleship.Games.Api.csproj" />
     <ProjectReference Include="..\..\..\Players\HexMaster.Battleship.Players.Api\HexMaster.Battleship.Players.Api.csproj" />
   </ItemGroup>
