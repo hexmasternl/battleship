@@ -1,6 +1,6 @@
 using HexMaster.Battleship.Core.DomainModels;
 
-namespace HexMaster.Battleship.Players.Tests.Core;
+namespace HexMaster.Battleship.Core.Tests.DomainModels;
 
 public class DomainModelTests
 {

@@ -2,14 +2,13 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using HexMaster.Battleship.Core.Cqrs;
 using HexMaster.Battleship.Core.Observability;
-using HexMaster.Battleship.Players.Tests.Observability;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Testing;
 
-namespace HexMaster.Battleship.Players.Tests.Core;
+namespace HexMaster.Battleship.Core.Tests.Observability;
 
 public class InstrumentedHandlerTests
 {

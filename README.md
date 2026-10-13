@@ -175,6 +175,7 @@ battleship/
 │   │   ├── *.ServiceDefaults/            OpenTelemetry, health, resilience, auth, CORS
 │   │   └── *.Tests/                      tests for the AppHost logic
 │   ├── Core/                             CQRS and domain building blocks + integration event catalog and sender
+│   │   └── *.Tests/                      Core.Tests and IntegrationEvents.Tests
 │   ├── Players/                          anonymous identity: module, Api, Data, Abstractions, Tests
 │   ├── Games/                            game lifecycle: module, Api, Abstractions, Tests
 │   ├── Events/                           SSE fan-out: module, Api, Abstractions, Tests
