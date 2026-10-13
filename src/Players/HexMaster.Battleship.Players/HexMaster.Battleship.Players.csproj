@@ -11,8 +11,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Creates the access tokens; the same version the JWT bearer validation in ServiceDefaults uses. -->
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.19.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Core\HexMaster.Battleship.Core\HexMaster.Battleship.Core.csproj" />
     <ProjectReference Include="..\HexMaster.Battleship.Players.Abstractions\HexMaster.Battleship.Players.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HexMaster.Battleship.Players.Tests" />
   </ItemGroup>
 
 </Project>
