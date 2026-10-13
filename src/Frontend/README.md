@@ -82,6 +82,33 @@ console.log(`${Object.keys(doc).length} tokens in the document, ${Object.keys(ap
 process.exit(bad?1:0)'
 ```
 
+### Measuring contrast of the Material text roles
+
+Reads the built global stylesheet (run `ng build` or `ng build --configuration development` in `src/Frontend` first), resolves the `--mat-sys-*` roles including the `var(--bs-*)` overrides, and measures the WCAG 2.x contrast of the text roles the material-theme spec names. Exit code 1 means a pair fails its threshold. Paste the output over the table below whenever a colour changes.
+
+```bash
+node -e '
+const fs=require("fs"),dir="src/Frontend/dist/battleship/browser",css=fs.readFileSync(dir+"/"+fs.readdirSync(dir).find(f=>/^styles.*\.css$/.test(f)),"utf8"),t={};
+for(const m of css.matchAll(/(--(?:mat-sys|bs)-[a-z0-9-]+)\s*:\s*([^;]+);/g))t[m[1]]=m[2].trim();
+const r=v=>{let g=0;while(/var\(/.test(v)&&g++<20)v=v.replace(/var\((--[a-z0-9-]+)\)/g,(_,n)=>t[n]);return v};
+const rgb=v=>v.startsWith("#")?[1,3,5].map(i=>parseInt(v.substr(i,2),16)):v.match(/\d+/g).map(Number);
+const L=v=>{const[a,b,c]=rgb(v).map(x=>x/255).map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);return .2126*a+.7152*b+.0722*c};
+const C=(f,b)=>{const[x,y]=[L(f),L(b)].sort((p,q)=>q-p);return(x+.05)/(y+.05)};
+const P=[["on-surface","surface",4.5,"body text on the page and base surface"],["on-surface-variant","surface",4.5,"secondary text on the page"],["on-surface","surface-container-highest",4.5,"body text on the highest container"],["on-primary","primary",4.5,"labels on filled primary buttons"]];
+let bad=0;console.log("| Foreground | Background | Ratio | Needs | Use | Result |\n|---|---|---|---|---|---|");
+for(const[f,b,n,u]of P){const F=r(t["--mat-sys-"+f]),B=r(t["--mat-sys-"+b]),c=C(F,B),ok=c>=n;bad+=!ok;console.log(`| \`${f}\` (${F}) | \`${b}\` (${B}) | ${c.toFixed(2)}:1 | ${n}:1 | ${u} | ${ok?"pass":"FAIL"} |`)}
+process.exit(bad?1:0)'
+```
+
+Last measured 2026-10-13:
+
+| Foreground | Background | Ratio | Needs | Use | Result |
+|---|---|---|---|---|---|
+| `on-surface` (#b2c2d4) | `surface` (#011627) | 10.09:1 | 4.5:1 | body text on the page and base surface | pass |
+| `on-surface-variant` (#7a8694) | `surface` (#011627) | 4.95:1 | 4.5:1 | secondary text on the page | pass |
+| `on-surface` (#b2c2d4) | `surface-container-highest` (#163953) | 6.63:1 | 4.5:1 | body text on the highest container | pass |
+| `on-primary` (rgb(1, 37, 56)) | `primary` (#00c0ff) | 7.55:1 | 4.5:1 | labels on filled primary buttons | pass |
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
