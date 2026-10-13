@@ -5,6 +5,9 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+// Battleship design system tokens (`--bs-*` custom properties on `:root`).
+@use './styles/tokens';
+
 html {
   height: 100%;
   @include mat.theme(
