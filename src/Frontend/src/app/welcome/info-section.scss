@@ -1,0 +1,179 @@
+:host {
+  display: block;
+  background: var(--bs-color-bg);
+  color: var(--bs-color-text);
+  font-family: var(--bs-font-body);
+  line-height: var(--bs-leading-body);
+}
+
+.info__inner {
+  width: min(100%, var(--bs-container));
+  margin-inline: auto;
+  padding: var(--bs-space-12) var(--bs-gutter);
+}
+
+.info__title {
+  margin: 0 0 var(--bs-space-3);
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-2xl);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  line-height: var(--bs-leading-tight);
+  color: var(--bs-color-accent);
+  text-shadow: var(--bs-glow-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.info__lead {
+  margin: 0 0 var(--bs-space-8);
+  max-width: 72ch;
+  font-size: var(--bs-text-lg);
+}
+
+// One column on phones, two from md (768px), four from xl (1280px).
+.info__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bs-space-5);
+}
+
+.info__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bs-space-3);
+  min-width: 0;
+
+  p {
+    margin: 0;
+    font-size: var(--bs-text-md);
+  }
+}
+
+// ---- The fleet: proportional ship bars built from the ship recipe (section 8.2).
+.fleet,
+.legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--bs-space-3);
+}
+
+.fleet__ship {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bs-space-1);
+}
+
+.fleet__name {
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-sm);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-caps);
+  color: var(--bs-color-text-strong);
+}
+
+.fleet__bar {
+  position: relative;
+  display: block;
+  height: var(--bs-space-5);
+  width: calc(var(--ship-length) / var(--fleet-longest) * 100%);
+  background: linear-gradient(180deg, var(--bs-color-secondary-600), var(--bs-color-secondary-800));
+  border: 1px solid var(--bs-color-ship-edge);
+  border-radius: var(--bs-radius-full);
+  background-clip: padding-box;
+
+  // The bridge mark, so the bar reads as a ship rather than a gauge.
+  &::after {
+    content: '';
+    position: absolute;
+    top: 25%;
+    left: calc(50% - var(--bs-space-2));
+    width: var(--bs-space-4);
+    height: 50%;
+    background: var(--bs-color-secondary-500);
+    border-radius: var(--bs-radius-sm);
+    opacity: 0.8;
+  }
+}
+
+.fleet__length {
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text-dim-raised);
+}
+
+// ---- Cell states (section 8.3): colour plus a shape, so colour alone never carries meaning.
+.legend__row {
+  display: grid;
+  grid-template-columns: var(--bs-space-11) minmax(0, 1fr);
+  gap: var(--bs-space-3);
+  align-items: center;
+  font-size: var(--bs-text-md);
+
+  strong {
+    color: var(--bs-color-text-strong);
+  }
+}
+
+.legend__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--bs-space-11);
+  height: var(--bs-space-11);
+  background: var(--bs-color-ocean);
+  border: 1px solid var(--bs-color-grid-line);
+  border-radius: var(--bs-radius-sm);
+}
+
+.legend__cell--miss::after {
+  content: '';
+  width: 36%;
+  height: 36%;
+  border: 2px solid var(--bs-color-miss);
+  border-radius: var(--bs-radius-full);
+}
+
+.legend__cell--hit,
+.legend__cell--sunk {
+  &::after {
+    content: '\2715';
+    font-family: var(--bs-font-heading);
+    font-size: var(--bs-text-lg);
+    font-weight: var(--bs-font-weight-bold);
+    line-height: 1;
+    color: var(--bs-color-text-strong);
+  }
+}
+
+.legend__cell--hit {
+  background: var(--bs-color-hit);
+  box-shadow: var(--bs-glow-danger);
+}
+
+.legend__cell--sunk {
+  background: var(--bs-color-sunk)
+    repeating-linear-gradient(135deg, transparent 0 4px, rgb(0 0 0 / 0.35) 4px 6px);
+}
+
+@media (min-width: 480px) {
+  .fleet__ship {
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--bs-space-3);
+  }
+}
+
+@media (min-width: 768px) {
+  .info__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .info__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
