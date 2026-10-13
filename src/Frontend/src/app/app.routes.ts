@@ -1,7 +1,5 @@
 import { Routes } from '@angular/router';
-
-/** A game code as the Games service issues it: eight upper-case letters or digits. */
-export const GAME_CODE_PATTERN = /^[A-Z0-9]{8}$/;
+import { isGameCode } from './games/game-code';
 
 // Every feature route is lazy so the landing page is its own chunk and the game screens, once
 // they exist, never load before a visitor asks for them.
@@ -22,7 +20,7 @@ export const routes: Routes = [
   {
     path: 'games/:gameCode',
     // Only a well-formed code matches, so retired links such as /games/new fall to the wildcard.
-    canMatch: [(_route, segments) => GAME_CODE_PATTERN.test(segments[1]?.path ?? '')],
+    canMatch: [(_route, segments) => isGameCode(segments[1]?.path ?? '')],
     title: (route) => `Game ${route.paramMap.get('gameCode')} | Battleship`,
     loadComponent: () => import('./games/game-placeholder').then((m) => m.GamePlaceholder),
   },

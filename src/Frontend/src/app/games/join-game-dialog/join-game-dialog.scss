@@ -1,0 +1,33 @@
+// The dialog container itself is themed globally (styles.scss, `mat.dialog-overrides`); the field,
+// status and button recipes come from styles/_components.scss.
+.join-game-dialog__title {
+  font-family: var(--bs-font-heading);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+}
+
+.join-game-dialog__intro {
+  margin: 0 0 var(--bs-space-4);
+  color: var(--bs-color-text);
+}
+
+.join-game-dialog__field {
+  margin-bottom: var(--bs-space-4);
+}
+
+// A code is read character by character: wide tracking keeps look-alikes apart.
+.join-game-dialog__code {
+  letter-spacing: var(--bs-tracking-caps);
+}
+
+.join-game-dialog__status {
+  display: grid;
+  gap: var(--bs-space-2);
+}
+
+.join-game-dialog__progress-text {
+  margin: 0 0 var(--bs-space-4);
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text-dim-raised);
+}
