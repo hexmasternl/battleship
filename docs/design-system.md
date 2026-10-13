@@ -306,6 +306,119 @@ Rules:
 
 ---
 
+## 7. Components
+
+Class names below are the ones the showcase uses. They are a reference vocabulary, not a requirement: a framework may name things differently as long as it consumes the same tokens.
+
+### 7.1 Buttons
+
+`.bs-btn` with one variant class. Font `--bs-font-heading`, uppercase, `--bs-tracking-heading`, size `--bs-text-md`, padding `--bs-space-3` by `--bs-space-5`, radius `--bs-radius-md`, minimum height 44px for touch. Transitions use `--bs-duration-fast` and `--bs-ease-standard`. Pressing brightens: the active fill is the 300 step, one lighter than hover, so a press reads as the control lighting up rather than dimming.
+
+| Variant | Default | Hover | Active (pressed) | Focus | Disabled |
+|---|---|---|---|---|---|
+| `.bs-btn--primary` | fill `--bs-color-accent`, label `--bs-color-text-on-accent` | fill `--bs-color-accent-hover`, `--bs-glow-primary` | fill `--bs-color-accent-active`, `--bs-glow-primary` | ring `--bs-color-focus-ring` | fill `--bs-color-surface-overlay`, label `--bs-color-text-dim-raised`, no glow |
+| `.bs-btn--secondary` | fill `--bs-color-secondary`, label `--bs-color-text-on-accent` | fill `--bs-color-secondary-hover`, `--bs-glow-secondary` | fill `--bs-color-secondary-active`, `--bs-glow-secondary` | ring `--bs-color-focus-ring` | as primary disabled |
+| `.bs-btn--ghost` | transparent, 1px border `--bs-color-border-strong`, label `--bs-color-text` | border and label `--bs-color-accent` | fill `--bs-color-accent-subtle`, label `--bs-color-accent` | ring `--bs-color-focus-ring` | border `--bs-color-border`, label `--bs-color-text-dim-raised` |
+| `.bs-btn--danger` | fill `--bs-color-danger`, label `--bs-color-text-on-danger` at `--bs-text-lg` bold (large text) | fill `--bs-color-danger-hover`, `--bs-glow-danger` | fill `--bs-color-danger-active`, `--bs-glow-danger` | ring `--bs-color-focus-ring` | as primary disabled |
+
+Focus is always `outline: var(--bs-focus-width) solid var(--bs-color-focus-ring); outline-offset: var(--bs-focus-offset)` on `:focus-visible`, so it is never conveyed by colour change alone. Disabled buttons use `opacity: 1` with the muted tokens above, not a faded copy of the enabled state, so they stay legible.
+
+### 7.2 Inputs
+
+`.bs-field` wraps a `<label>`, a `.bs-input` and an optional `.bs-field__hint`. Input font `--bs-font-body`, size `--bs-text-md`, padding `--bs-space-3`, radius `--bs-radius-sm`, minimum height 44px.
+
+| State | Tokens |
+|---|---|
+| Default | fill `--bs-color-surface-raised`, 1px border `--bs-color-border-strong`, text `--bs-color-text`, placeholder `--bs-color-text-dim-raised`, `--bs-shadow-1` |
+| Focus | border `--bs-color-accent`, `--bs-glow-primary`, plus the focus ring |
+| Error (`aria-invalid="true"` or `.is-error`) | border `--bs-color-danger`, `--bs-glow-danger`; the hint turns `--bs-color-danger` and starts with a warning glyph |
+| Disabled | fill `--bs-color-surface`, border `--bs-color-border`, text `--bs-color-text-dim`, no shadow |
+
+### 7.3 Cards and panels
+
+| Element | Tokens |
+|---|---|
+| `.bs-card` | fill `--bs-color-surface-raised`, radius `--bs-radius-md`, `--bs-shadow-2`, padding `--bs-space-5`; on hover `--bs-color-surface-overlay`; heading in `--bs-font-heading` `--bs-text-lg` |
+| `.bs-panel` | fill `--bs-color-surface`, 1px border `--bs-color-border`, radius `--bs-radius-lg`, padding `--bs-space-6`; a 2px top rule in `--bs-color-accent` marks the panel as live |
+| `.bs-panel--info` | as `.bs-panel` with the text in `--bs-font-panel` at `--bs-font-weight-panel`, `--bs-leading-panel`, `--bs-text-lg`, colour `--bs-color-accent` with `--bs-glow-text-primary`. This is the only place Bitcount Single appears. |
+
+### 7.4 Status messages
+
+`.bs-status` with one variant. Font `--bs-font-body`, radius `--bs-radius-sm`, padding `--bs-space-3` by `--bs-space-4`, a 3px left rule and a leading glyph so the kind is readable without colour.
+
+| Variant | Fill | Rule, glyph | Text | Glyph |
+|---|---|---|---|---|
+| `.bs-status--info` | `--bs-color-accent-subtle` | `--bs-color-accent` | `--bs-color-text` | `i` in a circle |
+| `.bs-status--success` | `--bs-color-success-surface` | `--bs-color-success` | `--bs-color-text` | check mark |
+| `.bs-status--warning` | `--bs-color-warning-surface` | `--bs-color-warning` | `--bs-color-text` | exclamation in a triangle |
+| `.bs-status--danger` | `--bs-color-danger-surface` | `--bs-color-danger` | `--bs-color-text` | cross in a circle |
+
+---
+
+## 8. Game elements
+
+### 8.1 The board
+
+`.bs-board` is a CSS grid of 13 columns and 13 rows: one header row of column letters A to L, one header column of row numbers 1 to 12, and 144 playable cells. Each cell is square (`aspect-ratio: 1`). The board is `width: 100%` with `max-width: 520px`, so at 360px the cells are about 25px and at the `md` breakpoint and above about 38px.
+
+| Part | Tokens |
+|---|---|
+| Board background | `--bs-color-ocean`, radius `--bs-radius-md`, 1px border `--bs-color-border` |
+| Cell lines | 1px gap filled by `--bs-color-grid-line` |
+| Coordinates `.bs-board__coord` | `--bs-font-body` `--bs-text-xs`, colour `--bs-color-coordinate`, uppercase |
+
+Touch targets on the real game screens must reach 44px; the game screen does this by letting the board scroll or zoom, not by changing these tokens. The showcase only demonstrates visual states.
+
+### 8.2 Ships
+
+Five ships, each one cell wide. `.bs-ship` spans its length with `grid-column: span N` (horizontal) or `grid-row: span N` with `.bs-ship--v` (vertical). Hull: gradient from `--bs-color-secondary-600` to `--bs-color-secondary-800`, 1px outline `--bs-color-ship-edge`, radius `--bs-radius-full` on the bow and stern ends so direction is readable, and a bridge mark (a lighter cell) so the fleet reads as ships rather than bars.
+
+| Ship | Length |
+|---|---|
+| Carrier | 5 |
+| Battleship | 4 |
+| Destroyer | 3 |
+| Submarine | 3 |
+| Patrol Boat | 2 |
+
+Placing-stage states:
+
+| State | Tokens |
+|---|---|
+| `.is-valid` (legal placement being dragged) | outline `--bs-color-placement-valid`, `--bs-glow-primary` |
+| `.is-invalid` (overlap or off board) | outline `--bs-color-placement-invalid`, `--bs-glow-danger`, hatch pattern over the hull |
+| `.is-placed` (committed) | fill `--bs-color-ship`, outline `--bs-color-ship-edge`, `--bs-glow-secondary` for `--bs-duration-slow` then no glow |
+
+### 8.3 Cell states (battle stage)
+
+Each state has a colour and a shape, so colour alone never carries meaning.
+
+| State | Colour | Non-colour cue |
+|---|---|---|
+| `.is-unknown` (default) | `--bs-color-ocean` | plain cell |
+| `.is-miss` | ring in `--bs-color-miss` | a small hollow circle centred in the cell |
+| `.is-hit` | fill `--bs-color-hit`, `--bs-glow-danger` | a cross glyph in `--bs-color-text-strong` |
+| `.is-sunk` | fill `--bs-color-sunk` | the cross glyph plus a diagonal hatch pattern |
+
+A hit lands with `--bs-duration-base` and `--bs-ease-emphasised` (scale from 1.3 to 1); under reduced motion it appears instantly.
+
+---
+
+## 9. Instruments
+
+Four motifs give the interface its bridge feel. Each is an inline SVG inside a `.bs-instrument` panel (fill `--bs-color-surface`, radius `--bs-radius-lg`, border `--bs-color-border`) with a readout line in `--bs-font-body`. They use role tokens only, animate with CSS only, and stop under reduced motion.
+
+| Motif | Class | Drawing | Motion |
+|---|---|---|---|
+| Radar | `.bs-radar` | Range rings and crosshair in `--bs-color-grid-line`, a 60° sweep wedge in `--bs-color-accent` fading to transparent with `--bs-glow-primary`, two blips in `--bs-color-accent` | The sweep rotates once per `--bs-duration-sweep` with `--bs-ease-linear`; blips pulse in opacity |
+| Sonar | `.bs-sonar` | Three concentric rings in `--bs-color-accent`, a centre dot | Rings scale from 0 to full and fade over `--bs-duration-ping`, staggered by a third each |
+| Compass | `.bs-compass` | Rose with 16 ticks in `--bs-color-grid-line`, cardinal letters in `--bs-font-heading` and `--bs-color-text-strong`, a needle with the north half in `--bs-color-danger` and the south half in `--bs-color-text-dim` | Static (a compass only moves when the ship turns) |
+| Engine RPM | `.bs-gauge` | A 240° arc in `--bs-color-grid-line`, ticks every 10°, the top 20% of the arc in `--bs-color-danger`, a needle in `--bs-color-accent`, a readout below | The needle oscillates between 40% and 70% over `--bs-duration-sweep` with `--bs-ease-standard` |
+
+Instruments are decoration with a purpose: they frame loading, waiting for the opponent, and the transition from placing to battle. They are never the only indicator of state.
+
+---
+
 ## 10. Token reference
 
 The authoritative block. The showcase embeds exactly this; the command in section 11 checks that the two agree.
