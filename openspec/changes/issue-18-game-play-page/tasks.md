@@ -7,7 +7,7 @@
 ## 2. Integration events
 
 - [x] 2.1 Add `bool Hit` to `GameShotFiredEvent`, add `GameTurnChangedEvent(GameId, GameCode, PlayerWithTurnId)` = `game.turn-changed.v1` to the catalog after the shot event, and update the README table (design D4); verify catalog tests list `game.turn-changed.v1` and serialization tests show `hit` and the turn changed payload in camelCase
-- [ ] 2.2 Add `'game.turn-changed.v1'` to `REALTIME_EVENT_TYPES` in `src/Frontend/src/app/events/realtime-event-types.ts`; verify the events service spec registers a listener for it
+- [x] 2.2 Add `'game.turn-changed.v1'` to `REALTIME_EVENT_TYPES` in `src/Frontend/src/app/events/realtime-event-types.ts`; verify the events service spec registers a listener for it
 
 ## 3. Domain
 
