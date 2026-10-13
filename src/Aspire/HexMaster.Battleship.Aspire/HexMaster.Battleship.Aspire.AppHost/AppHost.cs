@@ -90,4 +90,18 @@ foreach (var api in moduleApis.Values)
     gateway.WaitFor(api);
 }
 
+// The Angular app. `start:aspire` writes the gateway URL into the runtime config.json the app
+// loads at start-up (ng serve cannot read environment variables) and serves on PORT.
+var frontend = builder.AddJavaScriptApp("frontend", "../../../Frontend", "start:aspire")
+    .WithHttpEndpoint(env: "PORT")
+    .WithEnvironment("BACKEND_GATEWAY_URL", gateway.GetEndpoint("http"))
+    .WaitFor(gateway);
+
+// The browser calls the gateway from the frontend's origin, so each API allows exactly that
+// origin for this run (see GatewayCorsExtensions in ServiceDefaults).
+foreach (var api in moduleApis.Values)
+{
+    api.WithEnvironment("Gateway__AllowedOrigins", frontend.GetEndpoint("http"));
+}
+
 builder.Build().Run();

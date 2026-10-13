@@ -27,7 +27,7 @@
 
 ## 5. Frontend in the AppHost
 
-- [ ] 5.1 Add `Aspire.Hosting.JavaScript` and `AddJavaScriptApp("frontend", ...)` with the `start:aspire` script, `WithHttpEndpoint(env: "PORT")`, `BACKEND_GATEWAY_URL` from the gateway endpoint and `WaitFor(gateway)`. Pass the frontend endpoint to each API as `Gateway__AllowedOrigins`. Verify the dashboard shows the frontend start after `gateway` and the generated `config.json` holds the gateway URL.
+- [x] 5.1 Add `Aspire.Hosting.JavaScript` and `AddJavaScriptApp("frontend", ...)` with the `start:aspire` script, `WithHttpEndpoint(env: "PORT")`, `BACKEND_GATEWAY_URL` from the gateway endpoint and `WaitFor(gateway)`. Pass the frontend endpoint to each API as `Gateway__AllowedOrigins`. Verify the dashboard shows the frontend start after `gateway` and the generated `config.json` holds the gateway URL.
 
 ## 6. Integration check
 
