@@ -31,6 +31,23 @@
 .placement__board {
   grid-area: board;
   min-width: 0;
+  display: grid;
+  gap: var(--bs-space-3);
+  align-content: start;
+}
+
+// The line under the board naming the active ship, with its rotate control.
+.placement__selection {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: var(--bs-space-2);
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text);
+}
+
+.placement__rotate {
+  color: var(--bs-color-accent);
 }
 
 .placement__ships {

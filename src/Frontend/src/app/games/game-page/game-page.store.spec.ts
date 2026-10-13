@@ -317,4 +317,113 @@ describe('GamePageStore placement', () => {
       expect(placeCalls()).toEqual([]);
     });
   });
+
+  describe('rotation', () => {
+    it('turns the active ship clockwise about its origin', async () => {
+      await loaded([ship('cruiser', 1, 1)]);
+      store.activate('cruiser');
+      store.rotateActive();
+      expect(store.placedShips()).toEqual([ship('cruiser', 1, 1, 'vertical')]);
+      await flushPromises();
+      expect(placeCalls()).toEqual([
+        [GAME_CODE, 'cruiser', { column: 1, row: 1, orientation: 'vertical' }],
+      ]);
+    });
+
+    it('refuses a rotation that would leave the board, with a message', async () => {
+      await loaded([ship('carrier', 0, 9)]);
+      store.activate('carrier');
+      store.rotateActive();
+      await flushPromises();
+      expect(store.placedShips()).toEqual([ship('carrier', 0, 9)]);
+      expect(placeCalls()).toEqual([]);
+      expect(snackBar.open).toHaveBeenCalledWith(
+        'The carrier would leave the board',
+        'Dismiss',
+        expect.anything(),
+      );
+    });
+
+    it('refuses a rotation that would overlap another ship, with a message', async () => {
+      await loaded([ship('cruiser', 0, 0), ship('battleship', 0, 1)]);
+      store.activate('cruiser');
+      store.rotateActive();
+      await flushPromises();
+      expect(store.placedShips()).toEqual([ship('cruiser', 0, 0), ship('battleship', 0, 1)]);
+      expect(placeCalls()).toEqual([]);
+      expect(snackBar.open).toHaveBeenCalledWith(
+        'The cruiser would overlap the battleship',
+        'Dismiss',
+        expect.anything(),
+      );
+    });
+
+    it('keeps one active ship at a time and offers rotation only for a placed one', async () => {
+      await loaded([ship('cruiser', 0, 0)]);
+      store.activate('cruiser');
+      expect(store.activeShip()).toEqual({
+        kind: 'cruiser',
+        name: 'Cruiser',
+        placed: true,
+        rotateLabel: 'Rotate cruiser',
+      });
+      store.activate('destroyer');
+      expect(store.activeKind()).toBe('destroyer');
+      expect(store.activeShip()?.placed).toBe(false);
+      store.rotateActive();
+      expect(placeCalls()).toEqual([]);
+    });
+  });
+
+  describe('saving', () => {
+    it('sends one request per change, in order, one at a time', async () => {
+      await loaded();
+      store.place(ship('destroyer', 0, 0));
+      store.place(ship('destroyer', 4, 4));
+      store.place(ship('carrier', 0, 6));
+      await flushPromises();
+      expect(placeCalls().length).toBe(1);
+      expect(store.pendingSaves()).toBe(3);
+
+      api.last('placeShip').resolve(gameView({ me: me({ ships: [ship('destroyer', 0, 0)] }) }));
+      await flushPromises();
+      // An answer that predates later changes does not undo them on screen.
+      expect(store.placedShips()).toEqual([ship('carrier', 0, 6), ship('destroyer', 4, 4)]);
+      expect(placeCalls().length).toBe(2);
+
+      api.last('placeShip').resolve(gameView({ me: me({ ships: [ship('destroyer', 4, 4)] }) }));
+      await flushPromises();
+      const final = [ship('carrier', 0, 6), ship('destroyer', 4, 4)];
+      api.last('placeShip').resolve(gameView({ me: me({ ships: final }) }));
+      await store.settled();
+
+      expect(placeCalls().map(([, kind, at]) => [kind, at])).toEqual([
+        ['destroyer', { column: 0, row: 0, orientation: 'horizontal' }],
+        ['destroyer', { column: 4, row: 4, orientation: 'horizontal' }],
+        ['carrier', { column: 0, row: 6, orientation: 'horizontal' }],
+      ]);
+      expect(store.pendingSaves()).toBe(0);
+      expect(store.placedShips()).toEqual(final);
+    });
+
+    it('shows a message and reloads the server state after a 409', async () => {
+      const server = [ship('carrier', 0, 0)];
+      await loaded(server);
+      store.place(ship('destroyer', 5, 5));
+      await flushPromises();
+      api.last('placeShip').reject({ kind: 'game-update-conflict', status: 409 });
+      await flushPromises();
+
+      expect(snackBar.open).toHaveBeenCalledWith(
+        'The game changed at the same moment. Please try again.',
+        'Dismiss',
+        expect.anything(),
+      );
+      expect(api.of('getGame').length).toBe(2);
+      api.last('getGame').resolve(gameView({ me: me({ ships: server }) }));
+      await store.settled();
+      expect(store.placedShips()).toEqual(server);
+      expect(store.pendingSaves()).toBe(0);
+    });
+  });
 });

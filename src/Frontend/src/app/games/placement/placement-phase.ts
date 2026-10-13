@@ -1,4 +1,6 @@
 import { Component, inject, viewChild } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { GamePageStore } from '../game-page/game-page.store';
 import { PlacementBoard } from './placement-board';
 import { Point } from './placement-drag';
@@ -18,7 +20,7 @@ import { ShipList } from './ship-list';
  */
 @Component({
   selector: 'battle-placement-phase',
-  imports: [PlacementBoard, ShipList],
+  imports: [MatButtonModule, MatIconModule, PlacementBoard, ShipList],
   templateUrl: './placement-phase.html',
   styleUrl: './placement-phase.scss',
   host: { '(keydown.escape)': 'store.clearActive()' },

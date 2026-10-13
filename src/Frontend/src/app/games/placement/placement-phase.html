@@ -3,19 +3,39 @@
 
   <div class="placement__players"></div>
 
-  <battle-placement-board
-    class="placement__board"
-    [ships]="store.placedShips()"
-    [activeKind]="store.activeKind()"
-    [preview]="store.preview()"
-    [readOnly]="!store.canEdit()"
-    (cellActivated)="store.cellActivated($event)"
-    (shipActivated)="store.activate($event)"
-    (cleared)="store.clearActive()"
-    (shipDragStarted)="store.dragStart($event)"
-    (dragMoved)="dragMoved($event)"
-    (dragEnded)="store.dragEnd()"
-  />
+  <div class="placement__board">
+    <battle-placement-board
+      [ships]="store.placedShips()"
+      [activeKind]="store.activeKind()"
+      [preview]="store.preview()"
+      [readOnly]="!store.canEdit()"
+      (cellActivated)="store.cellActivated($event)"
+      (shipActivated)="store.activate($event)"
+      (cleared)="store.clearActive()"
+      (shipDragStarted)="store.dragStart($event)"
+      (dragMoved)="dragMoved($event)"
+      (dragEnded)="store.dragEnd()"
+    />
+
+    <div class="placement__selection" aria-live="polite">
+      @if (store.activeShip(); as active) {
+        @if (active.placed) {
+          <span>{{ active.name }} selected. Tap a cell to move it.</span>
+          <button
+            matIconButton
+            type="button"
+            class="placement__rotate"
+            [attr.aria-label]="active.rotateLabel"
+            (click)="store.rotateActive()"
+          >
+            <mat-icon aria-hidden="true">rotate_right</mat-icon>
+          </button>
+        } @else {
+          <span>{{ active.name }} selected. Tap a cell to place it.</span>
+        }
+      }
+    </div>
+  </div>
 
   <div class="placement__ships">
     <battle-ship-list

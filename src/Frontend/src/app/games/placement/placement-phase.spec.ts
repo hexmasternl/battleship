@@ -148,6 +148,31 @@ describe('PlacementPhase', () => {
     expect(api.of('placeShip').length).toBe(0);
   });
 
+  it('offers a rotate control for the active placed ship only and rotates it', async () => {
+    const { fixture, host, onBoard } = await render(
+      gameView({ me: me({ ships: [ship('cruiser', 1, 1)] }) }),
+    );
+    const rotate = () => host.querySelector<HTMLButtonElement>('.placement__rotate');
+    expect(rotate()).toBeNull();
+
+    (host.querySelector('.placement-board__ship') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(host.querySelector('.placement-board__ship.is-active')).not.toBeNull();
+    expect(rotate()?.getAttribute('aria-label')).toBe('Rotate cruiser');
+
+    rotate()?.click();
+    await fixture.whenStable();
+    expect(onBoard()).toEqual(['Cruiser, B2 to B4, vertical']);
+
+    listItem(host, 'destroyer').click();
+    await fixture.whenStable();
+    expect(host.querySelector('.placement-board__ship.is-active')).toBeNull();
+    expect(rotate()).toBeNull();
+    expect(host.querySelector('.placement__selection')?.textContent).toContain(
+      'Destroyer selected',
+    );
+  });
+
   it('has no accessibility violations', async () => {
     const { host } = await render(gameView({ me: me({ ships: [ship('carrier', 0, 0)] }) }));
     document.body.appendChild(host);

@@ -13,7 +13,9 @@ import {
   FLEET,
   cellsOf,
   checkPlacement,
+  nameOf,
   refusalMessage,
+  rotated,
   withPlacement,
 } from '../placement/placement-rules';
 
@@ -202,6 +204,18 @@ export class GamePageStore {
   });
   readonly activeKind = computed(() => this.#state().activeKind);
   readonly pendingSaves = computed(() => this.#state().pendingSaves);
+  /** The active ship with what the screen says about it, or `null` when none is active. */
+  readonly activeShip = computed(() => {
+    const kind = this.activeKind();
+    if (kind === null) return null;
+    const name = nameOf(kind);
+    return {
+      kind,
+      name,
+      placed: this.placedShips().some((ship) => ship.kind === kind),
+      rotateLabel: `Rotate ${name.toLowerCase()}`,
+    };
+  });
   /** Whether the fleet can still be changed; after ready the board is read only. */
   readonly canEdit = computed(() => isEditable(this.#state()));
   /** The ship under the pointer during a drag, and whether it may be dropped there. */
@@ -300,6 +314,15 @@ export class GamePageStore {
     const code = this.code();
     this.#saves = this.#saves.then(() => this.#save(code, ship));
     return true;
+  }
+
+  /**
+   * Turns the active placed ship 90 degrees clockwise about its origin. A rotation that would
+   * leave the board or overlap another ship is refused with a message and nothing is sent.
+   */
+  rotateActive(): void {
+    const current = this.placedShips().find((ship) => ship.kind === this.activeKind());
+    if (current !== undefined) this.place(rotated(current));
   }
 
   /** A drag of `kind` began, grabbed at its `grabIndex`-th cell. */
