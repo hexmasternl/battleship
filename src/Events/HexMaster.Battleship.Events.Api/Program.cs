@@ -12,6 +12,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddEventsCore();
 builder.Services.AddSingleton<IConnectionIdentityResolver, QueryStringIdentityResolver>();
+builder.Services.AddEventStreamCors(builder.Configuration);
 
 var pubSub = builder.Configuration.GetSection(PubSubOptions.ConfigurationSection).Get<PubSubOptions>() ?? new PubSubOptions();
 
@@ -28,6 +29,9 @@ if (app.Environment.IsDevelopment())
 // No HTTPS redirection: the sidecar talks to this API over plain HTTP on the loopback
 // interface, and a redirect would break subscription discovery and event delivery.
 app.UseCloudEvents();
+
+// Applies only where an endpoint opts in (GET /events).
+app.UseCors();
 
 // Lets the sidecar discover this API's topic subscriptions (GET /dapr/subscribe).
 app.MapSubscribeHandler();

@@ -18,7 +18,9 @@ public static class EventStreamEndpoints
 
     public static IEndpointRouteBuilder MapEventStreamEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/events").WithTags("Events");
+        var group = app.MapGroup("/events")
+            .WithTags("Events")
+            .RequireCors(EventStreamCors.PolicyName);
 
         group.MapGet("", OpenStream)
             .WithName("OpenEventStream")
