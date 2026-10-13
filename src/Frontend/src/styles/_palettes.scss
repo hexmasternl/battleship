@@ -8,8 +8,10 @@
 // here as Sass variables named after their `--bs-*` tokens. The token-diff command in the
 // "Theming" section of src/Frontend/README.md checks that these equal the document.
 //
-// Mixes are computed with `color.mix()` in OKLCH and rounded to an sRGB hex value, so the
-// built CSS contains plain hex values that can be read and compared directly.
+// Mixes are computed with `color.mix()` in Oklab (a perceptual straight line between the two
+// colours, so a mix of the danger shade and the navy background cannot detour through purple
+// the way an OKLCH hue arc would) and rounded to integer sRGB channels, so the built CSS
+// contains plain `rgb()` values that can be read and compared directly.
 
 @use 'sass:color';
 @use 'sass:map';
@@ -61,10 +63,10 @@ $black: #000000;
 
 // ---- Helpers ----
 
-/// Mixes two colours in OKLCH (`$weight` is the share of `$a`) and returns the result as an
-/// sRGB colour with integer channels, which Sass serialises as a hex value.
-@function mix-oklch($a, $b, $weight) {
-  $c: color.to-space(color.mix($a, $b, $weight, $method: oklch), rgb);
+/// Mixes two colours in Oklab (`$weight` is the share of `$a`) and returns the result as an
+/// sRGB colour with integer channels.
+@function mix-oklab($a, $b, $weight) {
+  $c: color.to-space(color.mix($a, $b, $weight, $method: oklab), rgb);
   @return rgb(
     math.clamp(0, math.round(color.channel($c, 'red', $space: rgb)), 255),
     math.clamp(0, math.round(color.channel($c, 'green', $space: rgb)), 255),
@@ -75,7 +77,7 @@ $black: #000000;
 /// Interpolates a tone between two pinned tones: `$tone` lies between `$lo-tone` (colour
 /// `$lo`) and `$hi-tone` (colour `$hi`), and the mix ratio is the tone's position between them.
 @function between($lo-tone, $lo, $hi-tone, $hi, $tone) {
-  @return mix-oklch($hi, $lo, math.div($tone - $lo-tone, $hi-tone - $lo-tone) * 100%);
+  @return mix-oklab($hi, $lo, math.div($tone - $lo-tone, $hi-tone - $lo-tone) * 100%);
 }
 
 /// Builds a chromatic palette (tones 0 to 100) from a design system colour scale, which is a
@@ -93,13 +95,13 @@ $black: #000000;
     70: map.get($scale, 600), // none
     60: map.get($scale, 700), // none
     50: map.get($scale, 800), // none
-    40: mix-oklch(map.get($scale, 800), $s900, 50%), // inverse-primary: mix(step 800, step 900, 50%)
+    40: mix-oklab(map.get($scale, 800), $s900, 50%), // inverse-primary: mix(step 800, step 900, 50%)
     35: $s900, // none
     30: $s900, // *-container, on-*-fixed-variant
-    25: mix-oklch($s900, $bs-color-surface-0, 50%), // none: mix(step 900, surface-0, 50%)
-    20: mix-oklch($s900, $bs-color-surface-0, 50%), // on-primary / on-tertiary / on-error: mix(step 900, surface-0, 50%)
-    10: mix-oklch($s900, $bs-color-surface-0, 80%), // on-*-fixed: mix(step 900, surface-0, 80%)
-    0: mix-oklch($bs-color-surface-0, $black, 50%), // none: mix(surface-0, black, 50%)
+    25: mix-oklab($s900, $bs-color-surface-0, 50%), // none: mix(step 900, surface-0, 50%)
+    20: mix-oklab($s900, $bs-color-surface-0, 50%), // on-primary / on-tertiary / on-error: mix(step 900, surface-0, 50%)
+    10: mix-oklab($s900, $bs-color-surface-0, 80%), // on-*-fixed: mix(step 900, surface-0, 80%)
+    0: mix-oklab($bs-color-surface-0, $black, 50%), // none: mix(surface-0, black, 50%)
   );
 }
 
