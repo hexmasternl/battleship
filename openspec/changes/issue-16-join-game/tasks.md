@@ -27,4 +27,4 @@
 
 ## 6. Integration check
 
-- [ ] 6.1 Run the AppHost, create a game as one player and join it with its code as a second player through the gateway in another browser profile; verify both land on `/games/{code}`, a third player sees "This game already has two players.", and the Games API logs show `game.joined.v1` published once
+- [x] 6.1 Run the AppHost, create a game as one player and join it with its code as a second player through the gateway in another browser profile; verify both land on `/games/{code}`, a third player sees "This game already has two players.", and the Games API logs show `game.joined.v1` published once
