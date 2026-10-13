@@ -23,6 +23,9 @@ public static class IntegrationEventFactory
     public static GameJoinedEvent GameJoined() =>
         new(Guid.NewGuid(), GameCode(), Guid.NewGuid(), Faker.Internet.UserName());
 
+    public static GamePlayerReadyEvent PlayerReady() =>
+        new(Guid.NewGuid(), GameCode(), Guid.NewGuid());
+
     public static GameStartedEvent GameStarted() =>
         new(Guid.NewGuid(), GameCode(), Guid.NewGuid());
 

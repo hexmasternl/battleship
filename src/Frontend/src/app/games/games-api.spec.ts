@@ -1,7 +1,11 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { GAME_CODE, gameView, me, ship } from '../../testing/game-views';
+import { GameApiError, gameApiErrorMessage, toGameApiError } from './game-api-error';
 import { GAMES_URL, GamesApi, JoinGameFailure, joinGameUrl, toJoinGameError } from './games-api';
+
+const PROBLEMS = 'https://battleship.hexmaster.nl/problems';
 
 describe('GamesApi', () => {
   let api: GamesApi;
@@ -38,6 +42,131 @@ describe('GamesApi', () => {
     backend.expectOne(GAMES_URL).flush(null, { status: 401, statusText: 'Unauthorized' });
 
     expect(((await created) as HttpErrorResponse).status).toBe(401);
+  });
+
+  describe('getGame', () => {
+    it('gets /api/games/{code} and resolves the view', async () => {
+      const view = gameView({ me: me({ ships: [ship('carrier', 0, 0)] }) });
+      const loaded = api.getGame(GAME_CODE);
+
+      const req = backend.expectOne(`/api/games/${GAME_CODE}`);
+      expect(req.request.method).toBe('GET');
+      req.flush(view);
+
+      expect(await loaded).toEqual(view);
+    });
+
+    it('normalises the casing of the state, ship kinds and orientations', async () => {
+      const loaded = api.getGame(GAME_CODE);
+
+      backend.expectOne(`/api/games/${GAME_CODE}`).flush({
+        ...gameView(),
+        state: 'Started',
+        me: { ...me(), ships: [{ kind: 'Carrier', column: 1, row: 2, orientation: 'Vertical' }] },
+      });
+
+      const view = await loaded;
+      expect(view.state).toBe('started');
+      expect(view.me.ships).toEqual([ship('carrier', 1, 2, 'vertical')]);
+    });
+  });
+
+  describe('placeShip', () => {
+    it('puts the placement to /api/games/{code}/ships/{kind} and resolves the view', async () => {
+      const view = gameView({ me: me({ ships: [ship('destroyer', 2, 3)] }) });
+      const placed = api.placeShip(GAME_CODE, 'destroyer', ship('destroyer', 2, 3));
+
+      const req = backend.expectOne(`/api/games/${GAME_CODE}/ships/destroyer`);
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual({ column: 2, row: 3, orientation: 'horizontal' });
+      req.flush(view);
+
+      expect(await placed).toEqual(view);
+    });
+  });
+
+  describe('markReady', () => {
+    it('posts to /api/games/{code}/ready without a body and resolves the view', async () => {
+      const view = gameView({ me: me({ ready: true }) });
+      const ready = api.markReady(GAME_CODE);
+
+      const req = backend.expectOne(`/api/games/${GAME_CODE}/ready`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush(view);
+
+      expect(await ready).toEqual(view);
+    });
+  });
+
+  describe('errors', () => {
+    it.each([
+      ['game-not-found', 404],
+      ['placement-out-of-board', 400],
+      ['placement-overlap', 400],
+      ['player-ready', 409],
+      ['game-already-started', 409],
+      ['fleet-incomplete', 409],
+      ['game-update-conflict', 409],
+    ] as const)('maps the %s problem (%i) onto its kind', async (slug, status) => {
+      const failed = api.markReady(GAME_CODE).catch((e: unknown) => e);
+
+      backend
+        .expectOne(`/api/games/${GAME_CODE}/ready`)
+        .flush(
+          { type: `${PROBLEMS}/${slug}`, title: 'Refused', status },
+          { status, statusText: 'Refused' },
+        );
+
+      expect(await failed).toEqual({ kind: slug, status } satisfies GameApiError);
+    });
+
+    it('maps a network failure onto network', async () => {
+      const failed = api.getGame(GAME_CODE).catch((e: unknown) => e);
+
+      backend.expectOne(`/api/games/${GAME_CODE}`).error(new ProgressEvent('error'));
+
+      expect(await failed).toEqual({ kind: 'network', status: 0 });
+    });
+
+    it('maps a 404 without a problem body onto game-not-found', async () => {
+      const failed = api.getGame(GAME_CODE).catch((e: unknown) => e);
+
+      backend
+        .expectOne(`/api/games/${GAME_CODE}`)
+        .flush(null, { status: 404, statusText: 'Not Found' });
+
+      expect(await failed).toEqual({ kind: 'game-not-found', status: 404 });
+    });
+
+    it('maps a validation error and a server error onto unexpected', async () => {
+      const invalid = api
+        .placeShip(GAME_CODE, 'carrier', ship('carrier', 0, 0))
+        .catch((e: unknown) => e);
+      backend
+        .expectOne(`/api/games/${GAME_CODE}/ships/carrier`)
+        .flush(
+          { type: 'https://tools.ietf.org/html/rfc9110#section-15.5.1', status: 400 },
+          { status: 400, statusText: 'Bad Request' },
+        );
+      expect(await invalid).toEqual({ kind: 'unexpected', status: 400 });
+
+      const crashed = api.getGame(GAME_CODE).catch((e: unknown) => e);
+      backend
+        .expectOne(`/api/games/${GAME_CODE}`)
+        .flush('boom', { status: 500, statusText: 'Server Error' });
+      expect(await crashed).toEqual({ kind: 'unexpected', status: 500 });
+    });
+
+    it('maps anything that is not an HTTP error onto unexpected', () => {
+      expect(toGameApiError(new Error('boom'))).toEqual({ kind: 'unexpected', status: 0 });
+    });
+
+    it('has a message for every kind and for unknown errors', () => {
+      expect(gameApiErrorMessage({ kind: 'placement-overlap', status: 400 })).toContain('overlap');
+      expect(gameApiErrorMessage({ kind: 'network', status: 0 })).toContain('connection');
+      expect(gameApiErrorMessage('nonsense')).toBe('Something went wrong. Please try again.');
+    });
   });
 
   describe('joinGame', () => {

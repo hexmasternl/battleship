@@ -1,0 +1,77 @@
+<div
+  class="bs-board placement-board"
+  [class.is-read-only]="readOnly()"
+  cdkDropList
+  [id]="dropListId"
+  cdkDropListSortingDisabled
+  [cdkDropListDisabled]="readOnly()"
+>
+  <div
+    class="placement-board__grid"
+    role="grid"
+    aria-label="Your board, columns A to L, rows 1 to 12"
+  >
+    <div class="placement-board__row" role="row">
+      <span class="bs-board__coord" role="columnheader">
+        <span class="bs-visually-hidden">Row</span>
+      </span>
+      @for (column of columns; track column) {
+        <span class="bs-board__coord" role="columnheader">{{ column }}</span>
+      }
+    </div>
+    @for (row of rows(); track row.label) {
+      <div class="placement-board__row" role="row">
+        <span class="bs-board__coord" role="rowheader">{{ row.label }}</span>
+        @for (item of row.cells; track item.key) {
+          <span class="bs-cell" role="gridcell">
+            <button
+              type="button"
+              class="placement-board__cell"
+              [attr.data-cell]="item.key"
+              [attr.tabindex]="item.tabStop ? 0 : -1"
+              [attr.aria-label]="item.label"
+              [attr.aria-disabled]="readOnly() || null"
+              (click)="activate(item.cell)"
+              (keydown)="move($event, item.cell)"
+            ></button>
+          </span>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="bs-board__ships">
+    @for (placed of placedShips(); track placed.kind) {
+      <button
+        type="button"
+        class="bs-ship is-placed placement-board__ship"
+        [class.bs-ship--v]="placed.vertical"
+        [class.is-active]="placed.active"
+        [style.grid-column]="placed.area.column"
+        [style.grid-row]="placed.area.row"
+        [attr.aria-label]="placed.label"
+        [attr.aria-pressed]="placed.active"
+        [attr.aria-disabled]="readOnly() || null"
+        cdkDrag
+        [cdkDragData]="placed.kind"
+        [cdkDragDisabled]="readOnly()"
+        (pointerdown)="grabbed($event, placed.ship)"
+        (cdkDragStarted)="dragStarted(placed.ship)"
+        (cdkDragMoved)="dragMoved.emit($event.pointerPosition)"
+        (cdkDragEnded)="dragEnded.emit()"
+        (click)="activateShip(placed.kind)"
+      ></button>
+    }
+    @if (previewShip(); as preview) {
+      <div
+        class="bs-ship placement-board__preview"
+        aria-hidden="true"
+        [class.bs-ship--v]="preview.vertical"
+        [class.is-valid]="preview.valid"
+        [class.is-invalid]="!preview.valid"
+        [style.grid-column]="preview.area.column"
+        [style.grid-row]="preview.area.row"
+      ></div>
+    }
+  </div>
+</div>

@@ -31,18 +31,21 @@ public class GameTableRepositoryTests
         Assert.Equal(game.PlayerOne.PlayerId, stored.PlayerOne.PlayerId);
         Assert.Equal(game.PlayerOne.PlayerName, stored.PlayerOne.PlayerName);
         Assert.False(stored.PlayerOne.HasTurn);
-        Assert.Empty(stored.PlayerOne.ShipCoordinates);
-        Assert.Empty(stored.PlayerOne.ShotCoordinates);
+        Assert.False(stored.PlayerOne.IsReady);
+        Assert.Empty(stored.PlayerOne.Ships);
+        Assert.Empty(stored.PlayerOne.Shots);
         Assert.Equal(Now, stored.PlayerOne.LastActivityOn);
         Assert.Null(stored.PlayerTwo);
     }
 
     [AzuriteFact]
-    public async Task StartedGame_RoundTripsPlayersAndCoordinates()
+    public async Task StartedGame_RoundTripsPlayersShipsAndShots()
     {
         var repository = new GameTableRepository(Azurite.CreateClient());
-        var playerOne = GameFactory.Player(hasTurn: true, ships: [new(0, 0), new(0, 1)], shots: [new(4, 7)], lastActivityOn: Now);
-        var playerTwo = GameFactory.Player(ships: [new(9, 9)], lastActivityOn: Now.AddMinutes(1));
+        var playerOne = GameFactory.Player(
+            hasTurn: true, isReady: true, ships: GameFactory.FullFleet(), shots: [new(4, 7, true)], lastActivityOn: Now);
+        var playerTwo = GameFactory.Player(
+            isReady: true, ships: GameFactory.FullFleet(), shots: [new(9, 9, false)], lastActivityOn: Now.AddMinutes(1));
         var game = Game.Reconcile(Guid.NewGuid(), GameFactory.Code(), GameState.Started, playerOne, playerTwo, Now.AddMinutes(1));
 
         Assert.True(await repository.TryAddAsync(game, CancellationToken.None));
@@ -51,10 +54,12 @@ public class GameTableRepositoryTests
         Assert.NotNull(stored);
         Assert.Equal(GameState.Started, stored.GameState);
         Assert.True(stored.PlayerOne.HasTurn);
-        Assert.Equal(playerOne.ShipCoordinates, stored.PlayerOne.ShipCoordinates);
-        Assert.Equal(playerOne.ShotCoordinates, stored.PlayerOne.ShotCoordinates);
+        Assert.True(stored.PlayerOne.IsReady);
+        Assert.Equal(playerOne.Ships, stored.PlayerOne.Ships);
+        Assert.Equal(playerOne.Shots, stored.PlayerOne.Shots);
         Assert.Equal(playerTwo.PlayerId, stored.PlayerTwo!.PlayerId);
-        Assert.Equal(playerTwo.ShipCoordinates, stored.PlayerTwo.ShipCoordinates);
+        Assert.Equal(playerTwo.Ships, stored.PlayerTwo.Ships);
+        Assert.Equal(playerTwo.Shots, stored.PlayerTwo.Shots);
         Assert.Equal(Now.AddMinutes(1), stored.PlayerTwo.LastActivityOn);
     }
 
@@ -127,6 +132,44 @@ public class GameTableRepositoryTests
 
         var stored = await repository.GetByCodeAsync(game.GameCode, CancellationToken.None);
         Assert.Equal(winner, stored!.PlayerTwo!.PlayerId);
+    }
+
+    [AzuriteFact]
+    public async Task VersionOneRow_IsReadUpgradedAndWrittenBackAsVersionTwo()
+    {
+        var client = Azurite.CreateClient();
+        var repository = new GameTableRepository(client);
+        var code = GameFactory.Code().Value;
+        var gameId = Guid.NewGuid();
+        var playerId = Guid.NewGuid();
+        var table = client.GetTableClient(GameTableRepository.TableName);
+        await table.CreateIfNotExistsAsync();
+        await table.AddEntityAsync(new GameEntity
+        {
+            PartitionKey = code,
+            GameId = gameId,
+            State = "New",
+            LastActivityOn = Now,
+            DocumentVersion = 1,
+            Document = $$"""
+                {"id":"{{gameId}}","gameCode":"{{code}}","gameState":"New","playerOne":{"playerId":"{{playerId}}",
+                "playerName":"Admiral Nelson","hasTurn":false,"shipCoordinates":[],"shotCoordinates":[],
+                "lastActivityOn":"{{Now:O}}"},"playerTwo":null,"lastActivityOn":"{{Now:O}}"}
+                """,
+        });
+
+        var read = await repository.GetForUpdateAsync(code, CancellationToken.None);
+        Assert.Equal(gameId, read!.Game.Id);
+        Assert.Equal(playerId, read.Game.PlayerOne.PlayerId);
+        Assert.False(read.Game.PlayerOne.IsReady);
+
+        ((Game)read.Game).PlaceShip(playerId, GameFactory.FullFleet()[0], Now.AddMinutes(1));
+        Assert.True(await repository.TryUpdateAsync(read.Game, read.ConcurrencyToken, CancellationToken.None));
+
+        var row = (await table.GetEntityAsync<GameEntity>(code, GameEntity.GameRowKey)).Value;
+        Assert.Equal(2, row.DocumentVersion);
+        var stored = await repository.GetByCodeAsync(code, CancellationToken.None);
+        Assert.Equal([GameFactory.FullFleet()[0]], stored!.PlayerOne.Ships);
     }
 
     [AzuriteFact]

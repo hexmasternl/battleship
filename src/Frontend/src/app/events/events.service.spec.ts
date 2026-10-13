@@ -157,6 +157,16 @@ describe('EventsService', () => {
     expect(received).toEqual([{ type: 'game.shot-fired.v1', id: '42', payload: { x: 3, y: 5 } }]);
   });
 
+  it('surfaces a player ready event', () => {
+    const { service, sources, received } = setup();
+    service.connect('A');
+    sources[0].open();
+    sources[0].emit('game.player-ready.v1', '{"gameCode":"K7Q2M9XA"}', '7');
+    expect(received).toEqual([
+      { type: 'game.player-ready.v1', id: '7', payload: { gameCode: 'K7Q2M9XA' } },
+    ]);
+  });
+
   it('does not surface heartbeats', () => {
     const { service, sources, received } = setup();
     service.connect('A');
