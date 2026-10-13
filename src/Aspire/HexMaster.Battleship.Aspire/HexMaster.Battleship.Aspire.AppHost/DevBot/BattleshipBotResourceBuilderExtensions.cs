@@ -81,6 +81,6 @@ public static class BattleshipBotResourceBuilderExtensions
     internal static IResourceBuilder<BattleshipBotResource> WithBotCommands(this IResourceBuilder<BattleshipBotResource> builder) =>
         builder.WithBotCommandSet(BotAdminClient.For);
 
-    // Filled in by the state task.
-    internal static IResourceBuilder<BattleshipBotResource> WithBotStateProperties(this IResourceBuilder<BattleshipBotResource> builder) => builder;
+    internal static IResourceBuilder<BattleshipBotResource> WithBotStateProperties(this IResourceBuilder<BattleshipBotResource> builder) =>
+        BotStateMirror.Attach(builder);
 }
