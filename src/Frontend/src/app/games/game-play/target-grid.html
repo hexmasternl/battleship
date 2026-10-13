@@ -29,7 +29,7 @@
               (keydown)="move($event, item.cell)"
             >
               @if (item.shot; as shot) {
-                <battle-shot-marker [hit]="shot.hit" />
+                <battle-shot-marker [hit]="shot.hit" [fresh]="item.fresh" />
               }
             </button>
           </span>

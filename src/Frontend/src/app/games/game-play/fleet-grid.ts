@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { ShipKind, ShipView, ShotView } from '../game-view';
 import { gridArea } from '../placement/placement-board';
-import { cellLabel, cellsOf, nameOf, rowLabel } from '../placement/placement-rules';
+import { Cell, cellLabel, cellsOf, nameOf, rowLabel } from '../placement/placement-rules';
 import { BOARD_INDEXES, COLUMN_LABELS, cellKey, shotsByCell, shotWord } from './play-board';
 import { ShotMarker } from './shot-marker';
 
@@ -21,6 +21,8 @@ export class FleetGrid {
   readonly ships = input.required<readonly ShipView[]>();
   /** The shots the opponent fired at the caller's board. */
   readonly shots = input.required<readonly ShotView[]>();
+  /** The cells of shots drawn since the board was loaded; their markers animate in. */
+  readonly fresh = input<readonly Cell[]>([]);
 
   protected readonly columns = COLUMN_LABELS;
 
@@ -35,6 +37,7 @@ export class FleetGrid {
   protected readonly rows = computed(() => {
     const shots = shotsByCell(this.shots());
     const occupants = this.#occupants();
+    const fresh = new Set(this.fresh().map(cellKey));
     return BOARD_INDEXES.map((row) => ({
       label: rowLabel(row),
       cells: BOARD_INDEXES.map((column) => {
@@ -47,6 +50,7 @@ export class FleetGrid {
         return {
           key,
           shot: shot ?? null,
+          fresh: fresh.has(key),
           label: words.filter((word) => word !== null).join(', '),
         };
       }),

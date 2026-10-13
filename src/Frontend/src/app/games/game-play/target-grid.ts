@@ -29,6 +29,8 @@ export class TargetGrid {
   readonly target = input<Cell | null>(null);
   /** Whether the caller may select a target now. */
   readonly canShoot = input(false);
+  /** The cells of shots drawn since the board was loaded; their markers animate in. */
+  readonly fresh = input<readonly Cell[]>([]);
 
   /** A cell that may be fired at was activated (click, tap, Enter or Space). */
   readonly cellSelected = output<Cell>();
@@ -46,6 +48,7 @@ export class TargetGrid {
     const targetKey = target === null ? null : cellKey(target);
     const focusedKey = cellKey(target ?? this.focused());
     const canShoot = this.canShoot();
+    const fresh = new Set(this.fresh().map(cellKey));
     return BOARD_INDEXES.map((row) => ({
       label: rowLabel(row),
       cells: BOARD_INDEXES.map((column) => {
@@ -58,6 +61,7 @@ export class TargetGrid {
           cell,
           key,
           shot: shot ?? null,
+          fresh: fresh.has(key),
           target: isTarget,
           selectable: canShoot && shot === undefined,
           tabStop: key === focusedKey,

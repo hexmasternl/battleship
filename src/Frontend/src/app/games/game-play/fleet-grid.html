@@ -14,7 +14,7 @@
         @for (item of row.cells; track item.key) {
           <span class="bs-cell" role="cell" [attr.aria-label]="item.label">
             @if (item.shot; as shot) {
-              <battle-shot-marker [hit]="shot.hit" />
+              <battle-shot-marker [hit]="shot.hit" [fresh]="item.fresh" />
             }
           </span>
         }

@@ -65,7 +65,20 @@ export interface GamePageState {
   readonly shotStatus: ShotStatus;
   /** Why the last shot was refused or failed, until the next target is selected. */
   readonly shotError: FireShotError | null;
+  /**
+   * The shots drawn since the game was last loaded, from a response or an event: only these
+   * animate in. Shots that came with a load (first render, refresh, reload) appear at rest.
+   */
+  readonly freshShots: FreshShots;
 }
+
+/** The cells of the shots drawn since the last load, per shooter. */
+export interface FreshShots {
+  readonly me: readonly Cell[];
+  readonly opponent: readonly Cell[];
+}
+
+const NO_FRESH_SHOTS: FreshShots = { me: [], opponent: [] };
 
 const initialState: GamePageState = {
   code: '',
@@ -78,6 +91,7 @@ const initialState: GamePageState = {
   target: null,
   shotStatus: 'idle',
   shotError: null,
+  freshShots: NO_FRESH_SHOTS,
 };
 
 /** The events after which the page reloads its game. */
@@ -161,7 +175,14 @@ export function gameLoaded(state: GamePageState, game: GameView): GamePageState 
       : game;
   // The server's view is the truth about the turn, so a shot waiting for the turn to move is freed.
   const shotStatus = state.shotStatus === 'fired' ? 'idle' : state.shotStatus;
-  const next = { ...state, status: 'loaded' as const, game: shown, shotStatus };
+  // Everything a load shows is at rest; only shots drawn after it animate.
+  const next = {
+    ...state,
+    status: 'loaded' as const,
+    game: shown,
+    shotStatus,
+    freshShots: NO_FRESH_SHOTS,
+  };
   return withSelectableTarget(isEditable(next) ? next : { ...next, activeKind: null, drag: null });
 }
 
@@ -284,10 +305,20 @@ function withShot(shots: readonly ShotView[], shot: ShotView): readonly ShotView
  */
 export function shotRecorded(state: GamePageState, shot: ShotView): GamePageState {
   if (state.game === null) return state;
-  const me = { ...state.game.me, shots: withShot(state.game.me.shots, shot) };
+  const shots = withShot(state.game.me.shots, shot);
+  const me = { ...state.game.me, shots };
   // A turn change that arrived while the request was in flight already freed the next shot.
   const shotStatus = me.hasTurn ? 'fired' : 'idle';
-  return { ...state, game: { ...state.game, me }, target: null, shotStatus };
+  // The shot may already be drawn, by its own event arriving before the response.
+  const freshShots =
+    shots === state.game.me.shots ? state.freshShots : withFresh(state, 'me', shot);
+  return { ...state, game: { ...state.game, me }, target: null, shotStatus, freshShots };
+}
+
+/** The fresh shots with `cell` added for `shooter`. */
+function withFresh(state: GamePageState, shooter: keyof FreshShots, cell: Cell): FreshShots {
+  const added = { column: cell.column, row: cell.row };
+  return { ...state.freshShots, [shooter]: [...state.freshShots[shooter], added] };
 }
 
 /** The shot was refused or failed: nothing is drawn, the caller may select a cell again. */
@@ -305,12 +336,20 @@ export function shotFiredApplied(state: GamePageState, shot: FiredShot): GamePag
   if (shot.playerId === game.me.playerId) {
     const shots = withShot(game.me.shots, shot);
     if (shots === game.me.shots) return state;
-    return withSelectableTarget({ ...state, game: { ...game, me: { ...game.me, shots } } });
+    return withSelectableTarget({
+      ...state,
+      game: { ...game, me: { ...game.me, shots } },
+      freshShots: withFresh(state, 'me', shot),
+    });
   }
   if (game.opponent !== null && shot.playerId === game.opponent.playerId) {
     const shots = withShot(game.opponent.shots, shot);
     if (shots === game.opponent.shots) return state;
-    return { ...state, game: { ...game, opponent: { ...game.opponent, shots } } };
+    return {
+      ...state,
+      game: { ...game, opponent: { ...game.opponent, shots } },
+      freshShots: withFresh(state, 'opponent', shot),
+    };
   }
   return state;
 }
@@ -413,6 +452,10 @@ export class GamePageStore {
   });
   /** Why the last shot was refused or failed, for the page to tell the player. */
   readonly shotError = computed(() => this.#state().shotError);
+  /** The cells of the caller's shots drawn since the last load: these animate in. */
+  readonly myFreshShots = computed(() => this.#state().freshShots.me);
+  /** The cells of the opponent's shots drawn since the last load: these animate in. */
+  readonly opponentFreshShots = computed(() => this.#state().freshShots.opponent);
 
   constructor() {
     const destroyRef = inject(DestroyRef);

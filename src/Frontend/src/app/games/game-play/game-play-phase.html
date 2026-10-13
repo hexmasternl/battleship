@@ -7,6 +7,7 @@
 
   <mat-tab-group
     class="play__tabs"
+    preserveContent
     [selectedIndex]="selectedTab()"
     (selectedIndexChange)="selectedTab.set($event)"
   >
@@ -16,6 +17,7 @@
         [shots]="store.myShots()"
         [target]="store.target()"
         [canShoot]="store.canShoot()"
+        [fresh]="store.myFreshShots()"
         (cellSelected)="store.selectTarget($event)"
         (cleared)="store.clearTarget()"
       />
@@ -25,6 +27,7 @@
         class="play__grid"
         [ships]="store.placedShips()"
         [shots]="store.opponentShots()"
+        [fresh]="store.opponentFreshShots()"
       />
     </mat-tab>
   </mat-tab-group>

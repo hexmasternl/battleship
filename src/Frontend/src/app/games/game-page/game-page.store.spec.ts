@@ -414,6 +414,52 @@ describe('GamePageStore play', () => {
     );
   });
 
+  describe('fresh shots', () => {
+    it('has none after a load, whatever shots the game holds', async () => {
+      await playing({
+        me: me({ hasTurn: true, shots: [{ ...F2, hit: false }] }),
+        opponent: opponent({ shots: [{ column: 0, row: 0, hit: true }] }),
+      });
+      expect(store.myFreshShots()).toEqual([]);
+      expect(store.opponentFreshShots()).toEqual([]);
+    });
+
+    it('marks a shot drawn from the response and from events as fresh, per shooter', async () => {
+      await playing();
+      await fired(E7, true);
+      store.applyShotFired({ playerId: ME_ID, ...E7, hit: true });
+      store.applyShotFired({ playerId: OPPONENT_ID, ...F2, hit: false });
+      expect(store.myFreshShots()).toEqual([E7]);
+      expect(store.opponentFreshShots()).toEqual([F2]);
+    });
+
+    it('marks a shot whose event arrived before the response once', async () => {
+      await playing();
+      store.selectTarget(E7);
+      const done = store.fireAtTarget();
+      store.applyShotFired({ playerId: ME_ID, ...E7, hit: false });
+      api.last('fireShot').resolve({ ...E7, hit: false });
+      await done;
+      expect(store.myFreshShots()).toEqual([E7]);
+    });
+
+    it('drops every fresh mark on a reload', async () => {
+      await playing();
+      store.applyShotFired({ playerId: OPPONENT_ID, ...F2, hit: false });
+      const done = store.reload();
+      api.last('getGame').resolve(
+        gameView({
+          state: 'started',
+          me: me({ hasTurn: true, ships: FULL_FLEET }),
+          opponent: opponent({ shots: [{ ...F2, hit: false }] }),
+        }),
+      );
+      await done;
+      expect(store.opponentShots()).toEqual([{ ...F2, hit: false }]);
+      expect(store.opponentFreshShots()).toEqual([]);
+    });
+  });
+
   describe('events', () => {
     it('adds a shot of the opponent to their shots', async () => {
       await playing();
