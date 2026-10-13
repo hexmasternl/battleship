@@ -2,7 +2,7 @@
 
 ## 1. Prerequisites and projects
 
-- [ ] 1.1 Confirm `issue-7-user-identification`, `issue-11-yarp-local-gateway` and `issue-14-integration-events-catalog` are merged into `development` (Core, `AddBattleshipAuthentication`, the `tables` resource, `PlayerSession`, `provideHttpClient` with the `/api` rewrite, `IIntegrationEventSender`); stop and report if any is missing; verify `dotnet build src/Battleship.slnx` passes on the branch before any change
+- [x] 1.1 Confirm `issue-7-user-identification`, `issue-11-yarp-local-gateway` and `issue-14-integration-events-catalog` are merged into `development` (Core, `AddBattleshipAuthentication`, the `tables` resource, `PlayerSession`, `provideHttpClient` with the `/api` rewrite, `IIntegrationEventSender`); stop and report if any is missing; verify `dotnet build src/Battleship.slnx` passes on the branch before any change
 - [ ] 1.2 Create `src/Games/HexMaster.Battleship.Games.Data` (references `Games.Abstractions`, `Games`, `Aspire.Azure.Data.Tables` at the version #7 uses), add it to `Battleship.slnx`; add Core and integration events references to the Games module, Moq and Bogus to `Games.Tests`; delete the `Class1.cs` stubs and `UnitTest1.cs`; verify the solution builds
 
 ## 2. Game domain model
