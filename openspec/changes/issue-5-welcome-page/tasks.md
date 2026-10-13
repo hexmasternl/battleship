@@ -9,7 +9,7 @@
 
 ## 2. Coming-soon placeholder
 
-- [ ] 2.1 Create `src/Frontend/src/app/games/coming-soon.ts` rendering a `.bs-panel--info` that names the feature from route data ("Create a new game" or "Join an existing game") and a ghost link back to `/`, with a spec that renders both variants, and verify the spec passes
+- [x] 2.1 Create `src/Frontend/src/app/games/coming-soon.ts` rendering a `.bs-panel--info` that names the feature from route data ("Create a new game" or "Join an existing game") and a ghost link back to `/`, with a spec that renders both variants, and verify the spec passes
 
 ## 3. Bridge console
 
