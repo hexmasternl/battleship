@@ -11,8 +11,8 @@
 
 ## 3. Placement and ready in the domain
 
-- [ ] 3.1 Add `Game.PlaceShip(playerId, placement, now)` and `PlacementRefusedException : DomainException` with `Reason` (`GameAlreadyStarted`, `PlayerReady`, `OutOfBoard`, `Overlap`) checked in the order of design D3; verify unit tests for first placement, move, rotate in place, touching ships allowed, a ship moving onto its own cells, each refusal reason, placing while alone, and activity touched on success pass
-- [ ] 3.2 Add `IFirstTurnPicker`/`RandomFirstTurnPicker` and `Game.MarkReady(playerId, picker, now)` returning `ReadyOutcome` (`AlreadyReady`, `Ready`, `ReadyAndStarted`) with refusals `GameAlreadyStarted` and `FleetIncomplete`, starting the game through `GiveFirstTurnTo` when both players are ready (design D3); verify unit tests for each outcome, each refusal, ready while alone keeping `New`, start with a fake picker for either player, and `RandomFirstTurnPicker` returning both players over many draws pass
+- [x] 3.1 Add `Game.PlaceShip(playerId, placement, now)` and `PlacementRefusedException : DomainException` with `Reason` (`GameAlreadyStarted`, `PlayerReady`, `OutOfBoard`, `Overlap`) checked in the order of design D3; verify unit tests for first placement, move, rotate in place, touching ships allowed, a ship moving onto its own cells, each refusal reason, placing while alone, and activity touched on success pass
+- [x] 3.2 Add `IFirstTurnPicker`/`RandomFirstTurnPicker` and `Game.MarkReady(playerId, picker, now)` returning `ReadyOutcome` (`AlreadyReady`, `Ready`, `ReadyAndStarted`) with refusals `GameAlreadyStarted` and `FleetIncomplete`, starting the game through `GiveFirstTurnTo` when both players are ready (design D3); verify unit tests for each outcome, each refusal, ready while alone keeping `New`, start with a fake picker for either player, and `RandomFirstTurnPicker` returning both players over many draws pass
 
 ## 4. Storage version 2
 

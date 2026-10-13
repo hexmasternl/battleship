@@ -1,6 +1,7 @@
 using HexMaster.Battleship.Core.DomainModels;
 using HexMaster.Battleship.Games.Abstractions.DomainModels;
 using HexMaster.Battleship.Games.Exceptions;
+using HexMaster.Battleship.Games.Services;
 
 namespace HexMaster.Battleship.Games.DomainModels;
 
@@ -91,6 +92,86 @@ public sealed class Game : DomainModel<Guid>, IGame
 
     public bool IsPlayer(Guid playerId) =>
         _playerOne.PlayerId == playerId || _playerTwo?.PlayerId == playerId;
+
+    // Places one of the player's ships, or moves it when that kind is already placed. Ships lie fully
+    // on the board and may touch, but never share a cell with another ship of the same player.
+    public void PlaceShip(Guid playerId, ShipPlacement placement, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(placement);
+        var player = PlayerWithId(playerId);
+
+        if (GameState != GameState.New)
+        {
+            throw new PlacementRefusedException(GameCode, PlacementRefusedReason.GameAlreadyStarted,
+                $"Ships can only be placed in a new game; game {GameCode} is {GameState}.");
+        }
+
+        if (player.IsReady)
+        {
+            throw new PlacementRefusedException(GameCode, PlacementRefusedReason.PlayerReady,
+                "The fleet of a ready player cannot change.");
+        }
+
+        var cells = placement.Cells;
+        if (!cells.All(Board.Contains))
+        {
+            throw new PlacementRefusedException(GameCode, PlacementRefusedReason.OutOfBoard,
+                $"The {placement.Kind} does not fit on the board there.");
+        }
+
+        var others = player.Ships.Where(s => s.Kind != placement.Kind).ToList();
+        if (others.FirstOrDefault(s => s.Cells.Intersect(cells).Any()) is { } overlapped)
+        {
+            throw new PlacementRefusedException(GameCode, PlacementRefusedReason.Overlap,
+                $"The {placement.Kind} would overlap the {overlapped.Kind}.");
+        }
+
+        IReadOnlyList<ShipPlacement> ships = [.. others, placement];
+        Change(player.Ships, ships, v => player.Ships = v);
+        Touch(now, player);
+    }
+
+    // Marks the player ready once the whole fleet is placed. When both players are ready the game
+    // starts and the picker chooses who shoots first. Repeating it is harmless in any state.
+    public ReadyOutcome MarkReady(Guid playerId, IFirstTurnPicker picker, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(picker);
+        var player = PlayerWithId(playerId);
+
+        if (player.IsReady)
+        {
+            return ReadyOutcome.AlreadyReady;
+        }
+
+        if (GameState != GameState.New)
+        {
+            throw new PlacementRefusedException(GameCode, PlacementRefusedReason.GameAlreadyStarted,
+                $"Only a player of a new game can become ready; game {GameCode} is {GameState}.");
+        }
+
+        if (Fleet.Kinds.Except(player.Ships.Select(s => s.Kind)).Any())
+        {
+            throw new PlacementRefusedException(GameCode, PlacementRefusedReason.FleetIncomplete,
+                "Place every ship before getting ready.");
+        }
+
+        Change(player.IsReady, true, v => player.IsReady = v);
+        Touch(now, player);
+
+        if (_playerTwo is null || !_playerOne.IsReady || !_playerTwo.IsReady)
+        {
+            return ReadyOutcome.Ready;
+        }
+
+        Start(picker, now);
+        return ReadyOutcome.ReadyAndStarted;
+    }
+
+    private void Start(IFirstTurnPicker picker, DateTimeOffset now)
+    {
+        Change(GameState, GameState.Started, v => GameState = v);
+        GiveFirstTurnTo(picker.Pick(_playerOne.PlayerId, _playerTwo!.PlayerId), now);
+    }
 
     public void GiveFirstTurnTo(Guid playerId, DateTimeOffset now)
     {
