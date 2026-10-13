@@ -1,6 +1,20 @@
 @HexMaster.Battleship.Players.Api_HostAddress = http://localhost:5112
 
-GET {{HexMaster.Battleship.Players.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{HexMaster.Battleship.Players.Api_HostAddress}}/tokens
+Content-Type: application/json
+
+{ "displayName": "Admiral Nelson" }
+
+###
+
+POST {{HexMaster.Battleship.Players.Api_HostAddress}}/tokens/refresh
+Content-Type: application/json
+
+{ "refreshToken": "<refresh token from POST /tokens>" }
+
+###
+
+GET {{HexMaster.Battleship.Players.Api_HostAddress}}/users/me
+Authorization: Bearer <access token from POST /tokens>
 
 ###

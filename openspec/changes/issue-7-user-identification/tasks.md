@@ -21,7 +21,7 @@
 
 - [x] 4.1 Implement `CreateTokensCommand` and handler (create user, issue pair, store refresh token hash) and `GetCurrentUserQuery` and handler, register them in `PlayersModuleRegistration.AddPlayersModule`, and verify unit tests with mocked repositories cover the display name default, the stored hash and the returned expiry instants
 - [x] 4.2 Implement `RefreshTokensCommand` and handler (hash lookup, active and revoked checks, consume, new pair, touch user) throwing `TokenRefusedException` for unknown, expired, consumed and revoked cases, and verify unit tests cover every refusal path and the success path including rotation (old token consumed, new hash stored, last-seen updated)
-- [ ] 4.3 Add `TokenEndpoints` (`POST /tokens` returning `201`, `POST /tokens/refresh` returning `200`, with `400` validation problems and `401` problem details for `TokenRefusedException`), `UserEndpoints` (`GET /users/me` with `RequireAuthorization`) and the `PlayersEndpoints.MapPlayersEndpoints` entry point, replace the weather-forecast sample in `Program.cs` with the module, data and authentication registrations, and verify `dotnet build` succeeds and the OpenAPI document lists the three endpoints
+- [x] 4.3 Add `TokenEndpoints` (`POST /tokens` returning `201`, `POST /tokens/refresh` returning `200`, with `400` validation problems and `401` problem details for `TokenRefusedException`), `UserEndpoints` (`GET /users/me` with `RequireAuthorization`) and the `PlayersEndpoints.MapPlayersEndpoints` entry point, replace the weather-forecast sample in `Program.cs` with the module, data and authentication registrations, and verify `dotnet build` succeeds and the OpenAPI document lists the three endpoints
 
 ## 5. Azure Table Storage and Aspire
 
