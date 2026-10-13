@@ -21,7 +21,7 @@
 
 ## 5. Frontend join flow (angular-frontend agent)
 
-- [ ] 5.1 Add `GamesApi.joinGame(code)` posting to `/api/games/${code}/join` with no body, and the `JoinGameError` mapping (`404` → `not-found`, `409` slug `game-full` → `full`, slug `game-already-started` → `started`, anything else → `failed`) (design D5); verify `HttpTestingController` specs for success and every error mapping pass
+- [x] 5.1 Add `GamesApi.joinGame(code)` posting to `/api/games/${code}/join` with no body, and the `JoinGameError` mapping (`404` → `not-found`, `409` slug `game-full` → `full`, slug `game-already-started` → `started`, anything else → `failed`) (design D5); verify `HttpTestingController` specs for success and every error mapping pass
 - [ ] 5.2 Add `games/join-game-dialog/` (`JoinGameDialog` with its component-scoped `JoinGameStore`: code input upper-cased, stripped to `A-Z0-9`, max 8, initial focus; join enabled only for a valid code; progress; double-submit guard; inline `role="alert"` errors with the design D5 messages; code kept after errors; error cleared on edit; closes with `{ gameCode }`; styles from the central SASS variables); verify store and dialog specs for upper-casing, invalid code disabling join, each error message, retry, ignored second join and cancel pass
 - [ ] 5.3 Turn the hero "Join an existing game" into a `bs-btn bs-btn--secondary` button whose handler awaits `ensurePlayer()` (with `PlayerNameDialog` when unknown), opens `JoinGameDialog` and navigates to `/games/{code}` on a result; remove the `games/join` route and delete `ComingSoon` and its spec if nothing else uses it; verify hero specs for the known, unknown-then-join, cancel with focus return and pending-refresh scenarios of the welcome-page delta pass, and `ng build` succeeds
 
