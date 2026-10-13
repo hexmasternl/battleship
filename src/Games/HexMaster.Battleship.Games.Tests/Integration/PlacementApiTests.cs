@@ -103,6 +103,159 @@ public class PlacementApiTests : IClassFixture<JoinGameApiFactory>
         Assert.Equal(JsonValueKind.Null, body.GetProperty("opponent").ValueKind);
     }
 
+    [Fact]
+    public async Task PlaceShip_WithoutAToken_Is401AndChangesNothing()
+    {
+        var game = await StoreAsync();
+
+        using var response = await PlaceAsync(game.GameCode, "carrier", token: null, Body(0, 0));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Empty((await ReadAsync(game)).PlayerOne.Ships);
+    }
+
+    [Fact]
+    public async Task PlaceShip_UnknownGame_Is404()
+    {
+        using var response = await PlaceAsync(GameFactory.Code().Value, "carrier", Token(Guid.NewGuid()), Body(0, 0));
+
+        await AssertProblemAsync(response, HttpStatusCode.NotFound, "game-not-found");
+    }
+
+    [Fact]
+    public async Task PlaceShip_ForSomeoneWhoDoesNotPlay_Is404()
+    {
+        var game = await StoreAsync();
+
+        using var response = await PlaceAsync(game.GameCode, "carrier", Token(Guid.NewGuid()), Body(0, 0));
+
+        await AssertProblemAsync(response, HttpStatusCode.NotFound, "game-not-found");
+    }
+
+    [Theory]
+    [InlineData("carrier", "horizontal")]
+    [InlineData("Carrier", "Vertical")]
+    [InlineData("CARRIER", "HORIZONTAL")]
+    public async Task PlaceShip_Is200WithTheViewForAnyCasing(string kind, string orientation)
+    {
+        var game = await StoreAsync();
+
+        using var response = await PlaceAsync(
+            game.GameCode.ToLowerInvariant(), kind, Token(game.PlayerOne.PlayerId), Body(2, 3, orientation));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var ship = Assert.Single(JsonDocument.Parse(await response.Content.ReadAsStringAsync())
+            .RootElement.GetProperty("me").GetProperty("ships").EnumerateArray());
+        Assert.Equal("carrier", ship.GetProperty("kind").GetString());
+        Assert.Equal(orientation.ToLowerInvariant(), ship.GetProperty("orientation").GetString());
+        var stored = Assert.Single((await ReadAsync(game)).PlayerOne.Ships);
+        Assert.Equal(new Coordinate(2, 3), stored.Origin);
+    }
+
+    [Theory]
+    [InlineData("frigate")]
+    [InlineData("0")]
+    public async Task PlaceShip_UnknownKind_Is400Validation(string kind)
+    {
+        var game = await StoreAsync();
+
+        using var response = await PlaceAsync(game.GameCode, kind, Token(game.PlayerOne.PlayerId), Body(0, 0));
+
+        await AssertValidationAsync(response, "kind");
+    }
+
+    [Theory]
+    [InlineData("diagonal")]
+    [InlineData("1")]
+    [InlineData(null)]
+    public async Task PlaceShip_UnknownOrMissingOrientation_Is400Validation(string? orientation)
+    {
+        var game = await StoreAsync();
+
+        using var response = await PlaceAsync(
+            game.GameCode, "carrier", Token(game.PlayerOne.PlayerId), new { column = 0, row = 0, orientation });
+
+        await AssertValidationAsync(response, "orientation");
+    }
+
+    [Fact]
+    public async Task PlaceShip_MissingColumnOrRow_Is400Validation()
+    {
+        var game = await StoreAsync();
+
+        using var response = await PlaceAsync(
+            game.GameCode, "carrier", Token(game.PlayerOne.PlayerId), new { orientation = "horizontal" });
+
+        await AssertValidationAsync(response, "column", "row");
+    }
+
+    [Fact]
+    public async Task PlaceShip_NonIntegerColumn_Is400()
+    {
+        var game = await StoreAsync();
+
+        using var response = await PlaceAsync(
+            game.GameCode, "carrier", Token(game.PlayerOne.PlayerId), new { column = "A", row = 0, orientation = "horizontal" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty((await ReadAsync(game)).PlayerOne.Ships);
+    }
+
+    [Fact]
+    public async Task PlaceShip_OffTheBoard_Is400PlacementOutOfBoard()
+    {
+        var game = await StoreAsync();
+
+        using var response = await PlaceAsync(game.GameCode, "carrier", Token(game.PlayerOne.PlayerId), Body(8, 0));
+
+        await AssertProblemAsync(response, HttpStatusCode.BadRequest, "placement-out-of-board");
+    }
+
+    [Fact]
+    public async Task PlaceShip_Overlapping_Is400PlacementOverlap()
+    {
+        var game = await StoreAsync(GameFactory.Stored(GameState.New,
+            playerOne: GameFactory.Player(ships: [new ShipPlacement(ShipKind.Carrier, new(0, 0), Orientation.Horizontal)])));
+
+        using var response = await PlaceAsync(
+            game.GameCode, "destroyer", Token(game.PlayerOne.PlayerId), Body(4, 0, "vertical"));
+
+        await AssertProblemAsync(response, HttpStatusCode.BadRequest, "placement-overlap");
+    }
+
+    [Fact]
+    public async Task PlaceShip_WhenReady_Is409PlayerReady()
+    {
+        var game = await StoreAsync(GameFactory.Stored(GameState.New,
+            playerOne: GameFactory.Player(isReady: true, ships: GameFactory.FullFleet())));
+
+        using var response = await PlaceAsync(game.GameCode, "carrier", Token(game.PlayerOne.PlayerId), Body(0, 11));
+
+        await AssertProblemAsync(response, HttpStatusCode.Conflict, "player-ready");
+    }
+
+    [Fact]
+    public async Task PlaceShip_InAStartedGame_Is409GameAlreadyStarted()
+    {
+        var game = await StoreAsync(GameFactory.Stored(GameState.Started));
+
+        using var response = await PlaceAsync(game.GameCode, "carrier", Token(game.PlayerOne.PlayerId), Body(0, 0));
+
+        await AssertProblemAsync(response, HttpStatusCode.Conflict, "game-already-started");
+    }
+
+    private static object Body(int column, int row, string orientation = "horizontal") => new { column, row, orientation };
+
+    private Task<HttpResponseMessage> PlaceAsync(string code, string kind, string? token, object body) =>
+        SendAsync(HttpMethod.Put, $"/games/{code}/ships/{kind}", token, body);
+
+    private static async Task AssertValidationAsync(HttpResponseMessage response, params string[] fields)
+    {
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.All(fields, field => Assert.Contains(field, problem!.Errors.Keys));
+    }
+
     private static string Token(Guid playerId) => TestTokens.Issue(playerId, GameFactory.PlayerName());
 
     private async Task<Game> StoreAsync(Game? game = null)

@@ -10,4 +10,8 @@ public static class GameProblemTypes
     public const string GameAlreadyStarted = BaseUri + "game-already-started";
     public const string GameFull = BaseUri + "game-full";
     public const string GameUpdateConflict = BaseUri + "game-update-conflict";
+    public const string PlacementOutOfBoard = BaseUri + "placement-out-of-board";
+    public const string PlacementOverlap = BaseUri + "placement-overlap";
+    public const string PlayerReady = BaseUri + "player-ready";
+    public const string FleetIncomplete = BaseUri + "fleet-incomplete";
 }
