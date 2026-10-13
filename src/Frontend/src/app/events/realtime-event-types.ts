@@ -14,6 +14,7 @@ export const REALTIME_EVENT_TYPES = [
   'player.updated.v1',
   'game.created.v1',
   'game.joined.v1',
+  'game.player-ready.v1',
   'game.started.v1',
   'game.shot-fired.v1',
   'game.ended.v1',
