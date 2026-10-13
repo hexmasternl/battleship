@@ -31,4 +31,4 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Run `dotnet build src/Battleship.slnx`, `dotnet test src/Battleship.slnx`, `ng build` and `ng test` from a clean checkout, and verify all succeed with no warnings introduced by this change
+- [x] 6.1 Run `dotnet build src/Battleship.slnx`, `dotnet test src/Battleship.slnx`, `ng build` and `ng test` from a clean checkout, and verify all succeed with no warnings introduced by this change
