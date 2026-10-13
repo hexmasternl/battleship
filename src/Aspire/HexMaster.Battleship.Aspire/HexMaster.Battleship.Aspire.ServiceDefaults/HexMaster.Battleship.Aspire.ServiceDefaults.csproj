@@ -20,4 +20,8 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.17.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\HexMaster.Battleship.IntegrationEvents\HexMaster.Battleship.IntegrationEvents.csproj" />
+  </ItemGroup>
+
 </Project>

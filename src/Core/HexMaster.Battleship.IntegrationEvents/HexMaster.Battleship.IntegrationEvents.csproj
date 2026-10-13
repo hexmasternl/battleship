@@ -13,7 +13,8 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
 
-    <PackageReference Include="Dapr.Client" Version="1.18.10" />
+    <!-- Dapr.AspNetCore brings Dapr.Client and the AddDaprClient() registration. -->
+    <PackageReference Include="Dapr.AspNetCore" Version="1.18.10" />
   </ItemGroup>
 
   <ItemGroup>
