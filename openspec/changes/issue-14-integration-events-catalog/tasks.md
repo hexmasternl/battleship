@@ -29,4 +29,4 @@
 
 ## 6. Integration check
 
-- [ ] 6.1 Run `dotnet build src/Battleship.slnx` and `dotnet test src/Battleship.slnx` (including the Integration category) and start the AppHost once to confirm the `pubsub` component loads for all three sidecars on the dashboard; verify all pass and the dashboard shows no failing resource
+- [x] 6.1 Run `dotnet build src/Battleship.slnx` and `dotnet test src/Battleship.slnx` (including the Integration category) and start the AppHost once to confirm the `pubsub` component loads for all three sidecars on the dashboard; verify all pass and the dashboard shows no failing resource
