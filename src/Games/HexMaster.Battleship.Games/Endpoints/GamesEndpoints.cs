@@ -4,6 +4,7 @@ using HexMaster.Battleship.Games.Abstractions.DataTransferObjects;
 using HexMaster.Battleship.Games.DomainModels;
 using HexMaster.Battleship.Games.Exceptions;
 using HexMaster.Battleship.Games.Features.CreateGame;
+using HexMaster.Battleship.Games.Features.GetGame;
 using HexMaster.Battleship.Games.Features.JoinGame;
 using HexMaster.Battleship.Games.Services;
 using Microsoft.AspNetCore.Builder;
@@ -32,7 +33,35 @@ public static class GamesEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        group.MapGet("/{code}", GetGame)
+            .WithName("GetGame")
+            .WithSummary("Returns the caller's view of the game: the caller with ships, the opponent without.")
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         return app;
+    }
+
+    // A game the caller does not play in is answered like an unknown one, so codes cannot be probed.
+    private static async Task<Results<Ok<GameView>, ProblemHttpResult>> GetGame(
+        string code,
+        ClaimsPrincipal principal,
+        IQueryHandler<GetGameQuery, GameView?> handler,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetPlayerId(principal, out var playerId))
+        {
+            return UnidentifiedPlayer();
+        }
+
+        var normalized = code.ToUpperInvariant();
+        if (!GameCode.TryParse(normalized, out var gameCode))
+        {
+            return GameNotFound(normalized);
+        }
+
+        var view = await handler.Handle(new GetGameQuery(gameCode, playerId), cancellationToken);
+        return view is null ? GameNotFound(gameCode.Value) : TypedResults.Ok(view);
     }
 
     // Takes no body: the creator is whoever the access token names, never what a request claims.
@@ -93,6 +122,9 @@ public static class GamesEndpoints
         playerName = principal.FindFirstValue("name") ?? string.Empty;
         return Guid.TryParse(principal.FindFirstValue("sub"), out playerId) && !string.IsNullOrWhiteSpace(playerName);
     }
+
+    private static bool TryGetPlayerId(ClaimsPrincipal principal, out Guid playerId) =>
+        Guid.TryParse(principal.FindFirstValue("sub"), out playerId);
 
     private static ProblemHttpResult UnidentifiedPlayer() =>
         TypedResults.Problem(
