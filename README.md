@@ -267,8 +267,10 @@ dotnet user-secrets set "ConnectionStrings:tables" "UseDevelopmentStorage=true" 
 > **Upgrading from the Players service.** The identity service used to be called Players, with
 > its key under `Players:Tokens:SigningKey`, the AppHost parameter `players-signing-key` and the
 > issuer `battleship-players`. The first run after the rename generates a new `users-signing-key`,
-> and tokens with the old issuer are refused. Every browser therefore starts over once as a new
-> anonymous user: its next token refresh is answered `401` and the app asks for a name again.
+> and access tokens with the old issuer or key are refused. Refresh tokens live in table storage,
+> so while Azurite keeps its data a returning browser refreshes once and carries on as the same
+> user with new tokens. A browser whose refresh token is unknown (for example after removing the
+> Azurite container) gets `401` on refresh, and the app asks for a name again.
 > The old secrets are no longer read and can be removed:
 >
 > ```shell

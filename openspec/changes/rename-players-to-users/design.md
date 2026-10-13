@@ -59,7 +59,7 @@ The module's telemetry follows (decided during apply): `UsersTelemetry`, `UsersM
 
 The old parameter is not read as a fallback. The persisted key under `Parameters:players-signing-key` stays in the AppHost's user secrets, and the README says it can be deleted.
 
-Consequence: a browser that still holds a refresh token issued before the change keeps working only until its next refresh. The refresh is answered `401` (different issuer and key), and #7's session rules clear the stored tokens. The next call to action then asks for a name. The `user-session` spec states this as a scenario.
+Consequence: access tokens issued before the change are refused (different issuer and key). Refresh tokens are opaque values stored in table storage and are not tied to the issuer, so while Azurite keeps its data a returning browser refreshes once and continues as the same user (verified during apply: the refresh handler only looks up the token's hash). Only a browser whose refresh token is unknown, for example after the Azurite container is removed, gets `401`; #7's session rules then clear the stored tokens and the next call to action asks for a name. The `user-session` spec states that case as a scenario.
 
 - *Alternative: accept both issuers for a transition period.* Rejected. This is development only, with no users to protect, and a dual-issuer validator would be code written to be deleted.
 
@@ -131,10 +131,10 @@ Game-domain "player" stays. These edits are committed in the change branch like 
 ## Risks / Trade-offs
 
 - [Merge conflicts with changes in flight (#16–#19, #24, #28, #29) that touch the same files] → Apply the rename right after #13 is archived and before the next feature branch is cut. Report every open change it touched in the pull request.
-- [One-time local identity reset] → Accepted (D2). It is documented in the README and in the pull request, and specified as a scenario.
+- [Old access tokens refused] → Accepted (D2). A refresh restores the session while the stored refresh token is known; a lost refresh token means a new user. Documented in the README and the pull request, and specified as a scenario.
 - [Persisted user secrets under old names (`Parameters:players-signing-key`, `Players:Tokens:SigningKey`)] → They become unused, not harmful. The README lists the `dotnet user-secrets remove` commands.
 - [Missed references] → The final task greps the repository for `Players`, `players-`, `playerId` on the stream, `PlayerSession` and `player-name` outside the game domain, and every hit is either renamed or listed as game domain.
 
 ## Migration Plan
 
-Development only. After merging, run the AppHost once: it generates `users-signing-key`. Browsers with old tokens become unknown on their next refresh and create a new user. Rollback is reverting the merge commit; the old parameter is still in the user secrets, so the old tokens work again.
+Development only. After merging, run the AppHost once: it generates `users-signing-key`. Browsers with old access tokens refresh once and keep their user; a browser whose refresh token is unknown creates a new user. Rollback is reverting the merge commit; the old parameter is still in the user secrets, so the old tokens work again.

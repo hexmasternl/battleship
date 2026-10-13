@@ -26,7 +26,7 @@ This change renames the identity side to Users and leaves the game side as Playe
   - In the gateway route table, the module entry `players` becomes `users`. Its prefix is already `users`, so no gateway prefix changes.
 - **BREAKING (local only): token configuration.** The configuration section `Players:Tokens` becomes `Users:Tokens`, the AppHost parameter `players-signing-key` becomes `users-signing-key`, and the default issuer `battleship-players` becomes `battleship-users`.
 
-  A new signing key is generated on the first run after the change, and tokens with the old issuer are refused. Every browser therefore silently starts over as a new anonymous user once. Users stored in Azurite stay, but become unreachable from the browser that created them.
+  A new signing key is generated on the first run after the change, and access tokens with the old issuer are refused. Refresh tokens are stored in Azurite and stay valid, so a returning browser refreshes once and keeps its user; only a browser whose refresh token is unknown starts over as a new anonymous user.
 - **BREAKING (wire): integration events.** `player.created.v1` and `player.updated.v1` (`PlayerCreatedEvent`, `PlayerUpdatedEvent` in namespace `IntegrationEvents.Players`) are replaced by `user.created.v1` and `user.updated.v1` (`UserCreatedEvent(UserId, DisplayName)` and `UserUpdatedEvent(UserId, DisplayName)` in `IntegrationEvents.Users`). Nothing publishes or consumes the old events yet, so they are removed rather than versioned.
 
   `EventAudience.Players(...)` becomes `EventAudience.Users(...)`. `EventAudience.Game(...)` keeps its name; its ids are the players' user ids. Game event payloads keep `playerId` and `playerName`, because those belong to the game domain.
@@ -63,6 +63,7 @@ This change renames the identity side to Users and leaves the game side as Playe
 - `welcome-page`: the calls to action use the user session and the display-name component.
 - `authenticated-requests`: requests carry the user's access token, and renewal goes through the user session.
 - `game-creation`: the creating player's id is the user id from the Users service's token.
+- `game-joining`: joining requires an access token issued by the Users service.
 - `backend-observability`: the Users module's metrics are `users.tokens.*`, its spans carry `user.`-prefixed attributes, and metric tags exclude user ids.
 
 ## Impact

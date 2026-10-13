@@ -21,7 +21,7 @@ The lowest-friction first module: dashboard buttons that do something useful for
 | `games-api` | Seed demo games | Creates a handful of games in known states, so demos do not depend on clicking through the UI. |
 | `storage` / `tables` | Reset game data | Clears the Azurite tables. The emulator has a persistent lifetime, so data survives restarts and attendees will want a way to start clean. |
 | `messaging` | Purge queues | Clears stuck messages through the RabbitMQ management API, for example after a requeue loop caused by a failing handler. |
-| `players-api` | Issue test token | Creates a test user and returns a bearer token, ready to paste into the Scalar API reference. |
+| `users-api` | Issue test token | Creates a test user and returns a bearer token, ready to paste into the Scalar API reference. |
 | `events-api` | Publish test event | Sends an integration event (such as `GameShotFiredEvent` or `GameEndedEvent`) through Dapr and shows it arriving over server-sent events in the browser. |
 
 ## 2. Interaction Service
@@ -30,8 +30,8 @@ Commands that ask for input, and notifications instead of exceptions.
 
 - **Publish test event, with a form.** Prompt for the event type (from `IntegrationEventCatalog`),
   the game code and the audience before publishing.
-- **Rotate signing key.** Ask for confirmation, regenerate the `players-signing-key` parameter and
-  restart `players-api` and `games-api`. Combines parameters, the interaction service and resource
+- **Rotate signing key.** Ask for confirmation, regenerate the `users-signing-key` parameter and
+  restart `users-api` and `games-api`. Combines parameters, the interaction service and resource
   restarts from a command in one flow.
 - **Rework `DaprPrerequisites`.** Today it throws at start-up when the Dapr CLI or runtime is
   missing. Turn that into a dashboard notification with a link to the install docs and a "Retry"
