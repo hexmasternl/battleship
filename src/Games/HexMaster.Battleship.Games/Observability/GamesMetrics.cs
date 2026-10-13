@@ -11,6 +11,7 @@ public sealed class GamesMetrics
     public const string PlayersReadyName = "games.player-ready";
     public const string GamesStartedName = "games.started";
     public const string ShotsFiredName = "games.shots.fired";
+    public const string GamesCompletedName = "games.completed";
     public const string HitTag = "hit";
 
     private readonly Counter<long> _gamesCreated;
@@ -19,6 +20,7 @@ public sealed class GamesMetrics
     private readonly Counter<long> _updateConflicts;
     private readonly Counter<long> _playersReady;
     private readonly Counter<long> _gamesStarted;
+    private readonly Counter<long> _gamesCompleted;
 
     public GamesMetrics(IMeterFactory meterFactory)
     {
@@ -33,7 +35,11 @@ public sealed class GamesMetrics
             PlayersReadyName, unit: "{player}", description: "Players who placed their fleet and became ready.");
         _gamesStarted = meter.CreateCounter<long>(GamesStartedName, unit: "{game}", description: "Games started by two ready players.");
         _shotsFired = meter.CreateCounter<long>(ShotsFiredName, unit: "{shot}", description: "Shots recorded, tagged hit or miss.");
+        _gamesCompleted = meter.CreateCounter<long>(
+            GamesCompletedName, unit: "{game}", description: "Games completed by a shot that sank the opponent's fleet.");
     }
+
+    public void GameCompleted() => _gamesCompleted.Add(1);
 
     public void ShotFired(bool hit) => _shotsFired.Add(1, new KeyValuePair<string, object?>(HitTag, hit));
 

@@ -17,10 +17,10 @@
 
 ## 4. Fire-shot handler, events and API
 
-- [ ] 4.1 In the fire-shot handler, after a successful save publish `GameShotFiredEvent`, then `GameEndedEvent(Completed, winnerId)` to `EventAudience.Game(p1, p2)` instead of `GameTurnChangedEvent` when the game completed; each publish in its own try/catch logging at `Error` with the game code; verify handler tests: order shot-fired → ended, no turn-changed, correct audience and payload, an ended-publish failure is logged and swallowed, a retry that finds the game completed returns the conflict result
-- [ ] 4.2 Add the `game.completed` activity tag and the `games.completed` counter on the fire-shot path; verify a handler test (or metric listener) observes one increment per completed game
-- [ ] 4.3 Add `state` to the shot response DTO and `winnerId` to the game view DTO, mapped in the slices; verify `WebApplicationFactory` endpoint tests: winning shot response has `state` `Completed`, ordinary shot `Started`, `GET /games/{code}` returns `winnerId` (null while running, winner when completed, no opponent ships), and a shot on a completed game answers `409` with problem details and publishes nothing
-- [ ] 4.4 Run `dotnet build src/Battleship.slnx` and `dotnet test` for the Games tests with coverage; verify all green and `HexMaster.Battleship.Games` coverage stays at least 80%
+- [x] 4.1 In the fire-shot handler, after a successful save publish `GameShotFiredEvent`, then `GameEndedEvent(Completed, winnerId)` to `EventAudience.Game(p1, p2)` instead of `GameTurnChangedEvent` when the game completed; each publish in its own try/catch logging at `Error` with the game code; verify handler tests: order shot-fired → ended, no turn-changed, correct audience and payload, an ended-publish failure is logged and swallowed, a retry that finds the game completed returns the conflict result
+- [x] 4.2 Add the `game.completed` activity tag and the `games.completed` counter on the fire-shot path; verify a handler test (or metric listener) observes one increment per completed game
+- [x] 4.3 Add `state` to the shot response DTO and `winnerId` to the game view DTO, mapped in the slices; verify `WebApplicationFactory` endpoint tests: winning shot response has `state` `Completed`, ordinary shot `Started`, `GET /games/{code}` returns `winnerId` (null while running, winner when completed, no opponent ships), and a shot on a completed game answers `409` with problem details and publishes nothing
+- [x] 4.4 Run `dotnet build src/Battleship.slnx` and `dotnet test` for the Games tests with coverage; verify all green and `HexMaster.Battleship.Games` coverage stays at least 80%
 
 ## 5. Frontend: ended state (via the `angular-frontend` agent)
 

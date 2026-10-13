@@ -29,7 +29,8 @@ public static class GameViewMapper
                 Shots(me)),
             opponent is null
                 ? null
-                : new OpponentView(opponent.PlayerId, opponent.PlayerName, opponent.IsReady, opponent.HasTurn, Shots(opponent)));
+                : new OpponentView(opponent.PlayerId, opponent.PlayerName, opponent.IsReady, opponent.HasTurn, Shots(opponent)),
+            game.WinnerId);
     }
 
     private static IReadOnlyList<ShotView> Shots(IPlayer player) =>
