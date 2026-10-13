@@ -32,4 +32,4 @@
 
 ## 7. Integration check
 
-- [ ] 7.1 Run `dotnet test src/Battleship.slnx` and `npm test` in `src/Frontend`, then start the AppHost, create a player and a game from the landing page in a browser, and confirm the redirect to `/games/{code}`, the `games` table row in Azurite with the JSON document, and the `game.created.v1` event on the player's event stream; verify all pass and record the observed game code in the pull request
+- [x] 7.1 Run `dotnet test src/Battleship.slnx` and `npm test` in `src/Frontend`, then start the AppHost, create a player and a game from the landing page in a browser, and confirm the redirect to `/games/{code}`, the `games` table row in Azurite with the JSON document, and the `game.created.v1` event on the player's event stream; verify all pass and record the observed game code in the pull request
