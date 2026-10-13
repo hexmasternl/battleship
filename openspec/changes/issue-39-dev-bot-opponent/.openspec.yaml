@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-13
+goal: Dev-time bot opponent as a custom Aspire resource
+affected_areas:
+  - aspire
+  - devtools
