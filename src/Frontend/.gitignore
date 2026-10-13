@@ -6,6 +6,9 @@
 /out-tsc
 /bazel-out
 
+# Runtime configuration written by scripts/aspire-start.mjs (npm run start:aspire)
+/public/config.json
+
 # Node
 /node_modules
 npm-debug.log

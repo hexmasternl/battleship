@@ -1,12 +1,16 @@
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddGatewayCors();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Answers CORS requests from the frontend that reach this API through the gateway (Development only).
+app.UseGatewayCors();
 
 app.MapDefaultEndpoints();
 

@@ -46,13 +46,13 @@ var pubsub = builder.AddDaprComponent(AspireConstants.PubSubName, "pubsub.rabbit
 // Each API runs with its own sidecar that loads the pubsub component. The component is
 // referenced from the sidecar (referencing it from the project is obsolete and ignored).
 // The APIs reach the broker only through Dapr, so they wait for it but do not reference it.
-builder.AddProject<Projects.HexMaster_Battleship_Games_Api>("hexmaster-battleship-games-api")
+var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(GatewayRoutes.GamesApi)
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "games-api" })
         .WithReference(pubsub))
     .WaitFor(messaging);
 
-builder.AddProject<Projects.HexMaster_Battleship_Players_Api>("hexmaster-battleship-players-api")
+var playersApi = builder.AddProject<Projects.HexMaster_Battleship_Players_Api>(GatewayRoutes.PlayersApi)
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "players-api" })
         .WithReference(pubsub))
@@ -60,10 +60,63 @@ builder.AddProject<Projects.HexMaster_Battleship_Players_Api>("hexmaster-battles
 
 // Pushes integration events to browsers over server-sent events. Routing state lives in the
 // process, so the service runs as a single instance.
-builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("hexmaster-battleship-events-api")
+var eventsApi = builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("hexmaster-battleship-events-api")
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "events-api" })
         .WithReference(pubsub))
     .WaitFor(messaging);
+
+// The gateway is the single backend endpoint for the frontend. It routes each declared module
+// prefix to that module's API with the path unchanged; anything not in GatewayRoutes (internal
+// endpoints included) gets no route. The table is owned by the yarp-gateway-routes skill.
+Dictionary<string, IResourceBuilder<ProjectResource>> moduleApis = new()
+{
+    [GatewayRoutes.GamesApi] = gamesApi,
+    [GatewayRoutes.PlayersApi] = playersApi,
+};
+
+GatewayRoutes.Validate(GatewayRoutes.Modules);
+
+var gateway = builder.AddYarp("gateway")
+    .WithConfiguration(yarp =>
+    {
+        foreach (var module in GatewayRoutes.Modules)
+        {
+            var api = moduleApis.TryGetValue(module.ApiResourceName, out var resource)
+                ? resource
+                : throw new InvalidOperationException(
+                    $"Gateway module '{module.Module}' points at API resource '{module.ApiResourceName}', which the AppHost does not run.");
+
+            foreach (var prefix in module.Prefixes)
+            {
+                yarp.AddRoute(GatewayRoutes.RoutePath(prefix), api);
+            }
+        }
+    });
+
+foreach (var api in moduleApis.Values)
+{
+    gateway.WaitFor(api);
+}
+
+// The Angular app. `start:aspire` writes the gateway URL into the runtime config.json the app
+// loads at start-up (ng serve cannot read environment variables) and serves on PORT.
+var frontend = builder.AddJavaScriptApp("frontend", "../../../Frontend", "start:aspire")
+    .WithHttpEndpoint(env: "PORT")
+    .WithEnvironment("BACKEND_GATEWAY_URL", gateway.GetEndpoint("http"))
+    .WaitFor(gateway);
+
+// The browser calls the gateway from the frontend's origin, so each API allows exactly that
+// origin for this run (see GatewayCorsExtensions in ServiceDefaults).
+foreach (var api in moduleApis.Values)
+{
+    api.WithEnvironment("Gateway__AllowedOrigins", frontend.GetEndpoint("http"));
+}
+
+// The Events API is not behind the gateway yet: the browser opens its stream directly, so its
+// own CORS policy must allow the frontend origin of this run (and plain ng serve on 4200).
+eventsApi
+    .WithEnvironment("Events__AllowedOrigins__0", frontend.GetEndpoint("http"))
+    .WithEnvironment("Events__AllowedOrigins__1", "http://localhost:4200");
 
 builder.Build().Run();
