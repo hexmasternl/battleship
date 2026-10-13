@@ -4,6 +4,9 @@
     <Project Path="Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.ServiceDefaults/HexMaster.Battleship.Aspire.ServiceDefaults.csproj" />
     <Project Path="Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests/HexMaster.Battleship.Aspire.Tests.csproj" />
   </Folder>
+  <Folder Name="/Core/">
+    <Project Path="Core/HexMaster.Battleship.Core/HexMaster.Battleship.Core.csproj" />
+  </Folder>
   <Folder Name="/Events/">
     <Project Path="Events/HexMaster.Battleship.Events.Abstractions/HexMaster.Battleship.Events.Abstractions.csproj" />
     <Project Path="Events/HexMaster.Battleship.Events.Api/HexMaster.Battleship.Events.Api.csproj" />

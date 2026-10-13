@@ -2,7 +2,7 @@
 
 ## 1. Shared Core project and solution shape
 
-- [ ] 1.1 Create `src/Core/HexMaster.Battleship.Core` (net10.0, nullable, implicit usings) with `Cqrs/ICommandHandler<TCommand,TResult>`, `ICommandHandler<TCommand>`, `IQueryHandler<TQuery,TResult>` and `DomainModels/DomainModelState`, `IDomainModel<TId>`, `DomainModel<TId>`, `DomainException` per ADR 0013, add it to `src/Battleship.slnx` under a `/Core/` folder, and verify `dotnet build src/Battleship.slnx` succeeds
+- [x] 1.1 Create `src/Core/HexMaster.Battleship.Core` (net10.0, nullable, implicit usings) with `Cqrs/ICommandHandler<TCommand,TResult>`, `ICommandHandler<TCommand>`, `IQueryHandler<TQuery,TResult>` and `DomainModels/DomainModelState`, `IDomainModel<TId>`, `DomainModel<TId>`, `DomainException` per ADR 0013, add it to `src/Battleship.slnx` under a `/Core/` folder, and verify `dotnet build src/Battleship.slnx` succeeds
 - [ ] 1.2 Create `src/Players/HexMaster.Battleship.Players.Data` (class library referencing the Players module project and `Azure.Data.Tables`), add it to the solution under `/Players/`, make `HexMaster.Battleship.Players.Abstractions` reference Core, make `HexMaster.Battleship.Players` reference Core and Abstractions with a `Microsoft.AspNetCore.App` framework reference, delete both `Class1.cs` files, and verify the solution builds
 - [ ] 1.3 Add unit tests for `DomainModel<TId>` state transitions (New stays New, Pristine to Touched and Modified, Deleted rejects change) in the Players test project and verify `dotnet test` passes
 
