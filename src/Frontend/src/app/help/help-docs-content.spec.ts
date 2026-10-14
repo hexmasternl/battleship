@@ -192,4 +192,38 @@ describe('help document content', () => {
       );
     });
   });
+
+  describe('dapr', () => {
+    const parsed = doc('dapr');
+
+    it('explains sidecars and names every resource that runs one', () => {
+      expect(parsed.markdown).toMatch(/a dapr \*\*sidecar\*\* is/i);
+      for (const appId of ['`games-api`', '`users-api`', '`events-api`', '`dev-bot`']) {
+        expect(parsed.markdown).toContain(appId);
+      }
+      expect(parsed.markdown).toContain('`devbot`');
+    });
+
+    it('describes the RabbitMQ pub/sub component and the integration-events topic', () => {
+      expect(parsed.markdown).toContain('pubsub.rabbitmq');
+      expect(parsed.markdown).toContain('`integration-events`');
+    });
+
+    it('describes the game-cleanup cron binding and its schedule parameter', () => {
+      expect(parsed.markdown).toContain('bindings.cron');
+      expect(parsed.markdown).toContain('`game-cleanup`');
+      expect(parsed.markdown).toContain('game-cleanup-schedule');
+      expect(parsed.markdown).toContain('/maintenance/game-cleanup');
+    });
+
+    it('points at the prerequisite check and shows the sidecar diagram', () => {
+      expect(parsed.markdown).toContain('(prerequisites.md)');
+      expect(imageFiles(parsed)).toContain('assets/help-dapr-sidecars.svg');
+    });
+
+    it('does not describe state stores or service invocation', () => {
+      expect(parsed.markdown).not.toMatch(/state ?stores?/i);
+      expect(parsed.markdown).not.toMatch(/service invocation|invoke ?method/i);
+    });
+  });
 });
