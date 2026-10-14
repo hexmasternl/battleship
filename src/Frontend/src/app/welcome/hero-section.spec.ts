@@ -152,9 +152,11 @@ describe('HeroSection', () => {
     expect(children[1].tagName.toLowerCase()).toBe('battle-bridge-console');
   });
 
-  it('keeps the radar motif decorative', () => {
-    const radar = host.querySelector('.hero__radar');
-    expect(radar?.getAttribute('aria-hidden')).toBe('true');
+  it('keeps the submarine backdrop decorative and before the content', () => {
+    const backdrop = host.querySelector('battle-submarine-interior');
+    expect(backdrop?.getAttribute('aria-hidden')).toBe('true');
+    expect(backdrop?.querySelector('svg')).not.toBeNull();
+    expect(host.firstElementChild).toBe(backdrop);
     expect(host.querySelector('img')).toBeNull();
   });
 

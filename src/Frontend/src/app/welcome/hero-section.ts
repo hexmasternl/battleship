@@ -6,14 +6,15 @@ import { openCreateGameDialog } from '../games/create-game-dialog/create-game-di
 import { openJoinGameDialog } from '../games/join-game-dialog/join-game-dialog';
 import { openDisplayNameDialog } from '../shared/display-name/display-name-dialog';
 import { BridgeConsole } from './bridge-console';
+import { SubmarineInterior } from './submarine-interior';
 
 /** What a game dialog closes with: the game to navigate to, or `null` when cancelled. */
 type GameDialogOutcome = Promise<{ readonly gameCode: string } | null>;
 
 /**
- * The full-viewport hero of the landing page: a marine background built from design system
- * tokens, a decorative radar, and the two-panel jumbotron with the welcome copy, the calls to
- * action and the bridge console.
+ * The full-viewport hero of the landing page: the animated submarine control room as a
+ * full-bleed backdrop, and the two-panel jumbotron with the welcome copy, the calls to action
+ * and the bridge console.
  *
  * Both calls to action make sure the visitor is a known user (asking an unknown one for a name
  * first). "Create a new game" then asks for confirmation in `CreateGameDialog`, "Join an existing
@@ -22,7 +23,7 @@ type GameDialogOutcome = Promise<{ readonly gameCode: string } | null>;
  */
 @Component({
   selector: 'battle-hero-section',
-  imports: [BridgeConsole],
+  imports: [BridgeConsole, SubmarineInterior],
   host: { class: 'hero' },
   templateUrl: './hero-section.html',
   styleUrl: './hero-section.scss',

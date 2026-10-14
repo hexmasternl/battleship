@@ -17,7 +17,7 @@ The application SHALL render the landing page at the root path `/`, and SHALL NO
 - **THEN** the landing page code is emitted as a separate lazy chunk that is requested when the root route is activated
 
 ### Requirement: The hero fills the viewport and carries a marine theme
-The landing page SHALL open with a hero section at least as tall as the viewport, with a marine-themed background composed from the design system surface and accent colours, and SHALL NOT embed third-party raster images.
+The landing page SHALL open with a hero section at least as tall as the viewport, with a marine-themed background: an inline vector drawing of a submarine control room, 1920 by 1080 units, cropped to cover the hero, composed from design system tokens and animated with CSS only (blinking lamps that glow while lit, moving gauge needles and meters, a radar sweep, sonar pings and steam from relief vents). The hero SHALL NOT embed third-party raster images.
 
 #### Scenario: Hero height follows the viewport
 - **WHEN** the page is viewed at any viewport between 360px and 1920px wide
@@ -26,6 +26,10 @@ The landing page SHALL open with a hero section at least as tall as the viewport
 #### Scenario: Background uses design system colours
 - **WHEN** the hero background is inspected
 - **THEN** every colour in it resolves to a design system token and no external image file is requested
+
+#### Scenario: Backdrop is decorative
+- **WHEN** the hero renders
+- **THEN** the submarine drawing is hidden from assistive technology, sits behind the jumbotron, and the welcome and console panels stay fully readable over it
 
 ### Requirement: The jumbotron has two equal panels
 The hero SHALL contain a jumbotron split into two panels of equal width at and above the large breakpoint (1024px), and stacked vertically below it with the welcome panel first.
