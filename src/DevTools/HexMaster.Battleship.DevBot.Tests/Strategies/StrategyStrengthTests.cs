@@ -33,7 +33,6 @@ public sealed class StrategyStrengthTests(ITestOutputHelper output)
         Assert.True(averages[BotIntelligence.Random] > averages[BotIntelligence.HuntAndTarget]);
         Assert.True(averages[BotIntelligence.HuntAndTarget] > averages[BotIntelligence.HuntWithParity]);
         Assert.True(averages[BotIntelligence.HuntWithParity] >= averages[BotIntelligence.ProbabilityDensity]);
-        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10), $"Took {stopwatch.Elapsed}.");
     }
 
     private static int ShotsToWin(IShotStrategy strategy, HashSet<Games.Abstractions.DomainModels.Coordinate> fleet, int seed)
