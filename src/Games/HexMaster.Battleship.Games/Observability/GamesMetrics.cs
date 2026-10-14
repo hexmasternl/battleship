@@ -12,6 +12,7 @@ public sealed class GamesMetrics
     public const string GamesStartedName = "games.started";
     public const string ShotsFiredName = "games.shots.fired";
     public const string GamesCompletedName = "games.completed";
+    public const string GamesRemovedName = "games.removed";
     public const string HitTag = "hit";
 
     private readonly Counter<long> _gamesCreated;
@@ -21,6 +22,7 @@ public sealed class GamesMetrics
     private readonly Counter<long> _playersReady;
     private readonly Counter<long> _gamesStarted;
     private readonly Counter<long> _gamesCompleted;
+    private readonly Counter<long> _gamesRemoved;
 
     public GamesMetrics(IMeterFactory meterFactory)
     {
@@ -37,6 +39,16 @@ public sealed class GamesMetrics
         _shotsFired = meter.CreateCounter<long>(ShotsFiredName, unit: "{shot}", description: "Shots recorded, tagged hit or miss.");
         _gamesCompleted = meter.CreateCounter<long>(
             GamesCompletedName, unit: "{game}", description: "Games completed by a shot that sank the opponent's fleet.");
+        _gamesRemoved = meter.CreateCounter<long>(
+            GamesRemovedName, unit: "{game}", description: "Games removed by the cleanup after the retention period without activity.");
+    }
+
+    public void GamesRemoved(int count)
+    {
+        if (count > 0)
+        {
+            _gamesRemoved.Add(count);
+        }
     }
 
     public void GameCompleted() => _gamesCompleted.Add(1);

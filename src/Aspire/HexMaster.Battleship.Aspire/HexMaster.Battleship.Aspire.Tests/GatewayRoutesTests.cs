@@ -64,6 +64,7 @@ public sealed class GatewayRoutesTests
     [InlineData("health")]
     [InlineData("alive")]
     [InlineData("integration-events")]
+    [InlineData("maintenance")]
     [InlineData("openapi")]
     [InlineData("scalar")]
     [InlineData("weatherforecast")]
@@ -74,6 +75,17 @@ public sealed class GatewayRoutesTests
         var exception = Assert.Throws<InvalidOperationException>(() => GatewayRoutes.Validate([module]));
 
         Assert.Contains("reserved", exception.Message);
+    }
+
+    [Fact]
+    public void Validate_RejectsTheMaintenancePrefixNamingTheModuleAndThePrefix()
+    {
+        var module = ModuleRouteFactory.Create(prefixes: ["maintenance"]);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => GatewayRoutes.Validate([module]));
+
+        Assert.Contains($"'{module.Module}'", exception.Message);
+        Assert.Contains("'maintenance'", exception.Message);
     }
 
     [Fact]
