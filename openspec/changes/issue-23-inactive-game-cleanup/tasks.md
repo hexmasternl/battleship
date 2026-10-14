@@ -16,7 +16,7 @@
 
 ## 2. Cleanup feature slice
 
-- [ ] 2.1 Add `GameRetentionOptions` (`Games:Retention:InactiveDays`, default 90, validated greater than 0 on start). Register it in `AddGamesModule`. Verify with a unit test that a value of 0 fails validation.
+- [x] 2.1 Add `GameRetentionOptions` (`Games:Retention:InactiveDays`, default 90, validated greater than 0 on start). Register it in `AddGamesModule`. Verify with a unit test that a value of 0 fails validation.
 - [ ] 2.2 Add `games.removed` to `GamesMetrics`, the `game.retention.*` attributes to `GamesTelemetry` and event 4009 to `GamesLog`. Verify the build, and in 2.3 that the metric moves.
 - [ ] 2.3 Add `Features/CleanUpInactiveGames`:
   - `CleanUpInactiveGamesCommand` and a `CleanUpInactiveGamesResult(int Removed, int Skipped)` DTO in Abstractions.

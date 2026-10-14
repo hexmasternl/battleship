@@ -1,4 +1,5 @@
 using HexMaster.Battleship.Games.Abstractions.DataTransferObjects;
+using HexMaster.Battleship.Games.Features.CleanUpInactiveGames;
 using HexMaster.Battleship.Games.Features.CreateGame;
 using HexMaster.Battleship.Games.Features.FireShot;
 using HexMaster.Battleship.Games.Features.GetGame;
@@ -8,6 +9,7 @@ using HexMaster.Battleship.Games.Features.PlaceShip;
 using HexMaster.Battleship.Games.Observability;
 using HexMaster.Battleship.Games.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +20,11 @@ public static class GamesModuleRegistration
     // project (AddGamesData), and the integration event sender by AddIntegrationEvents().
     public static IServiceCollection AddGamesModule(this IServiceCollection services)
     {
+        services.AddOptions<GameRetentionOptions>()
+            .BindConfiguration(GameRetentionOptions.ConfigurationSection)
+            .ValidateOnStart();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<GameRetentionOptions>, GameRetentionOptionsValidator>());
+
         services.TryAddSingleton(TimeProvider.System);
         services.AddMetrics();
         services.TryAddSingleton<GamesMetrics>();
