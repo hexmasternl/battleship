@@ -37,6 +37,13 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      # The AppHost checks for the Dapr CLI and runtime in run mode, and some AppHost tests build
+      # it that way. The slim init installs daprd without starting any container.
+      - name: Install Dapr
+        run: |
+          wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | /bin/bash
+          dapr init --slim
+
       - name: Restore
         run: dotnet restore src/Battleship.slnx
 
