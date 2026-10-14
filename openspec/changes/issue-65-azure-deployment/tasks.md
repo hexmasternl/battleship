@@ -4,7 +4,7 @@
 
 - [x] 1.1 Extend the backend config loader to read `eventsBaseUrl` from `config.json` next to `backendBaseUrl`, and log one error naming the setting when it is missing. Verify with updated `backend-config.spec.ts` cases (`ng test --include`).
 - [x] 1.2 Provide `EVENTS_API_URL` from the loaded config instead of `http://localhost:5317` in `app.config.ts`. The events service must not open a stream when the URL is missing. Verify with events service specs covering both cases.
-- [ ] 1.3 Make `scripts/aspire-start.mjs` write `eventsBaseUrl` from a new `EVENTS_API_URL` environment variable, and have the AppHost pass the Events API HTTP endpoint to the frontend resource. Verify with the script's tests and an AppHost test asserting the environment variable, then a local `aspire start` with live events working.
+- [x] 1.3 Make `scripts/aspire-start.mjs` write `eventsBaseUrl` from a new `EVENTS_API_URL` environment variable, and have the AppHost pass the Events API HTTP endpoint to the frontend resource. Verify with the script's tests and an AppHost test asserting the environment variable, then a local `aspire start` with live events working.
 - [x] 1.4 Add `public/staticwebapp.config.json` with `navigationFallback` to `/index.html`, excluding assets and `config.json`. Verify it appears in the `ng build --configuration production` output.
 
 ## 2. Telemetry and container publishing in the services
