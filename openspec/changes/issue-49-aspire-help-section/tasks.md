@@ -35,7 +35,7 @@ All frontend work is done by the `angular-frontend` agent in `src/Frontend`. Run
   - adds slug `id`s to headings
 
   Verify with unit tests for each rewrite and for a table, a code block and a block quote.
-- [ ] 2.2 Implement `HelpDocumentStore`, a local immutable store with `loading | loaded | error` and `retry()`, which fetches `/docs/<file>` as text and renders it with `help-markdown`. Verify with unit tests on `HttpTestingController`:
+- [x] 2.2 Implement `HelpDocumentStore`, a local immutable store with `loading | loaded | error` and `retry()`, which fetches `/docs/<file>` as text and renders it with `help-markdown`. Verify with unit tests on `HttpTestingController`:
   - the loading state, then the loaded HTML
   - the error state, then `retry()` sending a second request
   - no request goes to an `/api/` URL
