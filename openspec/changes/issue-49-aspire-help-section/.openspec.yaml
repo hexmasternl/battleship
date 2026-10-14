@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-10-14
+goal: Add a /help section explaining the Aspire setup, with landing-page tiles that deep-link into it
+affected_areas:
+  - frontend
