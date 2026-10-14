@@ -1,7 +1,10 @@
 import { InjectionToken } from '@angular/core';
 
-/** The base URL of the Events API, without the `/events` path. Provided in `app.config.ts`. */
-export const EVENTS_API_URL = new InjectionToken<string>('EVENTS_API_URL');
+/**
+ * The base URL of the Events API, without the `/events` path, or `null` when it is not configured.
+ * Provided in `app.config.ts` from the runtime `config.json` (`eventsBaseUrl`).
+ */
+export const EVENTS_API_URL = new InjectionToken<string | null>('EVENTS_API_URL');
 
 /** The `EventSource` readyState values, repeated here so a fake does not need the browser global. */
 export const EVENT_SOURCE_CONNECTING = 0;

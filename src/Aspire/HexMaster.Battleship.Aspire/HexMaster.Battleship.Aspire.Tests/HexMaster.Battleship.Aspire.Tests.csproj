@@ -30,4 +30,9 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
+  <!-- The deployed gateway's route file, checked against GatewayRoutes by GatewayRoutesFileTests. -->
+  <ItemGroup>
+    <None Include="..\..\..\..\infra\gateway-routes.json" Link="gateway-routes.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

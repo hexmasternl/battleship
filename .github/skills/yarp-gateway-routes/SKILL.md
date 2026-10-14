@@ -1,6 +1,6 @@
 ---
 name: yarp-gateway-routes
-description: Owns the YARP gateway route table of the local development environment. Use when a backend module or `*.Api` project is added, when an `AddProject<...Api>` is added to the Aspire AppHost, when an API maps an endpoint under a new first path segment, when `GatewayRoutes.cs` is edited, or when asked "which prefixes does the gateway route", "add a gateway route" or "is the gateway in sync". Proposes every new route prefix and waits for approval before adding it.
+description: Owns the YARP gateway route table of the local development environment and its Azure deployment copy (`infra/gateway-routes.json`). Use when a backend module or `*.Api` project is added, when an `AddProject<...Api>` is added to the Aspire AppHost, when an API maps an endpoint under a new first path segment, when `GatewayRoutes.cs` is edited, or when asked "which prefixes does the gateway route", "add a gateway route" or "is the gateway in sync". Proposes every new route prefix and waits for approval before adding it.
 ---
 
 # YARP gateway routes
@@ -8,6 +8,8 @@ description: Owns the YARP gateway route table of the local development environm
 The AppHost runs a YARP resource named `gateway`. It is the single backend endpoint the frontend talks to. The gateway routes a request by its first path segment, the **prefix**, to the module API that owns it. It passes the path through unchanged, so `/users/me` reaches the Users API as `/users/me`.
 
 Every route comes from one table: `GatewayRoutes` in `src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost/GatewayRoutes.cs`. This skill owns that table. Nothing else adds, renames or removes a prefix.
+
+The Azure deployment runs the same gateway as a Container App configured from `infra/gateway-routes.json`. That file mirrors the table: the same modules and prefixes, with `app` set to the Container App name (the API resource name without `hexmaster-battleship-`). `GatewayRoutesFileTests` fails when the two disagree, so every route change edits both.
 
 ## Rules
 
@@ -37,6 +39,7 @@ Run the detection whenever one of these happens, including as part of another ch
    - a `GatewayRoutes` entry whose API resource no longer exists
    - a public endpoint prefix not declared for its module
    - a declared prefix that no endpoint of the module uses (allowed while the module is being built, but say so)
+   - a module or prefix in `infra/gateway-routes.json` that differs from `GatewayRoutes`
 
 If there are no gaps, say the gateway is in sync and stop.
 
@@ -69,7 +72,7 @@ In Claude Code ask with `AskUserQuestion` (approve / change / reject). In other 
 
 ## After approval
 
-1. Edit `GatewayRoutes.cs`: add or update the `ModuleRoute` entry with exactly the approved prefixes, in the order they were proposed.
+1. Edit `GatewayRoutes.cs`: add or update the `ModuleRoute` entry with exactly the approved prefixes, in the order they were proposed. Make the same edit in `infra/gateway-routes.json`. A new module there also needs its Container App in `infra/main.bicep`, so the deployed gateway has a destination.
 2. If the module API is new to the AppHost, make sure its resource builder is the one `GatewayRoutes` resolves by resource name, and that the gateway `WaitFor`s it (the AppHost loop does this for every entry).
 3. Move or create the module's public endpoints under the approved prefixes if the proposal said so.
 4. Run the route-table tests: `dotnet test src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests`. Add a test case for each new prefix.

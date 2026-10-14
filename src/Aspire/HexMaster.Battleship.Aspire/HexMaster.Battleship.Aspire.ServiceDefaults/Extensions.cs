@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,9 @@ public static class Extensions
     // Every module names its ActivitySource and Meter after its assembly (ADR 0008), so one
     // wildcard registers them all without ServiceDefaults referencing a module.
     public const string BattleshipTelemetryNames = "HexMaster.Battleship.*";
+
+    // Setting this (as the Azure deployment does) adds the Azure Monitor exporter.
+    public const string ApplicationInsightsConnectionStringKey = "APPLICATIONINSIGHTS_CONNECTION_STRING";
 
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
@@ -94,12 +98,14 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        //{
-        //    builder.Services.AddOpenTelemetry()
-        //       .UseAzureMonitor();
-        //}
+        // In Azure the Container Apps set the Application Insights connection string; locally it is
+        // absent and only the OTLP exporter to the Aspire dashboard runs.
+        var useAzureMonitor = !string.IsNullOrWhiteSpace(builder.Configuration[ApplicationInsightsConnectionStringKey]);
+
+        if (useAzureMonitor)
+        {
+            builder.Services.AddOpenTelemetry().UseAzureMonitor();
+        }
 
         return builder;
     }

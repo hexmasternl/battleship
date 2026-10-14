@@ -4,6 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Container image for the Azure deployment: dotnet publish -t:PublishContainer. The workflow
+         sets ContainerRegistry and ContainerImageTag; the repository name is fixed here. -->
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <ContainerRepository>battleship/events-api</ContainerRepository>
   </PropertyGroup>
 
   <ItemGroup>

@@ -78,11 +78,11 @@ class FakeEventSource implements EventSourceLike {
   }
 }
 
-function setup() {
+function setup(baseUrl: string | null = BASE_URL) {
   const sources: FakeEventSource[] = [];
   TestBed.configureTestingModule({
     providers: [
-      { provide: EVENTS_API_URL, useValue: BASE_URL },
+      { provide: EVENTS_API_URL, useValue: baseUrl },
       {
         provide: EVENT_SOURCE_FACTORY,
         useValue: (url: string) => {
@@ -124,6 +124,28 @@ describe('EventsService', () => {
     service.connect('A');
     expect(sources.length).toBe(1);
     expect(sources[0].url).toBe(`${BASE_URL}/events?userId=A`);
+  });
+
+  it('opens the stream at the configured Events API URL', () => {
+    const { service, sources } = setup('https://events.example.azurecontainerapps.io');
+    service.connect('A');
+    expect(sources.map((s) => s.url)).toEqual([
+      'https://events.example.azurecontainerapps.io/events?userId=A',
+    ]);
+    expect(service.state()).toBe('connecting');
+  });
+
+  it('opens no stream and logs an error naming eventsBaseUrl when the URL is missing', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { service, sources } = setup(null);
+
+    expect(() => service.connect('A')).not.toThrow();
+
+    expect(sources.length).toBe(0);
+    expect(service.state()).toBe('disconnected');
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy.mock.calls[0][0]).toContain('eventsBaseUrl');
+    expect(errorSpy.mock.calls[0][0]).toContain('config.json');
   });
 
   it('keeps the existing stream when connecting again for the same user', () => {
