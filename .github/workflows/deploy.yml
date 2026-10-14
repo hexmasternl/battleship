@@ -1,0 +1,129 @@
+name: Deploy
+
+# Ships main to the production environment in Azure, in three stages:
+#   1. verify  - build and test every backend module and the frontend, in parallel
+#   2. publish - push one container image per API and build the frontend artifact, in parallel
+#   3. deploy  - deploy infra/main.bicep with the new version, then upload the frontend
+# See infra/README.md for the resources, secrets and Azure permissions this needs.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One release at a time, and a running deployment is never cancelled halfway.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  version:
+    name: Compute version
+    runs-on: ubuntu-latest
+    outputs:
+      semver: ${{ steps.gitversion.outputs.semVer }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: gittools/actions/gitversion/setup@v4
+        with:
+          versionSpec: 6.3.x
+
+      - id: gitversion
+        uses: gittools/actions/gitversion/execute@v4
+
+      - name: Show version
+        run: echo "Release version ${{ steps.gitversion.outputs.semVer }}" >> "$GITHUB_STEP_SUMMARY"
+
+  verify-backend:
+    name: Verify ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - module: Users
+            tests: src/Users/HexMaster.Battleship.Users.Tests
+          - module: Games
+            tests: src/Games/HexMaster.Battleship.Games.Tests
+          - module: Events
+            tests: src/Events/HexMaster.Battleship.Events.Tests
+          - module: Core
+            tests: src/Core/HexMaster.Battleship.Core.Tests
+          - module: Shared
+            tests: src/Shared/HexMaster.Battleship.IntegrationEvents.Tests
+          - module: Aspire
+            tests: src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests
+          - module: DevTools
+            tests: src/DevTools/HexMaster.Battleship.DevBot.Tests
+    services:
+      # Table storage for the Users and Games repository and API tests.
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports:
+          - 10000:10000
+          - 10001:10001
+          - 10002:10002
+    env:
+      BATTLESHIP_TESTS_TABLES: UseDevelopmentStorage=true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      # The AppHost checks for the Dapr CLI and runtime in run mode, and some AppHost tests build it that way.
+      - name: Install Dapr
+        if: matrix.module == 'Aspire'
+        run: |
+          wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | /bin/bash
+          dapr init --slim
+
+      # The Integration category starts the whole AppHost with Docker and Dapr; it runs locally.
+      - name: Build and test
+        run: >-
+          dotnet test ${{ matrix.tests }} --configuration Release
+          --filter "Category!=Integration"
+          --logger "trx" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.module }}
+          path: TestResults
+          if-no-files-found: ignore
+
+  verify-frontend:
+    name: Verify frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/Frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test -- --watch=false
+
+      - name: Test scripts
+        run: npm run test:scripts
