@@ -48,6 +48,29 @@ public sealed class ServiceDefaultsTelemetryTests
         Assert.True(options.IncludeScopes);
     }
 
+    [Fact]
+    public void AddServiceDefaults_WithoutApplicationInsights_DoesNotAddTheAzureMonitorExporter()
+    {
+        var builder = Host.CreateApplicationBuilder();
+        builder.AddServiceDefaults();
+
+        Assert.DoesNotContain(builder.Services, IsAzureMonitorService);
+    }
+
+    [Fact]
+    public void AddServiceDefaults_WithApplicationInsights_AddsTheAzureMonitorExporter()
+    {
+        var builder = Host.CreateApplicationBuilder();
+        builder.Configuration[Extensions.ApplicationInsightsConnectionStringKey] =
+            "InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://localhost/";
+        builder.AddServiceDefaults();
+
+        Assert.Contains(builder.Services, IsAzureMonitorService);
+    }
+
+    private static bool IsAzureMonitorService(ServiceDescriptor descriptor) =>
+        (descriptor.ImplementationType ?? descriptor.ServiceType).Namespace?.StartsWith("Azure.Monitor", StringComparison.Ordinal) == true;
+
     private static IHost BuildHost()
     {
         var builder = Host.CreateApplicationBuilder();
