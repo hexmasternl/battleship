@@ -54,6 +54,17 @@ var pubsub = builder.AddDaprComponent(AspireConstants.PubSubName, "pubsub.rabbit
     .WithMetadata("deletedWhenUnused", "false")
     .WithMetadata("requeueInFailure", "true");
 
+// The daily cleanup of games without activity for longer than the retention period. A cron input
+// binding on the Games API sidecar posts to the API's internal /maintenance/game-cleanup route,
+// which the gateway never routes. The schedule defaults to "@daily" in appsettings.json; override
+// Parameters:game-cleanup-schedule (user secret, environment or `-- --Parameters:game-cleanup-schedule=...`)
+// with, for example, "@every 1m" to watch it run locally.
+var gameCleanupSchedule = builder.AddParameter("game-cleanup-schedule");
+var gameCleanup = builder.AddDaprComponent("game-cleanup", "bindings.cron")
+    .WithMetadata("schedule", gameCleanupSchedule.Resource)
+    .WithMetadata("route", "/maintenance/game-cleanup")
+    .WithMetadata("direction", "input");
+
 // Table storage for the Users service (users, refresh tokens) and the Games service (games).
 // Locally this is the Azurite emulator, so no Azure subscription is needed; the persistent
 // lifetime keeps users and games across AppHost restarts.
@@ -76,7 +87,8 @@ var signingKey = builder.AddParameter(
 var gamesApi = builder.AddProject<Projects.HexMaster_Battleship_Games_Api>(GatewayRoutes.GamesApi)
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "games-api", Config = daprConfig })
-        .WithReference(pubsub))
+        .WithReference(pubsub)
+        .WithReference(gameCleanup))
     .WithReference(tables)
     .WithEnvironment("Users__Tokens__SigningKey", signingKey)
     .WithApiReferenceUrl()

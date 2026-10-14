@@ -1,6 +1,7 @@
 using Azure.Data.Tables;
 using HexMaster.Battleship.Core.DomainModels;
 using HexMaster.Battleship.Games.Abstractions.DomainModels;
+using HexMaster.Battleship.Games.Abstractions.Repositories;
 using HexMaster.Battleship.Games.Data.Entities;
 using HexMaster.Battleship.Games.Data.Repositories;
 using HexMaster.Battleship.Games.DomainModels;
@@ -233,5 +234,88 @@ public class GameTableRepositoryTests
         var repository = new GameTableRepository(Azurite.CreateClient());
 
         Assert.Null(await repository.GetByCodeAsync(GameFactory.Code().Value, CancellationToken.None));
+    }
+
+    // The shared table holds rows of other tests and runs, so these assert on their own codes only.
+    [AzuriteFact]
+    public async Task GetInactive_ReturnsGamesOlderThanTheCutoffAndKeepsNewerOnes()
+    {
+        var repository = new GameTableRepository(Azurite.CreateClient());
+        var old = Game.Create(Guid.NewGuid(), GameFactory.PlayerName(), GameFactory.Code(), Now.AddDays(-91));
+        var recent = Game.Create(Guid.NewGuid(), GameFactory.PlayerName(), GameFactory.Code(), Now.AddDays(-89));
+        await repository.TryAddAsync(old, CancellationToken.None);
+        await repository.TryAddAsync(recent, CancellationToken.None);
+
+        var inactive = await InactiveAsync(repository, Now.AddDays(-90));
+
+        var selected = Assert.Single(inactive, i => i.GameCode == old.GameCode);
+        Assert.False(string.IsNullOrEmpty(selected.ConcurrencyToken));
+        Assert.DoesNotContain(inactive, i => i.GameCode == recent.GameCode);
+    }
+
+    [AzuriteFact]
+    public async Task InactiveRowWithACorruptDocument_IsSelectedAndDeleted()
+    {
+        var client = Azurite.CreateClient();
+        var repository = new GameTableRepository(client);
+        var code = GameFactory.Code().Value;
+        var table = client.GetTableClient(GameTableRepository.TableName);
+        await table.CreateIfNotExistsAsync();
+        await table.AddEntityAsync(new GameEntity
+        {
+            PartitionKey = code,
+            GameId = Guid.NewGuid(),
+            State = "Started",
+            LastActivityOn = Now.AddDays(-120),
+            DocumentVersion = GameDocument.CurrentVersion,
+            Document = "{not a game",
+        });
+
+        var selected = Assert.Single(await InactiveAsync(repository, Now.AddDays(-90)), i => i.GameCode == code);
+
+        Assert.Equal(DeleteOutcome.Deleted, await repository.TryDeleteAsync(code, selected.ConcurrencyToken, CancellationToken.None));
+        Assert.False((await table.GetEntityIfExistsAsync<TableEntity>(code, GameEntity.GameRowKey)).HasValue);
+    }
+
+    [AzuriteFact]
+    public async Task TryDelete_TwiceDeletesAndThenFindsNothing()
+    {
+        var repository = new GameTableRepository(Azurite.CreateClient());
+        var game = Game.Create(Guid.NewGuid(), GameFactory.PlayerName(), GameFactory.Code(), Now.AddDays(-100));
+        await repository.TryAddAsync(game, CancellationToken.None);
+        var selected = Assert.Single(await InactiveAsync(repository, Now.AddDays(-90)), i => i.GameCode == game.GameCode);
+
+        Assert.Equal(DeleteOutcome.Deleted, await repository.TryDeleteAsync(game.GameCode, selected.ConcurrencyToken, CancellationToken.None));
+        Assert.Equal(DeleteOutcome.NotFound, await repository.TryDeleteAsync(game.GameCode, selected.ConcurrencyToken, CancellationToken.None));
+        Assert.Null(await repository.GetByCodeAsync(game.GameCode, CancellationToken.None));
+    }
+
+    [AzuriteFact]
+    public async Task TryDelete_AfterAnUpdateSinceSelectionKeepsTheGame()
+    {
+        var repository = new GameTableRepository(Azurite.CreateClient());
+        var game = Game.Create(Guid.NewGuid(), GameFactory.PlayerName(), GameFactory.Code(), Now.AddDays(-100));
+        await repository.TryAddAsync(game, CancellationToken.None);
+        var selected = Assert.Single(await InactiveAsync(repository, Now.AddDays(-90)), i => i.GameCode == game.GameCode);
+        var read = await repository.GetForUpdateAsync(game.GameCode, CancellationToken.None);
+        var playerTwoId = Guid.NewGuid();
+        ((Game)read!.Game).Join(playerTwoId, GameFactory.PlayerName(), Now);
+        Assert.True(await repository.TryUpdateAsync(read.Game, read.ConcurrencyToken, CancellationToken.None));
+
+        Assert.Equal(DeleteOutcome.Changed, await repository.TryDeleteAsync(game.GameCode, selected.ConcurrencyToken, CancellationToken.None));
+
+        var stored = await repository.GetByCodeAsync(game.GameCode, CancellationToken.None);
+        Assert.Equal(playerTwoId, stored!.PlayerTwo!.PlayerId);
+    }
+
+    private static async Task<List<InactiveGame>> InactiveAsync(GameTableRepository repository, DateTimeOffset cutoff)
+    {
+        var inactive = new List<InactiveGame>();
+        await foreach (var game in repository.GetInactiveAsync(cutoff, CancellationToken.None))
+        {
+            inactive.Add(game);
+        }
+
+        return inactive;
     }
 }

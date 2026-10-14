@@ -17,7 +17,8 @@ internal static class GatewayRoutes
     public const string UsersApi = "hexmaster-battleship-users-api";
     public const string GamesApi = "hexmaster-battleship-games-api";
 
-    // First path segments the module APIs use for platform and diagnostics endpoints. They stay
+    // First path segments the module APIs use for platform, diagnostics and scheduled maintenance
+    // endpoints (the Games cleanup a Dapr cron binding posts to /maintenance). They stay
     // reachable on each API's own port and must never be routed through the gateway.
     private static readonly HashSet<string> ReservedPrefixes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -25,6 +26,7 @@ internal static class GatewayRoutes
         "dapr",
         "health",
         "integration-events",
+        "maintenance",
         "openapi",
         "scalar",
         "smoke",

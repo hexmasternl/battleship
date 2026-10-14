@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-14
+skip_specs: true
+goal: DevBot StrategyStrengthTests fails intermittently on its 10-second time limit
+affected_areas:
+  - devtools

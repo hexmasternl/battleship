@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Azure;
 using Azure.Data.Tables;
 using HexMaster.Battleship.Games.Abstractions.DomainModels;
@@ -64,6 +65,47 @@ public sealed class GameTableRepository(TableServiceClient service)
         catch (RequestFailedException exception) when (exception.Status == 412)
         {
             return false;
+        }
+    }
+
+    public async IAsyncEnumerable<InactiveGame> GetInactiveAsync(
+        DateTimeOffset cutoff, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var table = await GetTableAsync(cancellationToken);
+
+        // Filtered server-side on the activity column and selecting the keys only: the ETag comes
+        // back with every row, so the document is never transferred, let alone deserialized. The
+        // filter is built from the entity's properties, so the column names follow GameEntity.
+        var filter = TableClient.CreateQueryFilter<GameEntity>(
+            game => game.RowKey == GameEntity.GameRowKey && game.LastActivityOn < cutoff);
+        var rows = table.QueryAsync<TableEntity>(
+            filter, select: [nameof(GameEntity.PartitionKey), nameof(GameEntity.RowKey)], cancellationToken: cancellationToken);
+        await foreach (var row in rows)
+        {
+            yield return new InactiveGame(row.PartitionKey, row.ETag.ToString());
+        }
+    }
+
+    public async Task<DeleteOutcome> TryDeleteAsync(string gameCode, string concurrencyToken, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(concurrencyToken);
+
+        var table = await GetTableAsync(cancellationToken);
+        try
+        {
+            // The SDK answers a delete of a missing row with its 404 response instead of throwing.
+            var response = await table.DeleteEntityAsync(
+                gameCode, GameEntity.GameRowKey, new ETag(concurrencyToken), cancellationToken);
+            return response.Status == 404 ? DeleteOutcome.NotFound : DeleteOutcome.Deleted;
+        }
+        catch (RequestFailedException exception) when (exception.Status == 404)
+        {
+            return DeleteOutcome.NotFound;
+        }
+        catch (RequestFailedException exception) when (exception.Status == 412)
+        {
+            return DeleteOutcome.Changed;
         }
     }
 
