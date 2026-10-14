@@ -2,8 +2,8 @@
 
 ## 1. Repository: query inactive games and conditional delete
 
-- [ ] 1.1 Add `InactiveGame(string GameCode, string ConcurrencyToken)` and `DeleteOutcome { Deleted, NotFound, Changed }` to `Games.Abstractions/Repositories`. Add `GetInactiveAsync(DateTimeOffset cutoff, CancellationToken)` (returns `IAsyncEnumerable<InactiveGame>`) and `TryDeleteAsync(string gameCode, string concurrencyToken, CancellationToken)` to `IGameRepository`. Verify the solution builds.
-- [ ] 1.2 Implement both in `GameTableRepository`:
+- [x] 1.1 Add `InactiveGame(string GameCode, string ConcurrencyToken)` and `DeleteOutcome { Deleted, NotFound, Changed }` to `Games.Abstractions/Repositories`. Add `GetInactiveAsync(DateTimeOffset cutoff, CancellationToken)` (returns `IAsyncEnumerable<InactiveGame>`) and `TryDeleteAsync(string gameCode, string concurrencyToken, CancellationToken)` to `IGameRepository`. Verify the solution builds.
+- [x] 1.2 Implement both in `GameTableRepository`:
   - Query with a filter on `LastActivityOn` less than the cutoff and a select of the keys only.
   - Delete with the ETag; map 404 to `NotFound` and 412 to `Changed`.
 
@@ -12,7 +12,7 @@
   - A row with a corrupt `Document` is still returned and deleted.
   - Deleting twice gives `Deleted` and then `NotFound`.
   - An update between selection and delete gives `Changed` and the row survives.
-- [ ] 1.3 Implement both members in `Tests/Fakes/InMemoryGameRepository.cs` with the same semantics. Verify the existing Games tests still pass.
+- [x] 1.3 Implement both members in `Tests/Fakes/InMemoryGameRepository.cs` with the same semantics. Verify the existing Games tests still pass.
 
 ## 2. Cleanup feature slice
 

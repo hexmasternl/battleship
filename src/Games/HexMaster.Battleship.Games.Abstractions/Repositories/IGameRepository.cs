@@ -16,4 +16,11 @@ public interface IGameRepository
     // Replaces the stored game only when it still has the version the token names. Returns false,
     // and stores nothing, when another update was stored in between; the caller reads it again.
     Task<bool> TryUpdateAsync(IGame game, string concurrencyToken, CancellationToken cancellationToken);
+
+    // Streams the games whose last activity is strictly before the cutoff, by code and version token
+    // only: the stored game itself is never read, so an unreadable game is still selected.
+    IAsyncEnumerable<InactiveGame> GetInactiveAsync(DateTimeOffset cutoff, CancellationToken cancellationToken);
+
+    // Deletes the stored game only when it still has the version the token names.
+    Task<DeleteOutcome> TryDeleteAsync(string gameCode, string concurrencyToken, CancellationToken cancellationToken);
 }
