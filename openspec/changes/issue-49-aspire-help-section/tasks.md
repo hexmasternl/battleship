@@ -86,7 +86,7 @@ Each document is written against its source files and starts with a single `# Ti
 
 Extend it with the per-topic content assertions below.
 
-- [ ] 5.1 `docs/prerequisites.md`:
+- [x] 5.1 `docs/prerequisites.md`:
   - .NET 10 SDK, Docker, Dapr CLI plus `dapr init`, Node.js/npm, Aspire CLI, each with an install link
   - the AppHost start command in a code block
   - the fail-fast Dapr prerequisite check
