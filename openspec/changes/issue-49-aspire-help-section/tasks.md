@@ -130,7 +130,7 @@ Extend it with the per-topic content assertions below.
 
 ## 6. Landing page help tiles
 
-- [ ] 6.1 Build `HelpTilesSection` in `src/app/welcome/`, rendered after `InfoSection` in `WelcomePage`. It has:
+- [x] 6.1 Build `HelpTilesSection` in `src/app/welcome/`, rendered after `InfoSection` in `WelcomePage`. It has:
   - a heading
   - six tiles from the registry, each a single `routerLink` anchor with icon, title and summary
   - a "Browse all help" link to `/help`

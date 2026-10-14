@@ -1,0 +1,39 @@
+<section class="help-tiles__inner" aria-labelledby="help-tiles-title">
+  <p class="help-tiles__eyebrow">Under the hood</p>
+  <h2 id="help-tiles-title" class="help-tiles__title">How this demo is built</h2>
+  <p class="help-tiles__lead">
+    Battleship runs on .NET Aspire. Explore the resources, Dapr and the custom dev bot integration
+    that bring it to life on your machine.
+  </p>
+
+  <ul class="help-tiles__grid">
+    @for (tile of tiles; track tile.slug) {
+      <li class="help-tiles__item" [style.--tile-index]="tile.index">
+        <!-- The title alone names the link; the summary is its description. -->
+        <a
+          class="help-tile"
+          [routerLink]="['/help', tile.slug]"
+          [attr.aria-labelledby]="'help-tile-' + tile.slug"
+          [attr.aria-describedby]="'help-tile-' + tile.slug + '-summary'"
+        >
+          <span class="help-tile__head" aria-hidden="true">
+            <span class="help-tile__badge">
+              <mat-icon class="help-tile__icon">{{ tile.icon }}</mat-icon>
+            </span>
+            <span class="help-tile__number">{{ tile.number }}</span>
+          </span>
+          <h3 class="help-tile__title" [id]="'help-tile-' + tile.slug">{{ tile.title }}</h3>
+          <p class="help-tile__summary" [id]="'help-tile-' + tile.slug + '-summary'">
+            {{ tile.summary }}
+          </p>
+          <mat-icon class="help-tile__arrow" aria-hidden="true">arrow_forward</mat-icon>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <a class="bs-btn bs-btn--ghost help-tiles__all" routerLink="/help">
+    Browse all help
+    <mat-icon aria-hidden="true">menu_book</mat-icon>
+  </a>
+</section>
