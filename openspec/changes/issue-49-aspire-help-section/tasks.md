@@ -67,7 +67,7 @@ Each topic is written against its source files, named in an HTML comment at the 
   - what a resource command is
   - Set intelligence (preset choice), Enable and Disable auto-join, Join game (8-character code)
   - that the commands are enabled only while the bot is healthy
-  - the live `devbot.*` properties mirrored to the dashboard
+  - the live `devbot.*` properties mirrored to the Aspire dashboard
 
   Source: `DevBot/BotCommands.cs` and `BotStateMirror.cs`. Verify with the topic spec.
 

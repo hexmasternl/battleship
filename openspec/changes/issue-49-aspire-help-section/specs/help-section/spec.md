@@ -126,13 +126,13 @@ The custom integration topic SHALL explain what a custom Aspire hosting integrat
 - **WHEN** the custom integration topic renders
 - **THEN** it explains the custom resource type and builder extension, and describes what the dev bot does and how it is configured
 
-### Requirement: The custom resource commands topic explains how the dashboard controls the bot
+### Requirement: The custom resource commands topic explains how the Aspire dashboard controls the bot
 The custom resource commands topic SHALL explain what a custom resource command is. It SHALL describe each dev bot command:
 - Set intelligence, with its preset choice
 - Enable auto-join and Disable auto-join
 - Join game, with its 8-character game code
 
-It SHALL state that the commands are enabled only while the bot is healthy, and that the bot's intelligence, auto-join state and games are shown as live properties on the dashboard.
+It SHALL state that the commands are enabled only while the bot is healthy, and that the bot's intelligence, auto-join state and games are shown as live properties on the Aspire dashboard.
 
 #### Scenario: Commands described
 - **WHEN** the custom resource commands topic renders
