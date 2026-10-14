@@ -50,14 +50,24 @@ export class EventsService {
 
   /**
    * Opens the stream for a user. Does nothing while a stream for the same user is open or
-   * reconnecting; a different user id closes the current stream first.
+   * reconnecting; a different user id closes the current stream first. Without a configured
+   * Events API URL no stream is opened: the attempt is logged and the state stays `disconnected`.
    */
   connect(userId: string): void {
     const current = this.#connection;
     if (current?.userId === userId && current.source.readyState !== EVENT_SOURCE_CLOSED) return;
     this.disconnect();
 
-    const source = this.#createSource(eventsUrl(this.#baseUrl, userId));
+    const baseUrl = this.#baseUrl;
+    if (baseUrl === null) {
+      console.error(
+        'Events stream: not connecting, "eventsBaseUrl" is not set in config.json. ' +
+          'Live game events are unavailable until it is configured.',
+      );
+      return;
+    }
+
+    const source = this.#createSource(eventsUrl(baseUrl, userId));
     this.#connection = { userId, source };
     this.#state.set('connecting');
 

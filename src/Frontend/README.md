@@ -23,10 +23,11 @@ on every run.
   every request starting with `/api/` to `<gateway>/<rest>`, stripping `/api` and keeping the
   query string, so `/api/users/me?x=1` goes to `<gateway>/users/me?x=1`. Other URLs, such as
   assets or absolute URLs, pass through unchanged.
-- **Runtime configuration.** The gateway URL comes from `public/config.json`
-  (`{ "backendBaseUrl": "http://localhost:<port>" }`), which `BackendConfig`
-  (`src/app/core/backend-config.ts`) loads with `fetch` before the app starts. The file is
-  generated and git-ignored; never commit it.
+- **Runtime configuration.** The gateway URL and the Events API URL come from `public/config.json`
+  (`{ "backendBaseUrl": "http://localhost:<port>", "eventsBaseUrl": "http://localhost:<port>" }`),
+  which `BackendConfig` (`src/app/core/backend-config.ts`) loads with `fetch` before the app
+  starts. The file is generated (locally by `scripts/aspire-start.mjs`, in Azure by the deploy
+  job) and git-ignored; never commit it.
 - **Starting through Aspire.** Run the AppHost from the repository root:
 
   ```bash
@@ -39,8 +40,9 @@ on every run.
   `npm run start:aspire` without `BACKEND_GATEWAY_URL` stops with an error naming the variable.
 
 - **UI-only work.** Plain `ng serve` (`npm start`) still works for screens that do not call the
-  backend. Without `config.json` the app logs one error naming `backendBaseUrl` at start-up, and
-  every `/api/` request fails with an `HttpErrorResponse` instead of being sent anywhere.
+  backend. Without `config.json` the app logs one error naming `backendBaseUrl` and
+  `eventsBaseUrl` at start-up, every `/api/` request fails with an `HttpErrorResponse` instead of
+  being sent anywhere, and the events service opens no stream.
 
 ## Code scaffolding
 
@@ -158,15 +160,12 @@ messages are logged to the console as a warning.
 
 ### Pointing the app at the Events API
 
-The base URL comes from the `EVENTS_API_URL` injection token, provided in `src/app/app.config.ts`:
-
-```ts
-{ provide: EVENTS_API_URL, useValue: 'http://localhost:5317' },
-```
-
-`http://localhost:5317` is the `http` endpoint the Aspire AppHost gives the Events API
-(`hexmaster-battleship-events-api` in the Aspire dashboard). If the dashboard shows a different
-address, change the value there; it is the base URL only, the service appends `/events`.
+The base URL comes from the `EVENTS_API_URL` injection token, which `src/app/app.config.ts`
+provides from `eventsBaseUrl` in the runtime `public/config.json`. The Aspire AppHost passes the
+Events API endpoint to the frontend as `EVENTS_API_URL`, and `scripts/aspire-start.mjs` writes it
+to the file; in Azure the deploy job writes the deployed URL. It is the base URL only, the service
+appends `/events`. When `eventsBaseUrl` is missing, `connect` logs an error naming it and opens no
+stream.
 
 The Events API accepts cross-origin requests only from the origins in `Events:AllowedOrigins`
 (default `http://localhost:4200`). Serve the app with plain `ng serve` on port 4200, or add your
@@ -177,11 +176,11 @@ dev-server origin to that setting, otherwise the browser blocks the stream and t
 
 1. Start the AppHost (`aspire run` from `src/Aspire/HexMaster.Battleship.Aspire`, see the
    repository README) and wait until the Events API is healthy in the dashboard.
-2. Start the app with `ng serve` and open `http://localhost:4200/` with the developer tools open on
-   the **Network** tab.
+2. Open the `frontend` resource the AppHost started (it writes `config.json` with both URLs) with
+   the developer tools open on the **Network** tab.
 3. Open the stream. Until a screen calls `connect`, either inject `EventsService` in a component
    and call `connect('A')` for the duration of the check, or run
-   `new EventSource('http://localhost:5317/events?userId=A')` in the browser console, which uses
+   `new EventSource('<eventsBaseUrl>/events?userId=A')` in the browser console, which uses
    the same request the service makes.
 4. Filter the network list on `events`. The `/events?userId=A` request stays pending with status
    `200` and type `eventsource`; select it and open the **EventStream** tab (Chrome and Edge). A
