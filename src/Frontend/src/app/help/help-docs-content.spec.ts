@@ -118,4 +118,45 @@ describe('help document content', () => {
       expect(parsed.markdown).toMatch(/fail-fast/i);
     });
   });
+
+  describe('resources', () => {
+    const parsed = doc('resources');
+
+    it('explains what an Aspire resource is', () => {
+      expect(parsed.markdown).toMatch(/a \*\*resource\*\* is/i);
+    });
+
+    it('names every kind with this app’s resources in a table', () => {
+      const table = tables(parsed)
+        .map((t) => t.raw)
+        .join('\n');
+      const kinds: readonly [string, readonly string[]][] = [
+        [
+          'Parameter',
+          ['rabbitmq-username', 'rabbitmq-password', 'users-signing-key', 'game-cleanup-schedule'],
+        ],
+        ['Container', ['messaging', 'storage', 'tables', 'Azurite', 'RabbitMQ']],
+        [
+          'Project',
+          [
+            'hexmaster-battleship-games-api',
+            'hexmaster-battleship-users-api',
+            'hexmaster-battleship-events-api',
+            'Dapr app id',
+          ],
+        ],
+        ['YARP gateway', ['`gateway`']],
+        ['JavaScript app', ['`frontend`']],
+        ['Custom resource', ['`devbot`']],
+      ];
+      for (const [kind, names] of kinds) {
+        expect(table, kind).toContain(`| ${kind} |`);
+        for (const name of names) expect(table, name).toContain(name);
+      }
+    });
+
+    it('shows the resource diagram', () => {
+      expect(imageFiles(parsed)).toContain('assets/help-resource-graph.svg');
+    });
+  });
 });

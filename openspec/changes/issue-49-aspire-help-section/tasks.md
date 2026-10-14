@@ -72,7 +72,7 @@ Each diagram is a self-contained SVG in `docs/assets/` that follows design decis
 - a `viewBox` with no fixed width
 
 - [x] 4.1 Add a unit test that reads every `docs/assets/help-*.svg` and fails on any `fill` or `stroke` colour outside an allow-list taken from the design system tokens, or on a missing `<title>`. Verify that it passes on an empty set and fails on a deliberately wrong sample fixture.
-- [ ] 4.2 Draw `help-resource-graph.svg`: every resource grouped as parameters, containers, projects with sidecars, gateway, frontend and devbot. Alternatively, decide to reuse `architecture.svg` after checking it against `AppHost.cs`. Verify with the colour test and by viewing it in the browser and in GitHub's markdown preview.
+- [x] 4.2 Draw `help-resource-graph.svg`: every resource grouped as parameters, containers, projects with sidecars, gateway, frontend and devbot. Alternatively, decide to reuse `architecture.svg` after checking it against `AppHost.cs`. Verify with the colour test and by viewing it in the browser and in GitHub's markdown preview.
 - [ ] 4.3 Draw `help-request-event-flow.svg` (browser → gateway → Users/Games APIs → pub/sub → Events API → SSE) and `help-startup-order.svg` (the `WaitFor` chain). Verify with the colour test and by viewing both.
 - [ ] 4.4 Draw `help-dapr-sidecars.svg`: four sidecars, the RabbitMQ pub/sub component on `integration-events`, and the `game-cleanup` cron binding into the Games API. Verify with the colour test and by viewing it.
 - [ ] 4.5 Draw `help-devbot-integration.svg` (`AddBattleshipBot` → resource, sidecar, gateway reference, health check) and `help-resource-command-flow.svg` (dashboard command → AppHost → bot `/admin` → state mirror → dashboard properties). Verify with the colour test and by viewing both.
@@ -92,7 +92,7 @@ Extend it with the per-topic content assertions below.
   - the fail-fast Dapr prerequisite check
 
   Source: `README.md` and `DaprPrerequisites.cs`. Verify with the content assertion naming each tool.
-- [ ] 5.2 `docs/resources.md`:
+- [x] 5.2 `docs/resources.md`:
   - what a resource is
   - each kind with this app's resources and roles, in a table
   - the resource diagram
