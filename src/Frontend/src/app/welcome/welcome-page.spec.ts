@@ -53,12 +53,25 @@ describe('WelcomePage', () => {
   describe('without a stored refresh token', () => {
     beforeEach(render);
 
-    it('composes the hero and the information section inside a main landmark', () => {
+    it('composes the hero, the information section and the help tiles inside a main landmark', () => {
       const main = host.querySelector('main');
       expect(main).not.toBeNull();
-      expect(main?.querySelector('battle-hero-section')).not.toBeNull();
-      expect(main?.querySelector('battle-info-section')).not.toBeNull();
+      const sections = Array.from(main?.children ?? []).map((child) => child.localName);
+      expect(sections).toEqual([
+        'battle-hero-section',
+        'battle-info-section',
+        'battle-help-tiles-section',
+      ]);
       expect(host.querySelectorAll('h1').length).toBe(1);
+    });
+
+    it('links the help tiles to the help topics and the help overview', () => {
+      const tiles = Array.from(
+        host.querySelectorAll('battle-help-tiles-section a.help-tile__link'),
+      );
+      expect(tiles.length).toBeGreaterThanOrEqual(4);
+      expect(tiles.every((tile) => tile.getAttribute('href')?.startsWith('/help/'))).toBe(true);
+      expect(host.querySelector('battle-help-tiles-section a[href="/help"]')).not.toBeNull();
     });
 
     it('sends no refresh request and leaves the user unknown', () => {

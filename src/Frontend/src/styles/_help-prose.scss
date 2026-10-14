@@ -1,0 +1,213 @@
+// Typography for the help documents rendered from markdown (`HelpDocument`). The HTML is not part
+// of a component template, so these rules are global and scoped by the `.help-prose` class.
+// Every value is a `--bs-*` token: headings in Quantico, body text in Courier Prime, and code
+// blocks and tables that scroll inside themselves so a page never scrolls sideways.
+
+.help-prose {
+  min-width: 0;
+  font-family: var(--bs-font-body);
+  font-size: var(--bs-text-md);
+  line-height: var(--bs-leading-body);
+  color: var(--bs-color-text);
+  overflow-wrap: break-word;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: var(--bs-space-8) 0 var(--bs-space-3);
+    font-family: var(--bs-font-heading);
+    font-weight: var(--bs-font-weight-bold);
+    line-height: var(--bs-leading-tight);
+    letter-spacing: var(--bs-tracking-heading);
+    color: var(--bs-color-text-strong);
+    overflow-wrap: anywhere;
+  }
+
+  h1 {
+    font-size: var(--bs-text-3xl);
+    text-transform: uppercase;
+    color: var(--bs-color-accent);
+    text-shadow: var(--bs-glow-text-primary);
+  }
+
+  h2 {
+    font-size: var(--bs-text-2xl);
+    text-transform: uppercase;
+  }
+
+  h3 {
+    font-size: var(--bs-text-xl);
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: var(--bs-text-lg);
+  }
+
+  p,
+  ul,
+  ol,
+  blockquote,
+  pre,
+  .help-prose__table {
+    margin: 0 0 var(--bs-space-4);
+  }
+
+  p,
+  li {
+    max-width: 72ch;
+  }
+
+  ul,
+  ol {
+    padding-left: var(--bs-space-6);
+  }
+
+  li + li {
+    margin-top: var(--bs-space-1);
+  }
+
+  strong {
+    color: var(--bs-color-text-strong);
+  }
+
+  a {
+    color: var(--bs-color-accent);
+    text-decoration: underline;
+    text-underline-offset: var(--bs-space-1);
+
+    &:hover {
+      color: var(--bs-color-accent-hover);
+    }
+
+    &:focus-visible {
+      outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+      outline-offset: var(--bs-focus-offset);
+      border-radius: var(--bs-radius-sm);
+    }
+  }
+
+  code {
+    font-family: var(--bs-font-body);
+    padding: 0 var(--bs-space-1);
+    color: var(--bs-color-text-strong);
+    background: var(--bs-color-surface-raised);
+    border-radius: var(--bs-radius-sm);
+  }
+
+  // A code block scrolls on its own; long lines never widen the page.
+  pre {
+    overflow-x: auto;
+    padding: var(--bs-space-4);
+    background: var(--bs-color-surface);
+    border: 1px solid var(--bs-color-border);
+    border-radius: var(--bs-radius-md);
+
+    code {
+      padding: 0;
+      background: none;
+      white-space: pre;
+    }
+
+    &:focus-visible {
+      outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+      outline-offset: var(--bs-focus-offset);
+    }
+  }
+
+  blockquote {
+    padding: var(--bs-space-3) var(--bs-space-4);
+    background: var(--bs-color-accent-subtle);
+    border-left: 3px solid var(--bs-color-accent);
+    border-radius: var(--bs-radius-sm);
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: var(--bs-space-4) 0;
+  }
+
+  // An image sits in its own scroll container (added by the markdown renderer). Below md the
+  // diagrams, drawn about 1100 units wide, are shown 800px wide so their labels stay legible,
+  // and scroll sideways inside the container instead of shrinking to an unreadable size.
+  .help-prose__figure {
+    display: block;
+    overflow-x: auto;
+    margin: var(--bs-space-4) 0;
+    border-radius: var(--bs-radius-md);
+
+    img {
+      margin: 0;
+    }
+
+    &:focus-visible {
+      outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+      outline-offset: var(--bs-focus-offset);
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .help-prose__figure img {
+      max-width: none;
+      width: calc(var(--bs-container) * 2 / 3);
+    }
+  }
+
+  hr {
+    margin: var(--bs-space-8) 0;
+    border: 0;
+    border-top: 1px solid var(--bs-color-border);
+  }
+
+  // A table sits in its own scroll container (added by the markdown renderer).
+  .help-prose__table {
+    overflow-x: auto;
+    border: 1px solid var(--bs-color-border);
+    border-radius: var(--bs-radius-md);
+
+    &:focus-visible {
+      outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+      outline-offset: var(--bs-focus-offset);
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: var(--bs-space-2) var(--bs-space-3);
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--bs-color-border);
+  }
+
+  th {
+    font-family: var(--bs-font-heading);
+    font-size: var(--bs-text-sm);
+    text-transform: uppercase;
+    letter-spacing: var(--bs-tracking-caps);
+    color: var(--bs-color-text-strong);
+    background: var(--bs-color-surface-raised);
+  }
+
+  tr:last-child td {
+    border-bottom: 0;
+  }
+}

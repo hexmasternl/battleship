@@ -1,0 +1,85 @@
+:host {
+  display: block;
+}
+
+.help-overview__title {
+  margin: 0 0 var(--bs-space-3);
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-3xl);
+  font-weight: var(--bs-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  line-height: var(--bs-leading-tight);
+  color: var(--bs-color-accent);
+  text-shadow: var(--bs-glow-text-primary);
+}
+
+.help-overview__lead {
+  margin: 0 0 var(--bs-space-8);
+  max-width: 72ch;
+  font-size: var(--bs-text-lg);
+}
+
+// One column on phones, two from md (768px).
+.help-overview__topics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bs-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.help-overview__topic {
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bs-space-4);
+  height: 100%;
+  min-height: 44px;
+  padding: var(--bs-space-5);
+  color: var(--bs-color-text);
+  text-decoration: none;
+  background: var(--bs-color-surface);
+  border: 1px solid var(--bs-color-border);
+  border-radius: var(--bs-radius-md);
+
+  &:hover {
+    border-color: var(--bs-color-accent);
+  }
+
+  &:focus-visible {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: var(--bs-focus-offset);
+  }
+}
+
+.help-overview__icon {
+  flex: none;
+  color: var(--bs-color-accent);
+}
+
+.help-overview__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bs-space-1);
+  min-width: 0;
+}
+
+.help-overview__name {
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-lg);
+  font-weight: var(--bs-font-weight-bold);
+  letter-spacing: var(--bs-tracking-heading);
+  color: var(--bs-color-text-strong);
+}
+
+.help-overview__summary {
+  font-size: var(--bs-text-md);
+}
+
+@media (min-width: 768px) {
+  .help-overview__topics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

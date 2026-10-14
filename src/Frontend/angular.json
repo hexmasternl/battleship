@@ -27,6 +27,16 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "{prerequisites,resources,resource-relations,dapr,custom-integration,resource-commands}.md",
+                "input": "docs-link",
+                "output": "docs"
+              },
+              {
+                "glob": "assets/help-*.svg",
+                "input": "docs-link",
+                "output": "docs"
               }
             ],
             "styles": ["src/styles.scss"]

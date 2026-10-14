@@ -12,6 +12,8 @@
 @use './styles/components';
 // Design system game elements (`.bs-board`, `.bs-cell`, `.bs-ship` and the placing states).
 @use './styles/game';
+// Typography for help documents rendered from markdown (`.help-prose`).
+@use './styles/help-prose';
 // Material 3 tonal palettes built from the design system colour scales.
 @use './styles/palettes';
 
@@ -33,8 +35,18 @@ html {
         tertiary: palettes.$tertiary-palette,
       ),
       typography: (
-        brand-family: (Quantico, 'Segoe UI', system-ui, sans-serif),
-        plain-family: ('Courier Prime', 'Courier New', Courier, monospace),
+        brand-family: (
+          Quantico,
+          'Segoe UI',
+          system-ui,
+          sans-serif,
+        ),
+        plain-family: (
+          'Courier Prime',
+          'Courier New',
+          Courier,
+          monospace,
+        ),
         regular-weight: 400,
         medium-weight: 700,
         bold-weight: 700,
