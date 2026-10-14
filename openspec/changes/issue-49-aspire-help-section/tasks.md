@@ -13,7 +13,7 @@ All frontend work is done by the `angular-frontend` agent in `src/Frontend`. Run
   - `resource-commands`
 
   Verify with a unit test asserting the order, the unique slugs, the non-empty titles and summaries, and that each `file` equals `<slug>.md`.
-- [ ] 1.2 Add placeholder documents `docs/<slug>.md` for all six topics, each with only a `# Title` and one sentence. Add two `angular.json` asset entries from `../../docs` to `docs`: the six topic documents and `assets/help-*.svg`. Verify that `ng build` emits `docs/<slug>.md` and does not emit `design-system.html`, `suggestions.md` or the PNG banners. Add a unit test that every registry `file` exists under the repo's `docs/`.
+- [x] 1.2 Add placeholder documents `docs/<slug>.md` for all six topics, each with only a `# Title` and one sentence. Add two `angular.json` asset entries from `../../docs` to `docs`: the six topic documents and `assets/help-*.svg`. Verify that `ng build` emits `docs/<slug>.md` and does not emit `design-system.html`, `suggestions.md` or the PNG banners. Add a unit test that every registry `file` exists under the repo's `docs/`.
 - [x] 1.3 Create `src/app/help/help-routes.ts`, generated from the registry:
   - `''` → `HelpOverview`
   - one route per slug → `HelpTopicPage`, with title `<topic> | Help | Battleship` and the slug in route data
