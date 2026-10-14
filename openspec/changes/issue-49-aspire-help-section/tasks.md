@@ -52,7 +52,7 @@ All frontend work is done by the `angular-frontend` agent in `src/Frontend`. Run
 
 ## 3. Help layout and pages
 
-- [ ] 3.1 Build `HelpLayout` with:
+- [x] 3.1 Build `HelpLayout` with:
   - a breadcrumb to `/` and `/help`
   - a content slot
   - previous and next links computed from the slug input against the registry, hidden at the ends

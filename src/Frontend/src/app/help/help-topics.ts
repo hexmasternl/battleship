@@ -62,6 +62,19 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
   },
 ];
 
+/** The topics before and after a topic in reading order; `null` at either end or when unknown. */
+export interface HelpNeighbours {
+  readonly previous: HelpTopic | null;
+  readonly next: HelpTopic | null;
+}
+
+/** The topics before and after the topic with this slug. */
+export function helpNeighbours(slug: string): HelpNeighbours {
+  const index = HELP_TOPICS.findIndex((topic) => topic.slug === slug);
+  if (index === -1) return { previous: null, next: null };
+  return { previous: HELP_TOPICS[index - 1] ?? null, next: HELP_TOPICS[index + 1] ?? null };
+}
+
 /** The topic with this slug, or `undefined` when there is none. */
 export function findHelpTopic(slug: string): HelpTopic | undefined {
   return HELP_TOPICS.find((topic) => topic.slug === slug);
