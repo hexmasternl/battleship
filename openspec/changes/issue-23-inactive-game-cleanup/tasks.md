@@ -51,4 +51,4 @@
 
 ## 5. Integration check
 
-- [ ] 5.1 Run `dotnet build src/Battleship.slnx` and `dotnet test src/Battleship.slnx` from the worktree. Verify both are green and Games test coverage stays at least 80%.
+- [x] 5.1 Run `dotnet build src/Battleship.slnx` and `dotnet test src/Battleship.slnx` from the worktree. Verify both are green and Games test coverage stays at least 80%.
