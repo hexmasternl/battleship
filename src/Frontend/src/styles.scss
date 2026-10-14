@@ -108,3 +108,9 @@ body {
   margin: 0;
   height: 100%;
 }
+
+// Dialog actions hold design system buttons (`.bs-btn`), which Material does not space the way
+// it spaces its own buttons, so the row sets the gap itself.
+.mat-mdc-dialog-actions {
+  gap: var(--bs-space-3);
+}
