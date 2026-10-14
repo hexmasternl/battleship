@@ -75,7 +75,7 @@ Each diagram is a self-contained SVG in `docs/assets/` that follows design decis
 - [x] 4.2 Draw `help-resource-graph.svg`: every resource grouped as parameters, containers, projects with sidecars, gateway, frontend and devbot. Alternatively, decide to reuse `architecture.svg` after checking it against `AppHost.cs`. Verify with the colour test and by viewing it in the browser and in GitHub's markdown preview.
 - [x] 4.3 Draw `help-request-event-flow.svg` (browser → gateway → Users/Games APIs → pub/sub → Events API → SSE) and `help-startup-order.svg` (the `WaitFor` chain). Verify with the colour test and by viewing both.
 - [x] 4.4 Draw `help-dapr-sidecars.svg`: four sidecars, the RabbitMQ pub/sub component on `integration-events`, and the `game-cleanup` cron binding into the Games API. Verify with the colour test and by viewing it.
-- [ ] 4.5 Draw `help-devbot-integration.svg` (`AddBattleshipBot` → resource, sidecar, gateway reference, health check) and `help-resource-command-flow.svg` (dashboard command → AppHost → bot `/admin` → state mirror → dashboard properties). Verify with the colour test and by viewing both.
+- [x] 4.5 Draw `help-devbot-integration.svg` (`AddBattleshipBot` → resource, sidecar, gateway reference, health check) and `help-resource-command-flow.svg` (dashboard command → AppHost → bot `/admin` → state mirror → dashboard properties). Verify with the colour test and by viewing both.
 
 ## 5. Topic documents
 
@@ -111,7 +111,7 @@ Extend it with the per-topic content assertions below.
   - no claim that state stores or service invocation are used
 
   Verify with the content assertions, including a negative assertion on those two terms.
-- [ ] 5.5 `docs/custom-integration.md`:
+- [x] 5.5 `docs/custom-integration.md`:
   - custom resource type plus builder extensions
   - a short `AddBattleshipBot(...)` code excerpt
   - its own sidecar, the gateway reference, the health check
@@ -119,7 +119,7 @@ Extend it with the per-topic content assertions below.
   - the opponent behaviour and the integration diagram
 
   Source: `DevBot/BattleshipBotResourceBuilderExtensions.cs` and `src/DevTools/HexMaster.Battleship.DevBot`. Verify with the content assertions.
-- [ ] 5.6 `docs/resource-commands.md`:
+- [x] 5.6 `docs/resource-commands.md`:
   - what a resource command is
   - Set intelligence, Enable and Disable auto-join, Join game (8-character code)
   - that the commands are enabled only while the bot is healthy

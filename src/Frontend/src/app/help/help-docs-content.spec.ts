@@ -226,4 +226,81 @@ describe('help document content', () => {
       expect(parsed.markdown).not.toMatch(/service invocation|invoke ?method/i);
     });
   });
+
+  describe('custom integration', () => {
+    const parsed = doc('custom-integration');
+
+    it('explains a custom resource type plus builder extensions', () => {
+      expect(parsed.markdown).toMatch(/custom resource type/i);
+      expect(parsed.markdown).toMatch(/builder extension methods/i);
+      expect(parsed.markdown).toContain('BattleshipBotResource');
+      expect(parsed.markdown).toContain('ProjectResource');
+    });
+
+    it('shows the AddBattleshipBot call in a code block', () => {
+      expect(codeBlocks(parsed).join('\n')).toContain('AddBattleshipBot("devbot"');
+    });
+
+    it('covers the sidecar, the gateway reference and the health check', () => {
+      expect(parsed.markdown).toContain('`dev-bot`');
+      expect(parsed.markdown).toContain('WithReference(gateway)');
+      expect(parsed.markdown).toContain('WithHttpHealthCheck("/health")');
+    });
+
+    it('covers the intelligence presets, the grace period and the shot delay', () => {
+      for (const name of [
+        'WithIntelligence',
+        'WithJoinGracePeriod',
+        'WithShotDelay',
+        'Random',
+        'HuntAndTarget',
+        'HuntWithParity',
+        'ProbabilityDensity',
+      ]) {
+        expect(parsed.markdown, name).toContain(name);
+      }
+    });
+
+    it('describes the opponent behaviour and shows the integration diagram', () => {
+      expect(parsed.markdown).toMatch(/grace period/i);
+      expect(parsed.markdown).toMatch(/joins the game as player two/i);
+      expect(imageFiles(parsed)).toContain('assets/help-devbot-integration.svg');
+    });
+  });
+
+  describe('custom resource commands', () => {
+    const parsed = doc('resource-commands');
+
+    it('explains what a custom resource command is', () => {
+      expect(parsed.markdown).toMatch(/a \*\*custom resource command\*\* is/i);
+    });
+
+    it('describes every dev bot command with what it does', () => {
+      const table = tables(parsed)[0];
+      const rows = new Map(table.rows.map((row) => [row[0].text, row[2].text] as const));
+      for (const command of [
+        'Set intelligence',
+        'Enable auto-join',
+        'Disable auto-join',
+        'Join game',
+      ]) {
+        expect(rows.get(`**${command}**`), command).toMatch(/\S/);
+      }
+      expect(rows.get('**Join game**')).toMatch(/8-character game code/);
+      expect(rows.get('**Set intelligence**')).toMatch(/preset/);
+    });
+
+    it('states that the commands are enabled only while the bot is healthy', () => {
+      expect(parsed.markdown).toMatch(
+        /enabled only while the `devbot` resource is \*\*healthy\*\*/,
+      );
+    });
+
+    it('lists the live properties and shows the command-flow diagram', () => {
+      for (const property of ['devbot.intelligence', 'devbot.auto-join', 'devbot.games']) {
+        expect(parsed.markdown).toContain(`\`${property}\``);
+      }
+      expect(imageFiles(parsed)).toContain('assets/help-resource-command-flow.svg');
+    });
+  });
 });
