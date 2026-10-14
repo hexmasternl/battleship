@@ -39,7 +39,7 @@ All frontend work is done by the `angular-frontend` agent in `src/Frontend`. Run
   - the loading state, then the loaded HTML
   - the error state, then `retry()` sending a second request
   - no request goes to an `/api/` URL
-- [ ] 2.3 Implement the `HelpDocument` component:
+- [x] 2.3 Implement the `HelpDocument` component:
   - It binds the rendered HTML through `[innerHTML]`, with no `bypassSecurityTrust*`.
   - It handles clicks on `a[data-help-link]` with `router.navigateByUrl`; clicks with a modifier key keep the default behaviour.
   - It shows the loading and error-with-retry states.
