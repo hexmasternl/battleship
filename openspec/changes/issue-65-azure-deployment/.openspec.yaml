@@ -1,0 +1,9 @@
+schema: spec-driven
+created: 2026-10-14
+goal: "Deploy to Azure on push to main: container images, Bicep infrastructure and Static Web App frontend"
+affected_areas:
+  - aspire
+  - games
+  - users
+  - events
+  - frontend

@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 65
+url: https://github.com/hexmasternl/battleship/issues/65
+title: "Deploy to Azure on push to main: container images, Bicep infrastructure and Static Web App frontend"
+linked: 2026-10-14
