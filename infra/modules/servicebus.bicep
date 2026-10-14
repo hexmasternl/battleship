@@ -3,6 +3,9 @@
 param location string
 param uniqueSuffix string
 param principalId string
+
+@description('Resource id of the identity; keeps the role assignment name known before deployment.')
+param identityId string
 param topics array
 
 // Azure Service Bus Data Owner
@@ -27,7 +30,7 @@ resource topic 'Microsoft.ServiceBus/namespaces/topics@2024-01-01' = [for name i
 }]
 
 resource dataOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(namespace.id, principalId, dataOwnerRoleId)
+  name: guid(namespace.id, identityId, dataOwnerRoleId)
   scope: namespace
   properties: {
     principalId: principalId

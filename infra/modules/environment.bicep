@@ -18,6 +18,9 @@ param gameCleanupSchedule string
 var suffix = 'production'
 var uniqueSuffix = uniqueString(resourceGroup().id)
 
+// Known before deployment (unlike module outputs), so role assignment names can be derived from it.
+var identityResourceId = resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'id-battleship-${suffix}')
+
 module monitoring 'monitoring.bicep' = {
   name: 'monitoring'
   params: {
@@ -40,6 +43,7 @@ module storage 'storage.bicep' = {
     location: location
     uniqueSuffix: uniqueSuffix
     principalId: identity.outputs.principalId
+    identityId: identityResourceId
   }
 }
 
@@ -49,6 +53,7 @@ module serviceBus 'servicebus.bicep' = {
     location: location
     uniqueSuffix: uniqueSuffix
     principalId: identity.outputs.principalId
+    identityId: identityResourceId
     topics: topics
   }
 }
@@ -185,6 +190,22 @@ module eventsApi 'containerapp.bicep' = {
   }
 }
 
+// The frontend's only backend URL. The module APIs allow CORS only in Development, so the gateway's
+// ingress answers the browser's CORS requests for the frontend origin.
+module gateway 'gateway.bicep' = {
+  name: 'gateway'
+  params: {
+    location: location
+    environmentId: containerAppsEnvironment.outputs.id
+    frontendOrigin: frontendOrigin
+  }
+  dependsOn: [
+    gamesApi
+    usersApi
+  ]
+}
+
+output gatewayUrl string = gateway.outputs.url
 output eventsApiUrl string = 'https://${eventsApi.outputs.fqdn}'
 output staticWebAppName string = staticWebApp.outputs.name
 output staticWebAppHostname string = staticWebApp.outputs.defaultHostname
