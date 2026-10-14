@@ -1,0 +1,45 @@
+<main class="help-layout">
+  <nav class="help-layout__crumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a routerLink="/">Battleship</a></li>
+      @if (topic(); as current) {
+        <li><a routerLink="/help">Help</a></li>
+        <li>
+          <span aria-current="page">{{ current.title }}</span>
+        </li>
+      } @else {
+        <li><span aria-current="page">Help</span></li>
+      }
+    </ol>
+  </nav>
+
+  <div class="help-layout__content">
+    <ng-content />
+  </div>
+
+  @if (topic()) {
+    <nav class="help-layout__pager" aria-label="Help topics">
+      @if (neighbours().previous; as previous) {
+        <a
+          class="help-layout__step help-layout__step--previous"
+          [routerLink]="['/help', previous.slug]"
+        >
+          <mat-icon aria-hidden="true">arrow_back</mat-icon>
+          <span>
+            <span class="help-layout__step-label">Previous&#32;</span>
+            <span class="help-layout__step-title">{{ previous.title }}</span>
+          </span>
+        </a>
+      }
+      @if (neighbours().next; as next) {
+        <a class="help-layout__step help-layout__step--next" [routerLink]="['/help', next.slug]">
+          <span>
+            <span class="help-layout__step-label">Next&#32;</span>
+            <span class="help-layout__step-title">{{ next.title }}</span>
+          </span>
+          <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+        </a>
+      }
+    </nav>
+  }
+</main>

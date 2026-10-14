@@ -9,6 +9,9 @@
 # Runtime configuration written by scripts/aspire-start.mjs (npm run start:aspire)
 /public/config.json
 
+# Link to the repository's docs/ folder, created by scripts/link-docs.mjs (npm pre-scripts)
+/docs-link
+
 # Node
 /node_modules
 npm-debug.log

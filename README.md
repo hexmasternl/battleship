@@ -65,6 +65,8 @@ You don't need a cloud account, a `docker-compose.yml`, or any connection string
 | [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/) | Starts the sidecars | `dapr --version` |
 | [Node.js](https://nodejs.org) with npm | Runs the Angular dev server | `node --version` |
 
+Step by step, with the Dapr check explained: [Prerequisites](docs/prerequisites.md).
+
 ### 2. One-time setup
 
 ```shell
@@ -100,6 +102,11 @@ To stop, press `Ctrl+C`, or run `aspire stop` from the same folder.
 Everything below is in a single file:
 [`AppHost.cs`](src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost/AppHost.cs).
 Read it top to bottom. It is short and every block has a comment.
+
+For a guided tour, the help section (also in the app at `/help`) explains
+[resources](docs/resources.md), [resource relations](docs/resource-relations.md),
+[Dapr](docs/dapr.md), the [custom integration](docs/custom-integration.md) and
+[custom resource commands](docs/resource-commands.md).
 
 | Aspire concept | How Battleship uses it |
 |---|---|
@@ -145,6 +152,9 @@ or malformed prefix stops the AppHost with a message naming the module.
 Dapr sidecar to topic `integration-events` on the RabbitMQ-backed `pubsub` component. The
 **Events API** subscribes to that topic and pushes each event to the browsers it targets over
 server-sent events.
+
+More: every resource by kind in [Resources](docs/resources.md), both paths and the start-up
+order in [Resource relations](docs/resource-relations.md), and the sidecars in [Dapr](docs/dapr.md).
 
 ---
 
@@ -204,7 +214,7 @@ when a ship is sunk, so the bot only knows its own hits and misses.
 | `Random` | Any cell it has not shot at. |
 | `HuntAndTarget` (default) | Random until it hits, then the cells next to its hits, extending a line of hits first. |
 | `HuntWithParity` | Like `HuntAndTarget`, but it hunts only on the checkerboard cells where column + row is even. |
-| `ProbabilityDensity` | The cell where the remaining ships fit in the most ways, given its hits and misses. |
+| `ProbabilityDensity` | The cell covered by the most ways the fleet's ships could lie around its misses, favouring placements through its hits. |
 
 The `devbot` properties `devbot.intelligence`, `devbot.auto-join` and `devbot.games` show the
 current state within a few seconds of a change. The start values are set in `AppHost.cs` with
@@ -213,6 +223,9 @@ current state within a few seconds of a change. The start values are set in `App
 **After an AppHost restart** the bot starts fresh: it keeps no preset and no games. To let it
 finish a game in progress, run *Join game* with that game's code. The bot reads the game and
 fires when it has the turn.
+
+How the bot is built: [Custom integration](docs/custom-integration.md) and
+[Custom resource commands](docs/resource-commands.md).
 
 ---
 
@@ -235,7 +248,8 @@ battleship/
 │   └── Frontend/                         Angular 22 + Angular Material, zoneless, signals
 ├── docs/
 │   ├── design-system.md / .html          the visual contract (tokens, components, instruments)
-│   └── assets/                           icon, banner, architecture diagram
+│   ├── prerequisites.md, resources.md …  the help topics, also served by the app at /help
+│   └── assets/                           icon, banner, architecture and help-* diagrams
 ├── openspec/                             specs and change proposals (spec-driven development)
 ├── .claude/  .github/                    agent skills, prompts and agents (Claude Code + Copilot)
 ├── .github/workflows/                    CI: backend and frontend build and tests

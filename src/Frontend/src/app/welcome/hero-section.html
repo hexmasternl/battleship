@@ -1,25 +1,6 @@
-<!-- Decorative radar in the corner: no meaning, hidden from assistive technology, static under
-     reduced motion. -->
-<svg class="hero__radar" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
-  <defs>
-    <linearGradient id="hero-sweep-grad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" class="hero__radar-sweep-start" />
-      <stop offset="1" class="hero__radar-sweep-end" />
-    </linearGradient>
-  </defs>
-  <circle class="hero__radar-ring" cx="100" cy="100" r="96" />
-  <circle class="hero__radar-ring" cx="100" cy="100" r="64" />
-  <circle class="hero__radar-ring" cx="100" cy="100" r="32" />
-  <line class="hero__radar-line" x1="100" y1="4" x2="100" y2="196" />
-  <line class="hero__radar-line" x1="4" y1="100" x2="196" y2="100" />
-  <g class="hero__radar-sweep">
-    <path d="M100 100 L196 100 A96 96 0 0 0 148 16.9 Z" fill="url(#hero-sweep-grad)" />
-    <line class="hero__radar-beam" x1="100" y1="100" x2="196" y2="100" />
-  </g>
-  <circle class="hero__radar-blip" cx="62" cy="70" r="3.5" />
-  <circle class="hero__radar-blip" cx="138" cy="128" r="3.5" />
-  <circle class="hero__radar-centre" cx="100" cy="100" r="3" />
-</svg>
+<!-- The submarine control room behind the jumbotron: decoration, hidden from assistive
+     technology, static under reduced motion. -->
+<battle-submarine-interior />
 
 <div class="hero__inner">
   <div class="hero__jumbotron">

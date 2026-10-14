@@ -1,0 +1,122 @@
+:host {
+  display: block;
+  min-height: 100%;
+  background: var(--bs-color-bg);
+  color: var(--bs-color-text);
+  font-family: var(--bs-font-body);
+  line-height: var(--bs-leading-body);
+}
+
+.help-layout {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bs-space-8);
+  width: min(100%, var(--bs-container));
+  margin-inline: auto;
+  padding: var(--bs-space-6) var(--bs-gutter) var(--bs-space-12);
+}
+
+.help-layout__content {
+  min-width: 0;
+}
+
+a {
+  color: var(--bs-color-accent);
+
+  &:hover {
+    color: var(--bs-color-accent-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: var(--bs-focus-offset);
+    border-radius: var(--bs-radius-sm);
+  }
+}
+
+// ---- Breadcrumb: Battleship / Help / topic.
+.help-layout__crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-caps);
+}
+
+.help-layout__crumbs li {
+  display: flex;
+  align-items: center;
+
+  & + li::before {
+    content: '/' / '';
+    padding-inline: var(--bs-space-2);
+    color: var(--bs-color-text-dim);
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  [aria-current='page'] {
+    color: var(--bs-color-text-strong);
+  }
+}
+
+// ---- Previous and next topic: stacked on phones, side by side from md.
+.help-layout__pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bs-space-4);
+  padding-top: var(--bs-space-6);
+  border-top: 1px solid var(--bs-color-border);
+}
+
+.help-layout__step {
+  display: flex;
+  align-items: center;
+  gap: var(--bs-space-3);
+  min-height: 44px;
+  padding: var(--bs-space-3) var(--bs-space-4);
+  text-decoration: none;
+  background: var(--bs-color-surface);
+  border: 1px solid var(--bs-color-border);
+  border-radius: var(--bs-radius-md);
+}
+
+.help-layout__step--next {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.help-layout__step-label,
+.help-layout__step-title {
+  display: block;
+}
+
+.help-layout__step-label {
+  font-size: var(--bs-text-sm);
+  color: var(--bs-color-text-dim-raised);
+}
+
+.help-layout__step-title {
+  font-family: var(--bs-font-heading);
+  font-weight: var(--bs-font-weight-bold);
+}
+
+@media (min-width: 768px) {
+  .help-layout__pager {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .help-layout__step--next {
+    grid-column: 2;
+  }
+}

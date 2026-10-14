@@ -20,5 +20,10 @@ export const routes: Routes = [
     canActivate: [userGuard],
     loadComponent: () => import('./games/game-page/game-page').then((m) => m.GamePage),
   },
+  {
+    // The help section is public: no guard, and its pages never call the backend.
+    path: 'help',
+    loadChildren: () => import('./help/help-routes').then((m) => m.helpRoutes),
+  },
   { path: '**', redirectTo: '' },
 ];

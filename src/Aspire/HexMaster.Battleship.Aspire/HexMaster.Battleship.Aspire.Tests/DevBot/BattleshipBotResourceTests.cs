@@ -6,6 +6,7 @@ using HexMaster.Battleship.Aspire.AppHost.DevBot;
 
 namespace HexMaster.Battleship.Aspire.Tests.DevBot;
 
+[Collection(AppHostModelCollection.Name)]
 public sealed class BattleshipBotResourceTests
 {
     [Fact]

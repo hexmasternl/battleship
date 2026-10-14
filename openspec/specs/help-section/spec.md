@@ -1,10 +1,9 @@
-# Spec Delta
+# help-section Specification
 
 ## Purpose
-
 Explains, inside the web app, how this demo's .NET Aspire environment is configured, so a visitor can learn about its resources, Dapr usage, custom integration and custom resource commands without leaving the game. The content is kept as markdown documents and diagrams in the repository's `docs/` folder.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: The help overview lists every topic
 The application SHALL render a help overview at `/help` with a level-one heading and one link for each help topic. Each link SHALL name the topic and give a one-sentence summary. The topics SHALL be, in this order:
@@ -155,12 +154,16 @@ It SHALL include a diagram of the app's resources.
 The resource relations topic SHALL explain references (connection information and environment flowing from one resource to another) and `WaitFor` start-up ordering, using this app's actual relations. It SHALL show the request and event flow in a diagram:
 1. browser to gateway
 2. gateway to the Users and Games APIs
-3. the APIs publishing to pub/sub
-4. the Events API pushing events to the browser over server-sent events
+3. the Games API publishing integration events to pub/sub
+4. the Events API, which subscribes to pub/sub and pushes events to the browser over server-sent events on a connection the browser opens directly, not through the gateway
 
 #### Scenario: Flow shown
 - **WHEN** the resource relations topic renders
 - **THEN** it shows a diagram of the flow from browser through gateway and APIs to pub/sub and back through the Events API, states the same flow as an ordered list, and names at least one `WaitFor` dependency of this app
+
+#### Scenario: Publishers and the event connection are stated accurately
+- **WHEN** the resource relations topic text is inspected
+- **THEN** it names the Games API as the publisher of integration events and states that the browser connects to the Events API directly rather than through the gateway
 
 ### Requirement: The Dapr topic describes Dapr's actual role in this app
 The Dapr topic SHALL explain what a Dapr sidecar is. It SHALL state which resources run one:

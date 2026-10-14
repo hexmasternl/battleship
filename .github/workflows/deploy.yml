@@ -1,0 +1,310 @@
+name: Deploy
+
+# Ships main to the production environment in Azure, in three stages:
+#   1. verify  - build and test every backend module and the frontend, in parallel
+#   2. publish - push one container image per API and build the frontend artifact, in parallel
+#   3. deploy  - deploy infra/main.bicep with the new version, then upload the frontend
+# See infra/README.md for the resources, secrets and Azure permissions this needs.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One release at a time, and a running deployment is never cancelled halfway.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  version:
+    name: Compute version
+    runs-on: ubuntu-latest
+    outputs:
+      semver: ${{ steps.gitversion.outputs.semVer }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: gittools/actions/gitversion/setup@v4
+        with:
+          versionSpec: 6.3.x
+
+      - id: gitversion
+        uses: gittools/actions/gitversion/execute@v4
+
+      - name: Show version
+        run: echo "Release version ${{ steps.gitversion.outputs.semVer }}" >> "$GITHUB_STEP_SUMMARY"
+
+  verify-backend:
+    name: Verify ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - module: Users
+            tests: src/Users/HexMaster.Battleship.Users.Tests
+          - module: Games
+            tests: src/Games/HexMaster.Battleship.Games.Tests
+          - module: Events
+            tests: src/Events/HexMaster.Battleship.Events.Tests
+          - module: Core
+            tests: src/Core/HexMaster.Battleship.Core.Tests
+          - module: Shared
+            tests: src/Shared/HexMaster.Battleship.IntegrationEvents.Tests
+          - module: Aspire
+            tests: src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests
+          - module: DevTools
+            tests: src/DevTools/HexMaster.Battleship.DevBot.Tests
+    services:
+      # Table storage for the Users and Games repository and API tests.
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports:
+          - 10000:10000
+          - 10001:10001
+          - 10002:10002
+    env:
+      BATTLESHIP_TESTS_TABLES: UseDevelopmentStorage=true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      # The AppHost checks for the Dapr CLI and runtime in run mode, and some AppHost tests build it that way.
+      - name: Install Dapr
+        if: matrix.module == 'Aspire'
+        run: |
+          wget -q https://raw.githubusercontent.com/dapr/cli/master/install/install.sh -O - | /bin/bash
+          dapr init --slim
+
+      # The Integration category starts the whole AppHost with Docker and Dapr; it runs locally.
+      - name: Build and test
+        run: >-
+          dotnet test ${{ matrix.tests }} --configuration Release
+          --filter "Category!=Integration"
+          --logger "trx" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.module }}
+          path: TestResults
+          if-no-files-found: ignore
+
+  verify-frontend:
+    name: Verify frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/Frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test -- --watch=false
+
+      - name: Test scripts
+        run: npm run test:scripts
+
+  publish-api:
+    name: Publish ${{ matrix.service }}-api image
+    needs: [version, verify-backend, verify-frontend]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - service: games
+            project: src/Games/HexMaster.Battleship.Games.Api/HexMaster.Battleship.Games.Api.csproj
+          - service: users
+            project: src/Users/HexMaster.Battleship.Users.Api/HexMaster.Battleship.Users.Api.csproj
+          - service: events
+            project: src/Events/HexMaster.Battleship.Events.Api/HexMaster.Battleship.Events.Api.csproj
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_LOGIN_USERNAME }}
+          password: ${{ secrets.ACR_LOGIN_PASSWORD }}
+
+      # The repository name (battleship/<service>-api) is set in each API project.
+      - name: Publish container image
+        run: >-
+          dotnet publish ${{ matrix.project }} --configuration Release
+          -t:PublishContainer
+          -p:ContainerRegistry=${{ secrets.ACR_LOGIN_SERVER }}
+          -p:ContainerImageTag=${{ needs.version.outputs.semver }}
+
+  build-frontend:
+    name: Build frontend
+    needs: [version, verify-backend, verify-frontend]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/Frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # The npm script runs prebuild, which links the help documents into the build.
+      # config.json is not part of the build; the deploy job writes it for the deployed backend.
+      - name: Build
+        run: npm run build -- --configuration production
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: frontend
+          path: src/Frontend/dist/battleship/browser
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy to production
+    needs: [version, publish-api, build-frontend]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write # pushes the v<version> release tag
+      id-token: write # OIDC sign-in to Azure
+    env:
+      VERSION: ${{ needs.version.outputs.semver }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check required secrets
+        env:
+          USERS_SIGNING_KEY: ${{ secrets.USERS_SIGNING_KEY }}
+        run: |
+          if [ -z "$USERS_SIGNING_KEY" ]; then
+            echo "::error::The production environment has no USERS_SIGNING_KEY secret. See infra/README.md for how to create one."
+            exit 1
+          fi
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Every Container App moves to the images tagged with this run's version.
+      - name: Deploy infrastructure
+        id: infra
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+          ACR_LOGIN_USERNAME: ${{ secrets.ACR_LOGIN_USERNAME }}
+          ACR_LOGIN_PASSWORD: ${{ secrets.ACR_LOGIN_PASSWORD }}
+          USERS_SIGNING_KEY: ${{ secrets.USERS_SIGNING_KEY }}
+        run: |
+          outputs=$(az deployment sub create \
+            --name "battleship-$VERSION" \
+            --location westeurope \
+            --template-file infra/main.bicep \
+            --parameters infra/main.bicepparam \
+            --parameters version="$VERSION" \
+                         acrLoginServer="$ACR_LOGIN_SERVER" \
+                         acrUsername="$ACR_LOGIN_USERNAME" \
+                         acrPassword="$ACR_LOGIN_PASSWORD" \
+                         signingKey="$USERS_SIGNING_KEY" \
+            --query properties.outputs --output json)
+          {
+            echo "resource-group=$(jq -r .resourceGroupName.value <<< "$outputs")"
+            echo "gateway-url=$(jq -r .gatewayUrl.value <<< "$outputs")"
+            echo "events-api-url=$(jq -r .eventsApiUrl.value <<< "$outputs")"
+            echo "static-web-app=$(jq -r .staticWebAppName.value <<< "$outputs")"
+            echo "static-web-app-hostname=$(jq -r .staticWebAppHostname.value <<< "$outputs")"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: frontend
+          path: frontend
+
+      # The same bundle runs everywhere; only this runtime file points it at the deployed backend.
+      - name: Write runtime configuration
+        env:
+          GATEWAY_URL: ${{ steps.infra.outputs.gateway-url }}
+          EVENTS_API_URL: ${{ steps.infra.outputs.events-api-url }}
+        run: |
+          jq -n --arg backend "$GATEWAY_URL" --arg events "$EVENTS_API_URL" \
+            '{ backendBaseUrl: $backend, eventsBaseUrl: $events }' > frontend/config.json
+          cat frontend/config.json
+
+      - name: Get Static Web App deployment token
+        id: swa
+        env:
+          RESOURCE_GROUP: ${{ steps.infra.outputs.resource-group }}
+          STATIC_WEB_APP: ${{ steps.infra.outputs.static-web-app }}
+        run: |
+          token=$(az staticwebapp secrets list --name "$STATIC_WEB_APP" --resource-group "$RESOURCE_GROUP" --query properties.apiKey --output tsv)
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Upload frontend
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.swa.outputs.token }}
+          action: upload
+          app_location: frontend
+          output_location: ''
+          skip_app_build: true
+          skip_api_build: true
+
+      # Releases from main are tagged, so the next run computes a higher version. A rerun of an
+      # earlier run's deploy job (a rollback) finds its tag already there.
+      - name: Tag release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "Tag v$VERSION already exists."
+          else
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          fi
+
+      - name: Summary
+        env:
+          HOSTNAME: ${{ steps.infra.outputs.static-web-app-hostname }}
+          GATEWAY_URL: ${{ steps.infra.outputs.gateway-url }}
+          EVENTS_API_URL: ${{ steps.infra.outputs.events-api-url }}
+        run: |
+          {
+            echo "### Deployed $VERSION"
+            echo "- App: https://$HOSTNAME"
+            echo "- Gateway: $GATEWAY_URL"
+            echo "- Events API: $EVENTS_API_URL"
+          } >> "$GITHUB_STEP_SUMMARY"

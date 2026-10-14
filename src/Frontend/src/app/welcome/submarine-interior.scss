@@ -1,0 +1,227 @@
+// The submarine interior fills its positioned parent (the hero) behind the content. The drawing
+// itself carries its colours as design system tokens; this file only adds the motion. Every
+// animated element sets its own timing through `--sub-*` custom properties in the SVG, so one
+// keyframe set serves all lamps, needles, meters and vents.
+:host {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sub {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+// Lamps: the lit bulb and its halo switch on and off together (steps, so no half-lit frames).
+.sub-on {
+  animation: sub-blink var(--sub-dur, 2s) steps(1, end) infinite var(--sub-delay, 0s);
+}
+
+// A lamp with a loose contact.
+.sub-flicker {
+  animation: sub-flicker 3.1s steps(1, end) infinite;
+}
+
+// The ceiling lamps breathe slowly.
+.sub-breathe {
+  animation: sub-breathe 6s var(--bs-ease-standard) infinite;
+}
+
+// Gauge needles swing between two angles around their pivot (given in view-box units).
+.sub-needle {
+  transform-box: view-box;
+  transform: rotate(var(--sub-from));
+  animation: sub-needle var(--sub-dur) var(--bs-ease-standard) infinite alternate
+    var(--sub-delay, 0s);
+}
+
+// The radar sweep and the fan.
+.sub-spin {
+  transform-box: view-box;
+  animation: sub-spin var(--sub-dur, var(--bs-duration-sweep)) var(--bs-ease-linear) infinite;
+}
+
+// Steam puffs rise, spread and fade; each vent runs several puffs out of phase.
+.sub-steam {
+  transform-box: view-box;
+  opacity: 0;
+  animation: sub-steam var(--sub-dur, 4s) ease-out infinite var(--sub-delay, 0s);
+}
+
+// Sonar rings grow from the centre and fade.
+.sub-ping {
+  transform-box: view-box;
+  animation: sub-ping var(--bs-duration-ping) ease-out infinite var(--sub-delay, 0s);
+}
+
+// Blips, guide lights and the lens pulse in opacity.
+.sub-pulse {
+  animation: sub-pulse var(--sub-dur, var(--bs-duration-ping)) var(--bs-ease-standard) infinite
+    var(--sub-delay, 0s);
+}
+
+// Level and VU meters scale vertically from their base.
+.sub-bar {
+  transform-box: view-box;
+  transform: scaleY(var(--sub-from));
+  animation: sub-bar var(--sub-dur) var(--bs-ease-standard) infinite alternate
+    var(--sub-delay, 0s);
+}
+
+// The oscilloscope trace scrolls by one period, so the loop is seamless.
+.sub-wave {
+  animation: sub-wave 2.4s var(--bs-ease-linear) infinite;
+}
+
+@keyframes sub-blink {
+  0% {
+    opacity: 1;
+  }
+
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes sub-flicker {
+  0%,
+  9%,
+  45%,
+  50%,
+  100% {
+    opacity: 1;
+  }
+
+  6% {
+    opacity: 0.2;
+  }
+
+  43% {
+    opacity: 0.1;
+  }
+
+  47% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes sub-breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes sub-needle {
+  from {
+    transform: rotate(var(--sub-from));
+  }
+
+  to {
+    transform: rotate(var(--sub-to));
+  }
+}
+
+@keyframes sub-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sub-steam {
+  0% {
+    transform: translate(0, 0) scale(0.6);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.9;
+  }
+
+  60% {
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translate(var(--sub-dx), var(--sub-dy)) scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes sub-ping {
+  from {
+    transform: scale(0);
+    opacity: 0.9;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes sub-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes sub-bar {
+  from {
+    transform: scaleY(var(--sub-from));
+  }
+
+  to {
+    transform: scaleY(var(--sub-to));
+  }
+}
+
+@keyframes sub-wave {
+  to {
+    transform: translateX(-120px);
+  }
+}
+
+// Reduced motion: every lamp stays lit, needles rest at their first angle, the steam is gone.
+:host(.submarine--reduced-motion) .sub-on,
+:host(.submarine--reduced-motion) .sub-flicker,
+:host(.submarine--reduced-motion) .sub-breathe,
+:host(.submarine--reduced-motion) .sub-needle,
+:host(.submarine--reduced-motion) .sub-spin,
+:host(.submarine--reduced-motion) .sub-steam,
+:host(.submarine--reduced-motion) .sub-ping,
+:host(.submarine--reduced-motion) .sub-pulse,
+:host(.submarine--reduced-motion) .sub-bar,
+:host(.submarine--reduced-motion) .sub-wave {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sub-on,
+  .sub-flicker,
+  .sub-breathe,
+  .sub-needle,
+  .sub-spin,
+  .sub-steam,
+  .sub-ping,
+  .sub-pulse,
+  .sub-bar,
+  .sub-wave {
+    animation: none;
+  }
+}

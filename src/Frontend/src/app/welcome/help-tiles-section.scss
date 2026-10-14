@@ -1,0 +1,203 @@
+// Background and text colour come from the landing page host.
+:host {
+  display: block;
+  font-family: var(--bs-font-body);
+  line-height: var(--bs-leading-body);
+}
+
+.help-tiles__inner {
+  box-sizing: border-box;
+  width: min(100%, var(--bs-container));
+  margin-inline: auto;
+  padding: 0 var(--bs-gutter) var(--bs-space-12);
+}
+
+.help-tiles__eyebrow {
+  margin: 0 0 var(--bs-space-2);
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-caps);
+  color: var(--bs-color-accent);
+}
+
+.help-tiles__title {
+  margin: 0 0 var(--bs-space-3);
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-2xl);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  line-height: var(--bs-leading-tight);
+  color: var(--bs-color-text-strong);
+}
+
+.help-tiles__lead {
+  margin: 0 0 var(--bs-space-8);
+  max-width: 72ch;
+  font-size: var(--bs-text-lg);
+}
+
+// One column on phones, two from md (768px), three from lg (1024px).
+.help-tiles__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bs-space-5);
+  margin: 0 0 var(--bs-space-8);
+  padding: 0;
+  list-style: none;
+}
+
+// A raised instrument plate: gradient surface, hairline border and an accent edge on top.
+.help-tile {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bs-space-3);
+  height: 100%;
+  padding: var(--bs-space-6);
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      color-mix(in srgb, var(--bs-color-accent) 14%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(160deg, var(--bs-color-surface-raised), var(--bs-color-surface));
+  border: 1px solid var(--bs-color-border);
+  border-radius: var(--bs-radius-lg);
+  box-shadow: var(--bs-shadow-2);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 var(--bs-space-6) auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--bs-color-accent), transparent);
+  }
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--bs-color-accent);
+    box-shadow: var(--bs-shadow-3), var(--bs-glow-primary);
+
+    .help-tile__badge {
+      box-shadow: var(--bs-glow-primary);
+    }
+
+    .help-tile__arrow {
+      color: var(--bs-color-accent);
+    }
+  }
+}
+
+// The title link stretches over the whole tile, and so does its focus ring.
+.help-tile__link {
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--bs-radius-lg);
+  }
+
+  &:focus-visible::after {
+    outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+    outline-offset: var(--bs-focus-offset);
+  }
+}
+
+.help-tile__head {
+  display: flex;
+  justify-content: space-between;
+}
+
+.help-tile__badge {
+  display: grid;
+  place-items: center;
+  width: var(--bs-space-12);
+  height: var(--bs-space-12);
+  background: var(--bs-color-accent-subtle);
+  border: 1px solid color-mix(in srgb, var(--bs-color-accent) 45%, transparent);
+  border-radius: var(--bs-radius-md);
+}
+
+.help-tile__icon {
+  width: var(--bs-space-8);
+  height: var(--bs-space-8);
+  font-size: var(--bs-space-8);
+  color: var(--bs-color-accent);
+}
+
+.help-tile__number {
+  font-family: var(--bs-font-panel);
+  font-size: var(--bs-text-xl);
+  font-weight: var(--bs-font-weight-panel);
+  color: var(--bs-color-text-dim-raised);
+}
+
+.help-tile__title {
+  margin: 0;
+  font-family: var(--bs-font-heading);
+  font-size: var(--bs-text-lg);
+  text-transform: uppercase;
+  letter-spacing: var(--bs-tracking-heading);
+  line-height: var(--bs-leading-tight);
+  color: var(--bs-color-text-strong);
+}
+
+.help-tile__summary {
+  flex: 1;
+  margin: 0;
+  font-size: var(--bs-text-md);
+}
+
+.help-tile__arrow {
+  align-self: flex-end;
+  color: var(--bs-color-text-dim-raised);
+}
+
+// Motion only for visitors who have not asked for less of it.
+@media (prefers-reduced-motion: no-preference) {
+  .help-tiles__item {
+    animation: help-tile-enter var(--bs-duration-slow) var(--bs-ease-emphasised) backwards;
+    animation-delay: calc(var(--tile-index) * var(--bs-duration-fast) / 2);
+  }
+
+  .help-tile,
+  .help-tile__badge,
+  .help-tile__arrow {
+    transition: var(--bs-duration-base) var(--bs-ease-standard);
+    transition-property: transform, box-shadow, border-color, color;
+  }
+
+  .help-tile:hover,
+  .help-tile:focus-within {
+    transform: translateY(calc(var(--bs-space-1) * -1));
+
+    .help-tile__arrow {
+      transform: translateX(var(--bs-space-1));
+    }
+  }
+}
+
+@keyframes help-tile-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--bs-space-4));
+  }
+}
+
+@media (min-width: 768px) {
+  .help-tiles__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .help-tiles__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
