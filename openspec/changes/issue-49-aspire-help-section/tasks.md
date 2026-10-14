@@ -4,7 +4,7 @@ All frontend work is done by the `angular-frontend` agent in `src/Frontend`. Run
 
 ## 1. Topic registry, routing and doc publishing
 
-- [ ] 1.1 Create `src/app/help/help-topics.ts`. It is the ordered, readonly registry of the six topics, and each entry has `slug`, `title`, `summary`, `icon` (a Material Symbol name) and `file`:
+- [x] 1.1 Create `src/app/help/help-topics.ts`. It is the ordered, readonly registry of the six topics, and each entry has `slug`, `title`, `summary`, `icon` (a Material Symbol name) and `file`:
   - `prerequisites`
   - `resources`
   - `resource-relations`
