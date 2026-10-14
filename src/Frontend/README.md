@@ -35,9 +35,11 @@ on every run.
   ```
 
   It starts the `frontend` resource with `npm run start:aspire` once the `gateway` is up, passing
-  `BACKEND_GATEWAY_URL` and `PORT`. `scripts/aspire-start.mjs` writes `public/config.json` from
-  `BACKEND_GATEWAY_URL` and runs `ng serve --host localhost --port $PORT`. Running
-  `npm run start:aspire` without `BACKEND_GATEWAY_URL` stops with an error naming the variable.
+  `BACKEND_GATEWAY_URL`, `EVENTS_API_URL` and `PORT`. `scripts/aspire-start.mjs` writes
+  `public/config.json` from `BACKEND_GATEWAY_URL` and `EVENTS_API_URL` and runs
+  `ng serve --host localhost --port $PORT`. Running `npm run start:aspire` without
+  `BACKEND_GATEWAY_URL` stops with an error naming the variable; without `EVENTS_API_URL` it warns
+  and leaves `eventsBaseUrl` out. The script's tests run with `npm run test:scripts`.
 
 - **UI-only work.** Plain `ng serve` (`npm start`) still works for screens that do not call the
   backend. Without `config.json` the app logs one error naming `backendBaseUrl` and

@@ -12,7 +12,8 @@
     "prewatch": "node scripts/link-docs.mjs",
     "watch": "ng build --watch --configuration development",
     "pretest": "node scripts/link-docs.mjs",
-    "test": "ng test"
+    "test": "ng test",
+    "test:scripts": "node --test \"scripts/*.test.mjs\""
   },
   "private": true,
   "packageManager": "npm@12.2.0",
