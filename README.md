@@ -10,6 +10,7 @@
 <a href="https://dapr.io"><img alt="Dapr" src="https://img.shields.io/badge/Dapr-pub%2Fsub-2f87ff?style=for-the-badge&labelColor=041e32&logo=dapr&logoColor=e9eef3"></a>
 <a href="https://www.rabbitmq.com"><img alt="RabbitMQ" src="https://img.shields.io/badge/RabbitMQ-broker-2f87ff?style=for-the-badge&labelColor=041e32&logo=rabbitmq&logoColor=e9eef3"></a>
 <a href="https://angular.dev"><img alt="Angular 22" src="https://img.shields.io/badge/Angular-22-ff2146?style=for-the-badge&labelColor=041e32&logo=angular&logoColor=e9eef3"></a>
+<a href="https://github.com/hexmasternl/battleship/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/hexmasternl/battleship/ci.yml?branch=main&style=for-the-badge&labelColor=041e32&label=CI"></a>
 <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-7a8694?style=for-the-badge&labelColor=041e32"></a>
 </p>
 
@@ -19,6 +20,7 @@
 <a href="#architecture"><b>Architecture</b></a> &nbsp;·&nbsp;
 <a href="#services"><b>Services</b></a> &nbsp;·&nbsp;
 <a href="#how-we-work"><b>How we work</b></a> &nbsp;·&nbsp;
+<a href="CONTRIBUTING.md"><b>Contributing</b></a> &nbsp;·&nbsp;
 <a href="docs/design-system.md"><b>Design system</b></a>
 </p>
 
@@ -45,10 +47,9 @@ The game is also a **reference project for building distributed .NET apps with A
 You don't need a cloud account, a `docker-compose.yml`, or any connection string written by hand.
 
 > [!NOTE]
-> The game is being built in the open. User identity, the gateway and real-time events are
-> done. Creating, joining, placing ships, battle and the end of the game are planned as OpenSpec
-> changes (see [Roadmap](#roadmap)). The infrastructure is complete, so the project is already
-> useful as an Aspire example.
+> The game is playable end to end: create a game, share its code, place your fleet, take turns
+> firing and see the result. Games without activity are cleaned up daily. Work continues in the
+> open through [issues](https://github.com/hexmasternl/battleship/issues) and OpenSpec changes.
 
 ---
 
@@ -105,16 +106,18 @@ Read it top to bottom. It is short and every block has a comment.
 | **Projects as resources** | `AddProject<...>()` runs the Users, Games and Events APIs with service discovery, health checks and telemetry wired in. |
 | **Containers as resources** | `AddRabbitMQ("messaging").WithManagementPlugin()` starts a broker with its management UI. |
 | **Azure emulators** | `AddAzureStorage("storage").RunAsEmulator(...)` runs Azurite for table storage, so no Azure subscription is needed. |
-| **Persistent containers** | `WithLifetime(ContainerLifetime.Persistent)` keeps Azurite, and your users, alive between runs. |
+| **Persistent containers** | `WithLifetime(ContainerLifetime.Persistent)` keeps Azurite, and your users and games, alive between runs. |
 | **Generated secret parameters** | `AddParameter(..., new GenerateParameterDefault { ... }, secret: true, persist: true)` creates the RabbitMQ password and the JWT signing key on first run and stores them in user secrets. |
 | **Reference expressions** | `ReferenceExpression.Create($"{host}:{port}")` builds the Dapr component's broker address from the live RabbitMQ endpoint, so it is never written to a file. |
+| **Dapr bindings** | A `bindings.cron` component on the Games API sidecar posts to an internal route on the schedule in the `game-cleanup-schedule` parameter, to remove inactive games. |
 | **Dapr sidecars** | The [Community Toolkit](https://github.com/CommunityToolkit/Aspire) adds `AddDapr()`, `AddDaprComponent(...)` and `WithDaprSidecar(...)`, so each API gets its own `daprd` that loads the shared `pubsub` component. |
-| **Client integrations** | `AddAzureTableServiceClient("tables")` in the Users data project gets its connection from the AppHost by name, and adds health checks and tracing. |
+| **Client integrations** | `AddAzureTableServiceClient("tables")` in the Users and Games data projects gets its connection from the AppHost by name, and adds health checks and tracing. |
 | **Startup ordering** | `WaitFor(messaging)` and `WaitFor(tables)` keep each API from starting before its dependencies are healthy. |
 | **YARP gateway** | `AddYarp("gateway")` builds its routes in code from a validated table ([`GatewayRoutes.cs`](src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost/GatewayRoutes.cs)), so the browser talks to one origin. |
 | **JavaScript apps** | `AddJavaScriptApp("frontend", ..., "start:aspire")` runs `ng serve` on a port Aspire assigns and passes it the gateway URL. |
 | **Environment wiring** | `WithEnvironment(...)` passes endpoints between resources: the frontend gets the gateway URL, and each API gets the frontend origin for CORS. |
 | **Service defaults** | [`ServiceDefaults`](src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.ServiceDefaults/Extensions.cs) adds OpenTelemetry, health endpoints, resilience and service discovery to every API with one `AddServiceDefaults()` call. |
+| **Custom resources and commands** | `AddBattleshipBot("devbot", ...)` adds a bot opponent with its own dashboard properties and commands (see [Play against the dev bot](#play-against-the-dev-bot)). |
 | **Testable AppHost logic** | The gateway route rules and CORS wiring are unit tested in `HexMaster.Battleship.Aspire.Tests`. |
 
 ---
@@ -122,7 +125,7 @@ Read it top to bottom. It is short and every block has a comment.
 ## Architecture
 
 <p align="center">
-<img src="docs/assets/architecture.svg" alt="Architecture: the browser loads the Angular frontend and calls the YARP gateway, which routes /users to users-api and /games to games-api. Each API has a Dapr sidecar publishing to the pubsub component backed by RabbitMQ. users-api stores data in Azurite tables. events-api streams server-sent events straight to the browser." width="100%">
+<img src="docs/assets/architecture.svg" alt="Architecture: the browser loads the Angular frontend and calls the YARP gateway, which routes /users to users-api and /games to games-api. Each API has a Dapr sidecar publishing to the pubsub component backed by RabbitMQ. users-api and games-api store data in Azurite tables. events-api streams server-sent events straight to the browser." width="100%">
 </p>
 
 **Request path.** The browser only knows relative URLs such as `/api/users/me`. An Angular
@@ -152,12 +155,12 @@ server-sent events.
 | `frontend` | JavaScript app | The game. Click its endpoint. |
 | `gateway` | YARP | The single backend origin the browser calls. |
 | `hexmaster-battleship-users-api` | Project | Anonymous identity and tokens. Its traces show every token call. |
-| `hexmaster-battleship-games-api` | Project | Game lifecycle (in progress). |
+| `hexmaster-battleship-games-api` | Project | Game lifecycle: create, join, place ships, fire, end. Its sidecar also loads the `game-cleanup` cron binding. |
 | `hexmaster-battleship-events-api` | Project | Server-sent events stream. |
 | `devbot` | Bot (local runs only) | A bot opponent that joins your game when nobody else does. Its properties show its preset, auto-join and games; its commands change them. See [Play against the dev bot](#play-against-the-dev-bot). |
 | `*-dapr-cli` | Dapr sidecar | Sidecar logs: the `pubsub` component loading and every subscription. |
 | `messaging` | Container | RabbitMQ. Its `management` URL opens the management UI. The user is `rabbitmq-username` (default `guest`) and the password is the generated `rabbitmq-password`; both appear in the resource details. |
-| `storage` / `tables` | Azurite | Users and refresh tokens. |
+| `storage` / `tables` | Azurite | Users, refresh tokens and games. |
 
 Open **Traces** and create a user in the app. You'll see one trace go from the gateway into the
 Users API, through the `CreateTokens` use-case span and down to table storage. What else the
@@ -223,11 +226,10 @@ battleship/
 │   │   ├── *.AppHost/                    AppHost.cs, GatewayRoutes.cs, DaprPrerequisites.cs
 │   │   ├── *.ServiceDefaults/            OpenTelemetry, health, resilience, auth, CORS
 │   │   └── *.Tests/                      tests for the AppHost logic
+│   ├── Core/                             CQRS and domain building blocks (+ tests)
 │   ├── Shared/                           integration event catalog and sender (+ tests)
-│   ├── Core/                             CQRS and domain building blocks + integration event catalog and sender
-│   │   └── *.Tests/                      Core.Tests and IntegrationEvents.Tests
 │   ├── Users/                            anonymous identity: module, Api, Data.TableStorage, Abstractions, Tests
-│   ├── Games/                            game lifecycle: module, Api, Abstractions, Tests
+│   ├── Games/                            game lifecycle: module, Api, Data, Abstractions, Tests
 │   ├── Events/                           SSE fan-out: module, Api, Abstractions, Tests
 │   ├── DevTools/                         the dev bot opponent for local runs (+ tests)
 │   └── Frontend/                         Angular 22 + Angular Material, zoneless, signals
@@ -236,6 +238,8 @@ battleship/
 │   └── assets/                           icon, banner, architecture diagram
 ├── openspec/                             specs and change proposals (spec-driven development)
 ├── .claude/  .github/                    agent skills, prompts and agents (Claude Code + Copilot)
+├── .github/workflows/                    CI: backend and frontend build and tests
+├── CONTRIBUTING.md                       how to propose, build and submit a change
 └── CLAUDE.md                             working agreements for AI agents
 ```
 
@@ -309,22 +313,6 @@ dotnet user-secrets set "Users:Tokens:SigningKey" "<at least 32 characters>" --p
 dotnet user-secrets set "ConnectionStrings:tables" "UseDevelopmentStorage=true" --project src/Users/HexMaster.Battleship.Users.Api
 ```
 
-> [!NOTE]
-> **Upgrading from the Players service.** The identity service used to be called Players, with
-> its key under `Players:Tokens:SigningKey`, the AppHost parameter `players-signing-key` and the
-> issuer `battleship-players`. The first run after the rename generates a new `users-signing-key`,
-> and access tokens with the old issuer or key are refused. Refresh tokens live in table storage,
-> so while Azurite keeps its data a returning browser refreshes once and carries on as the same
-> user with new tokens. A browser whose refresh token is unknown (for example after removing the
-> Azurite container) gets `401` on refresh, and the app asks for a name again.
-> The old secrets are no longer read and can be removed:
->
-> ```shell
-> dotnet user-secrets remove "Parameters:players-signing-key" \
->   --project src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.AppHost
-> dotnet user-secrets remove "Players:Tokens:SigningKey" --project src/Users/HexMaster.Battleship.Users.Api
-> ```
-
 #### Token lifetimes
 
 | Key | Default | Meaning |
@@ -339,9 +327,30 @@ dotnet user-secrets set "ConnectionStrings:tables" "UseDevelopmentStorage=true" 
 
 ### Games: the game itself
 
-Creating a game, joining it with a code, placing ships, taking turns and ending the game. The
-module and its API are in place. The features are planned as linked OpenSpec changes, listed in
-the [Roadmap](#roadmap).
+Each player has a 12×12 board and a fleet of five ships: carrier (5), battleship (4),
+cruiser (3), submarine (3) and destroyer (2). Every endpoint is under `/games` and needs a
+bearer access token from the Users API:
+
+| Endpoint | What it does |
+|---|---|
+| `POST /games` | Creates a game with an eight-character join code. The caller is player one. |
+| `POST /games/{code}/join` | Joins as player two. Fails for an unknown, full or already started game. |
+| `GET /games/{code}` | The game as the caller sees it: their own fleet, and only their shots on the opponent's board. |
+| `PUT /games/{code}/ships/{kind}` | Places a ship, or moves it, during the placement phase. |
+| `POST /games/{code}/ready` | Marks the caller ready. When both players are ready, the game starts. |
+| `POST /games/{code}/shots` | Fires at a cell when it is the caller's turn and records a hit or a miss. |
+
+Games are stored in Azure Table Storage (Azurite locally). Two requests that change the same
+game at the same moment, such as two players joining, are resolved with optimistic concurrency.
+Every change publishes an integration event (`game.created.v1`, `game.joined.v1`,
+`game.player-ready.v1`, `game.started.v1`, `game.shot-fired.v1`, `game.turn-changed.v1`,
+`game.ended.v1`), so both browsers update in real time.
+
+A Dapr cron binding calls the internal `POST /maintenance/game-cleanup` route, which the gateway
+never routes. It removes games without activity for longer than `Games:Retention:InactiveDays`
+(default `90`). The schedule is the AppHost parameter `game-cleanup-schedule` (default `@daily`).
+[`HexMaster.Battleship.Games.Api.http`](src/Games/HexMaster.Battleship.Games.Api/HexMaster.Battleship.Games.Api.http)
+has ready-made requests.
 
 ### Events: real time to the browser
 
@@ -469,6 +478,13 @@ fan-out, so one trace runs publisher API → sidecar → RabbitMQ → Events API
 | `users.tokens.refreshed` | `{token}` | | Token pairs issued for a refresh token |
 | `users.tokens.refused` | `{token}` | `reason` | Refused refresh tokens (`unknown_token`, `expired_token`, `token_used_already`, `unknown_user`, `revoked_user`) |
 | `games.created` | `{game}` | | Games created |
+| `games.joined` | `{game}` | | Games joined by a second player |
+| `games.player-ready` | `{player}` | | Players who placed their fleet and became ready |
+| `games.started` | `{game}` | | Games started by two ready players |
+| `games.shots.fired` | `{shot}` | `hit` | Shots recorded |
+| `games.completed` | `{game}` | | Games completed by a shot that sank the opponent's fleet |
+| `games.removed` | `{game}` | | Games removed by the cleanup after the retention period |
+| `games.update.conflicts` | `{conflict}` | | Game updates that found the game changed by another request |
 | `integration_events.published` | `{event}` | `event.type` | Events handed to the Dapr sidecar |
 | `integration_events.publish_failed` | `{event}` | `event.type` | Events that could not be published |
 | `events.connections.active` | `{connection}` | | Open server-sent event streams |
@@ -480,7 +496,7 @@ fan-out, so one trace runs publisher API → sidecar → RabbitMQ → Events API
 
 | Signal | Dashboard page | What to look for |
 |---|---|---|
-| Use-case spans | **Traces** | `CreateTokens`, `RefreshTokens`, `GetCurrentUser`, `CreateGame` under the HTTP server span, with `user.id`, `player.id`, `game.id` or `token.refusal_reason` |
+| Use-case spans | **Traces** | `CreateTokens`, `RefreshTokens`, `GetCurrentUser`, `CreateGame`, `JoinGame`, `FireShot` and the other use cases under the HTTP server span, with `user.id`, `player.id`, `game.id` or `token.refusal_reason` |
 | Pub/sub hop | **Traces** | `publish integration-events`, the `daprd` spans, `process integration-events` and `deliver` in one trace |
 | Business metrics | **Metrics** | Pick a service, then the `HexMaster.Battleship.*` meter |
 | Structured logs | **Structured logs** | Event ids 1000s (Users), 2000s (Events), 3000s (integration events), 4000s (Games), 5000s (use-case failures); each entry links to its trace |
@@ -582,16 +598,9 @@ alike. Skills, prompts and agents are mirrored between `.claude/` and `.github/`
 
 [`CLAUDE.md`](CLAUDE.md) holds the working agreements.
 
-### Roadmap
-
-| Change | Issue | Status |
-|---|---|---|
-| Anonymous user identification | [#7](https://github.com/hexmasternl/battleship/issues/7) | ✅ merged |
-| Create a new game | [#13](https://github.com/hexmasternl/battleship/issues/13) | 📝 proposed |
-| Join a game | [#16](https://github.com/hexmasternl/battleship/issues/16) | 📝 proposed |
-| Placement phase | [#17](https://github.com/hexmasternl/battleship/issues/17) | 📝 proposed |
-| Game play page | [#18](https://github.com/hexmasternl/battleship/issues/18) | 📝 proposed |
-| End of the game | [#19](https://github.com/hexmasternl/battleship/issues/19) | 📝 proposed |
+**Contributing.** Issues and pull requests are welcome. Read [`CONTRIBUTING.md`](CONTRIBUTING.md)
+before you start, and follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems
+privately, as described in [`SECURITY.md`](SECURITY.md).
 
 ---
 

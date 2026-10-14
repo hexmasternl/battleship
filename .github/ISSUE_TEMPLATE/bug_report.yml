@@ -1,0 +1,58 @@
+name: Bug report
+description: Something in the game, an API or the local setup doesn't work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please check the [Troubleshooting](https://github.com/hexmasternl/battleship#troubleshooting) table first. Security problems go through [`SECURITY.md`](https://github.com/hexmasternl/battleship/blob/main/SECURITY.md), not here.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Where does the problem show? Pick all that apply.
+      multiple: true
+      options:
+        - Frontend
+        - Users
+        - Games
+        - Events
+        - Dev bot
+        - Aspire host or gateway
+        - Documentation
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect to see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `aspire run`
+        2. Create a game and ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, traces or screenshots
+      description: Console or structured logs from the Aspire dashboard, a trace, or a screenshot. Remove tokens and secrets first.
+      render: shell
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `dotnet --version`, `aspire --version`, `dapr --version` and `node --version`, plus your OS.
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or branch
+      description: The commit or branch you were on, for example `main` or `development`.

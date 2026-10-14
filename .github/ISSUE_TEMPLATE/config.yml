@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/hexmasternl/battleship/security/advisories/new
+    about: Report security problems privately, never in a public issue.
+  - name: Aspire questions
+    url: https://aspire.dev
+    about: Questions about Aspire itself are best answered by the Aspire documentation and community.
