@@ -10,7 +10,7 @@
 ## 2. Telemetry and container publishing in the services
 
 - [x] 2.1 Add `Azure.Monitor.OpenTelemetry.AspNetCore` to ServiceDefaults and call `UseAzureMonitor()` only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set. Verify with ServiceDefaults tests for the set and unset cases; the OTLP behaviour must be unchanged.
-- [ ] 2.2 Enable SDK container support on `Games.Api`, `Users.Api` and `Events.Api` with `ContainerRepository` defaults `battleship/<service>-api`. Verify that `dotnet publish -t:PublishContainer -p:ContainerArchiveOutputPath=...` produces an image tarball per API locally.
+- [x] 2.2 Enable SDK container support on `Games.Api`, `Users.Api` and `Events.Api` with `ContainerRepository` defaults `battleship/<service>-api`. Verify that `dotnet publish -t:PublishContainer -p:ContainerArchiveOutputPath=...` produces an image tarball per API locally.
 
 ## 3. Gateway route file for production
 

@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>bd45b2c6-8a98-4730-b835-b6fa9979b008</UserSecretsId>
+    <!-- Container image for the Azure deployment: dotnet publish -t:PublishContainer. The workflow
+         sets ContainerRegistry and ContainerImageTag; the repository name is fixed here. -->
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <ContainerRepository>battleship/users-api</ContainerRepository>
   </PropertyGroup>
 
   <ItemGroup>
