@@ -1,0 +1,15 @@
+{
+  "$comment": "Gateway routes of the Azure deployment, read by infra/modules/gateway.bicep. Must list exactly the modules and prefixes of GatewayRoutes.Modules in the AppHost (GatewayRoutesFileTests enforces it). app is the Container App name: the AppHost API resource name without the hexmaster-battleship- prefix.",
+  "modules": [
+    {
+      "module": "users",
+      "app": "users-api",
+      "prefixes": [ "users" ]
+    },
+    {
+      "module": "games",
+      "app": "games-api",
+      "prefixes": [ "games" ]
+    }
+  ]
+}

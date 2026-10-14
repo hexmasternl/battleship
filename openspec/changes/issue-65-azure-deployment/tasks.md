@@ -14,7 +14,7 @@
 
 ## 3. Gateway route file for production
 
-- [ ] 3.1 Add `infra/gateway-routes.json` listing each module, its API app name (`games-api`, `users-api`) and its prefixes, matching `GatewayRoutes.Modules`. Add an AppHost test that fails when the two disagree, in either direction. Verify that the test passes, and fails after a temporary mismatching edit.
+- [x] 3.1 Add `infra/gateway-routes.json` listing each module, its API app name (`games-api`, `users-api`) and its prefixes, matching `GatewayRoutes.Modules`. Add an AppHost test that fails when the two disagree, in either direction. Verify that the test passes, and fails after a temporary mismatching edit.
 - [ ] 3.2 Update the `yarp-gateway-routes` skill (and its Copilot mirror via `sync-agent-config`) so that adding, renaming or removing a prefix also updates `infra/gateway-routes.json`. Verify with the sync-agent-config check.
 
 ## 4. Bicep infrastructure
