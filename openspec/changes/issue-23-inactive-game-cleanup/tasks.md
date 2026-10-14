@@ -33,7 +33,7 @@
 
 ## 3. Internal endpoint
 
-- [ ] 3.1 Add `Endpoints/MaintenanceEndpoints.cs` with `MapMaintenanceEndpoints()`: a `/maintenance` group and `POST /game-cleanup` without authorization, dispatching the command and returning `200` with `{ removed, skipped }`. Call it from `Games.Api/Program.cs`. Verify with an integration test in `Tests/Integration` (WebApplicationFactory with the in-memory repository): seed one old and one recent game, POST without a token, and expect `200` with `removed: 1`. A follow-up `GET /games/{code}` for the old game then answers `404`.
+- [x] 3.1 Add `Endpoints/MaintenanceEndpoints.cs` with `MapMaintenanceEndpoints()`: a `/maintenance` group and `POST /game-cleanup` without authorization, dispatching the command and returning `200` with `{ removed, skipped }`. Call it from `Games.Api/Program.cs`. Verify with an integration test in `Tests/Integration` (WebApplicationFactory with the in-memory repository): seed one old and one recent game, POST without a token, and expect `200` with `removed: 1`. A follow-up `GET /games/{code}` for the old game then answers `404`.
 
 ## 4. Aspire: reserved prefix and daily trigger
 

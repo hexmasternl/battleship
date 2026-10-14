@@ -45,6 +45,9 @@ app.MapSubscribeHandler();
 
 app.MapGamesEndpoints();
 
+// The daily cleanup the sidecar's cron binding triggers; the gateway never routes /maintenance.
+app.MapMaintenanceEndpoints();
+
 app.Run();
 
 // Exposed for WebApplicationFactory<Program> in the integration tests.
