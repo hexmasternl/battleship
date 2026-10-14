@@ -192,3 +192,119 @@ jobs:
           name: frontend
           path: src/Frontend/dist/battleship/browser
           if-no-files-found: error
+
+  deploy:
+    name: Deploy to production
+    needs: [version, publish-api, build-frontend]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write # pushes the v<version> release tag
+      id-token: write # OIDC sign-in to Azure
+    env:
+      VERSION: ${{ needs.version.outputs.semver }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check required secrets
+        env:
+          USERS_SIGNING_KEY: ${{ secrets.USERS_SIGNING_KEY }}
+        run: |
+          if [ -z "$USERS_SIGNING_KEY" ]; then
+            echo "::error::The production environment has no USERS_SIGNING_KEY secret. See infra/README.md for how to create one."
+            exit 1
+          fi
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Every Container App moves to the images tagged with this run's version.
+      - name: Deploy infrastructure
+        id: infra
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+          ACR_LOGIN_USERNAME: ${{ secrets.ACR_LOGIN_USERNAME }}
+          ACR_LOGIN_PASSWORD: ${{ secrets.ACR_LOGIN_PASSWORD }}
+          USERS_SIGNING_KEY: ${{ secrets.USERS_SIGNING_KEY }}
+        run: |
+          outputs=$(az deployment sub create \
+            --name "battleship-$VERSION" \
+            --location westeurope \
+            --template-file infra/main.bicep \
+            --parameters infra/main.bicepparam \
+            --parameters version="$VERSION" \
+                         acrLoginServer="$ACR_LOGIN_SERVER" \
+                         acrUsername="$ACR_LOGIN_USERNAME" \
+                         acrPassword="$ACR_LOGIN_PASSWORD" \
+                         signingKey="$USERS_SIGNING_KEY" \
+            --query properties.outputs --output json)
+          {
+            echo "resource-group=$(jq -r .resourceGroupName.value <<< "$outputs")"
+            echo "gateway-url=$(jq -r .gatewayUrl.value <<< "$outputs")"
+            echo "events-api-url=$(jq -r .eventsApiUrl.value <<< "$outputs")"
+            echo "static-web-app=$(jq -r .staticWebAppName.value <<< "$outputs")"
+            echo "static-web-app-hostname=$(jq -r .staticWebAppHostname.value <<< "$outputs")"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: frontend
+          path: frontend
+
+      # The same bundle runs everywhere; only this runtime file points it at the deployed backend.
+      - name: Write runtime configuration
+        env:
+          GATEWAY_URL: ${{ steps.infra.outputs.gateway-url }}
+          EVENTS_API_URL: ${{ steps.infra.outputs.events-api-url }}
+        run: |
+          jq -n --arg backend "$GATEWAY_URL" --arg events "$EVENTS_API_URL" \
+            '{ backendBaseUrl: $backend, eventsBaseUrl: $events }' > frontend/config.json
+          cat frontend/config.json
+
+      - name: Get Static Web App deployment token
+        id: swa
+        env:
+          RESOURCE_GROUP: ${{ steps.infra.outputs.resource-group }}
+          STATIC_WEB_APP: ${{ steps.infra.outputs.static-web-app }}
+        run: |
+          token=$(az staticwebapp secrets list --name "$STATIC_WEB_APP" --resource-group "$RESOURCE_GROUP" --query properties.apiKey --output tsv)
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Upload frontend
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.swa.outputs.token }}
+          action: upload
+          app_location: frontend
+          output_location: ''
+          skip_app_build: true
+          skip_api_build: true
+
+      # Releases from main are tagged, so the next run computes a higher version. A rerun of an
+      # earlier run's deploy job (a rollback) finds its tag already there.
+      - name: Tag release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "Tag v$VERSION already exists."
+          else
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          fi
+
+      - name: Summary
+        env:
+          HOSTNAME: ${{ steps.infra.outputs.static-web-app-hostname }}
+          GATEWAY_URL: ${{ steps.infra.outputs.gateway-url }}
+          EVENTS_API_URL: ${{ steps.infra.outputs.events-api-url }}
+        run: |
+          {
+            echo "### Deployed $VERSION"
+            echo "- App: https://$HOSTNAME"
+            echo "- Gateway: $GATEWAY_URL"
+            echo "- Events API: $EVENTS_API_URL"
+          } >> "$GITHUB_STEP_SUMMARY"

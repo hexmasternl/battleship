@@ -33,7 +33,7 @@
 
 - [x] 6.1 Create `.github/workflows/deploy.yml` with the `push: main` and `workflow_dispatch` triggers, the `deploy-production` concurrency group, the `version` job, and the stage 1 jobs: the `verify-backend` matrix over modules (with Azurite and Dapr slim, as in `ci.yml`) and `verify-frontend`. Verify with `actionlint` and that the job graph shows the parallel jobs.
 - [x] 6.2 Add stage 2: the `publish-api` matrix (ACR login, then `dotnet publish -t:PublishContainer` with the version tag) and `build-frontend` (production build uploaded as artifact `frontend`), both needing every stage 1 job. Verify with `actionlint`.
-- [ ] 6.3 Add stage 3 `deploy` in environment `production`, with `id-token: write` and `contents: write`. It needs: a fail-fast check for `USERS_SIGNING_KEY`, OIDC `azure/login`, a subscription deployment of `infra/main.bicep` with the version and secure parameters, `config.json` written into the downloaded artifact from the outputs, the masked SWA token, `static-web-apps-deploy` upload, and the `v<semVer>` tag push. Verify with `actionlint` and that `ci.yml` is unchanged (`git diff --stat`).
+- [x] 6.3 Add stage 3 `deploy` in environment `production`, with `id-token: write` and `contents: write`. It needs: a fail-fast check for `USERS_SIGNING_KEY`, OIDC `azure/login`, a subscription deployment of `infra/main.bicep` with the version and secure parameters, `config.json` written into the downloaded artifact from the outputs, the masked SWA token, `static-web-apps-deploy` upload, and the `v<semVer>` tag push. Verify with `actionlint` and that `ci.yml` is unchanged (`git diff --stat`).
 
 ## 7. End-to-end verification
 
