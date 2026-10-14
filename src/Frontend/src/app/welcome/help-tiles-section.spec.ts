@@ -23,8 +23,9 @@ describe('HelpTilesSection', () => {
   let host: HTMLElement;
   let backend: HttpTestingController;
 
-  const tiles = (): HTMLAnchorElement[] =>
-    Array.from(host.querySelectorAll<HTMLAnchorElement>('a.help-tile'));
+  const tiles = (): HTMLElement[] => Array.from(host.querySelectorAll<HTMLElement>('.help-tile'));
+  const links = (): HTMLAnchorElement[] =>
+    Array.from(host.querySelectorAll<HTMLAnchorElement>('a.help-tile__link'));
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -47,7 +48,7 @@ describe('HelpTilesSection', () => {
 
   it('shows one tile per help topic, in registry order, each linking to its topic', () => {
     expect(tiles().length).toBe(HELP_TOPICS.length);
-    expect(tiles().map((tile) => tile.getAttribute('href'))).toEqual(
+    expect(links().map((link) => link.getAttribute('href'))).toEqual(
       HELP_TOPICS.map((topic) => `/help/${topic.slug}`),
     );
   });
@@ -65,29 +66,32 @@ describe('HelpTilesSection', () => {
     expect(HELP_TILES.map((tile) => tile.number)).toEqual(['01', '02', '03', '04', '05', '06']);
   });
 
-  it('names every tile by its title alone and describes it with its summary', () => {
-    tiles().forEach((tile, i) => {
-      expect(accessibleName(tile)).toBe(HELP_TOPICS[i].title);
-      const describedBy = tile.getAttribute('aria-describedby') ?? '';
+  it('names every tile link by its title alone and describes it with its summary', () => {
+    links().forEach((link, i) => {
+      expect(accessibleName(link)).toBe(HELP_TOPICS[i].title);
+      // The visible text of the link is exactly its name (WCAG 2.5.3, label in name).
+      expect(link.textContent?.trim()).toBe(HELP_TOPICS[i].title);
+      const describedBy = link.getAttribute('aria-describedby') ?? '';
       expect(document.getElementById(describedBy)?.textContent?.trim()).toBe(
         HELP_TOPICS[i].summary,
       );
     });
   });
 
-  it('makes each tile a single focusable link with nothing focusable inside it', () => {
+  it('gives each tile exactly one focusable element: its link', () => {
     for (const tile of tiles()) {
-      expect(tile.tabIndex).toBe(0);
-      expect(tile.querySelector('a, button, [tabindex]')).toBeNull();
+      const focusable = tile.querySelectorAll('a[href], button, [tabindex]');
+      expect(focusable.length).toBe(1);
+      expect((focusable[0] as HTMLElement).tabIndex).toBe(0);
     }
   });
 
   it('navigates to the resource commands topic without a session', async () => {
-    const tile = tiles().find(
+    const link = links().find(
       (candidate) => accessibleName(candidate) === 'Custom resource commands',
     );
-    expect(tile).toBeDefined();
-    tile?.click();
+    expect(link).toBeDefined();
+    link?.click();
     await fixture.whenStable();
 
     expect(TestBed.inject(Router).url).toBe('/help/resource-commands');

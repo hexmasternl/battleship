@@ -58,7 +58,6 @@
   height: 100%;
   padding: var(--bs-space-6);
   color: var(--bs-color-text);
-  text-decoration: none;
   background:
     radial-gradient(
       circle at 100% 0,
@@ -79,7 +78,7 @@
   }
 
   &:hover,
-  &:focus-visible {
+  &:focus-within {
     border-color: var(--bs-color-accent);
     box-shadow: var(--bs-shadow-3), var(--bs-glow-primary);
 
@@ -91,8 +90,22 @@
       color: var(--bs-color-accent);
     }
   }
+}
 
-  &:focus-visible {
+// The title link stretches over the whole tile, and so does its focus ring.
+.help-tile__link {
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--bs-radius-lg);
+  }
+
+  &:focus-visible::after {
     outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
     outline-offset: var(--bs-focus-offset);
   }
@@ -164,7 +177,7 @@
   }
 
   .help-tile:hover,
-  .help-tile:focus-visible {
+  .help-tile:focus-within {
     transform: translateY(calc(var(--bs-space-1) * -1));
 
     .help-tile__arrow {

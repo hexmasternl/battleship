@@ -66,7 +66,9 @@ describe('WelcomePage', () => {
     });
 
     it('links the help tiles to the help topics and the help overview', () => {
-      const tiles = Array.from(host.querySelectorAll('battle-help-tiles-section a.help-tile'));
+      const tiles = Array.from(
+        host.querySelectorAll('battle-help-tiles-section a.help-tile__link'),
+      );
       expect(tiles.length).toBeGreaterThanOrEqual(4);
       expect(tiles.every((tile) => tile.getAttribute('href')?.startsWith('/help/'))).toBe(true);
       expect(host.querySelector('battle-help-tiles-section a[href="/help"]')).not.toBeNull();
