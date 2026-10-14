@@ -214,7 +214,7 @@ when a ship is sunk, so the bot only knows its own hits and misses.
 | `Random` | Any cell it has not shot at. |
 | `HuntAndTarget` (default) | Random until it hits, then the cells next to its hits, extending a line of hits first. |
 | `HuntWithParity` | Like `HuntAndTarget`, but it hunts only on the checkerboard cells where column + row is even. |
-| `ProbabilityDensity` | The cell where the remaining ships fit in the most ways, given its hits and misses. |
+| `ProbabilityDensity` | The cell covered by the most ways the fleet's ships could lie around its misses, favouring placements through its hits. |
 
 The `devbot` properties `devbot.intelligence`, `devbot.auto-join` and `devbot.games` show the
 current state within a few seconds of a change. The start values are set in `AppHost.cs` with

@@ -160,4 +160,4 @@ Extend it with the per-topic content assertions below.
   - in-document links navigate without a reload
   - there is no horizontal scroll
   - the reduced-motion emulation shows static tiles
-- [ ] 7.3 Cross-check every document and diagram against `AppHost.cs`, `DevBot/` and `README.md`: resource names, command names, Dapr components and prerequisites. Verify that no stated fact contradicts the current code, and fix any drift.
+- [x] 7.3 Cross-check every document and diagram against `AppHost.cs`, `DevBot/` and `README.md`: resource names, command names, Dapr components and prerequisites. Verify that no stated fact contradicts the current code, and fix any drift.

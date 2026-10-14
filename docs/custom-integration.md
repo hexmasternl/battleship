@@ -65,7 +65,7 @@ The intelligence presets, weakest first, are deterministic shot strategies:
 | `Random` | Any cell it has not shot at. |
 | `HuntAndTarget` | Random until it hits, then the cells next to its hits. |
 | `HuntWithParity` | Like `HuntAndTarget`, but it hunts only on a checkerboard pattern of cells. |
-| `ProbabilityDensity` | The cell where the remaining ships fit in the most ways. |
+| `ProbabilityDensity` | The cell covered by the most ways the fleet's ships could lie around its misses, favouring placements through its hits. |
 
 ## How the bot plays
 
