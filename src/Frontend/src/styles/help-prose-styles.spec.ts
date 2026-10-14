@@ -30,6 +30,13 @@ describe('help prose styles', () => {
     expect(declarationsOf(css, '.help-prose img')).toContain('max-width: 100%');
   });
 
+  it('keeps diagrams legible on a phone by letting them scroll inside their container', () => {
+    expect(declarationsOf(css, '.help-prose .help-prose__figure')).toContain('overflow-x: auto');
+    const phone = declarationsOf(css, '.help-prose .help-prose__figure img');
+    expect(phone).toContain('max-width: none');
+    expect(phone).toContain('width: calc(var(--bs-container) * 2 / 3)');
+  });
+
   it('takes every colour from a design system token', () => {
     expect(css).not.toMatch(/#[\da-f]{3,8}\b|rgba?\(|hsla?\(/i);
     for (const match of css.matchAll(

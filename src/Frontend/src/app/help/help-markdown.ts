@@ -10,6 +10,9 @@ export const GITHUB_DOCS_URL = 'https://github.com/hexmasternl/battleship/blob/m
 /** The class that marks a link to another help topic; `HelpDocument` routes its clicks. */
 export const HELP_LINK_CLASS = 'help-link';
 
+/** The class of the scroll container the renderer puts around every image. */
+export const HELP_FIGURE_CLASS = 'help-prose__figure';
+
 // Relative paths are resolved against a placeholder origin so `./`, `../` and fragments behave
 // exactly as they do on GitHub, where the documents also render.
 const LOCAL_DOCS_BASE = `https://help.invalid${HELP_DOCS_PATH}`;
@@ -99,9 +102,12 @@ const marked = new Marked({
           return `<a${href}${title}>${text}</a>`;
       }
     },
+    // An image sits in its own scroll container: on a phone a wide diagram keeps a legible size
+    // and scrolls sideways inside it, so it takes keyboard focus to be scrollable without a mouse.
     image(token: Tokens.Image): string {
       const src = escapeHtml(resolveHelpImage(token.href));
-      return `<img src="${src}" alt="${escapeHtml(token.text)}"${titleAttribute(token.title)}>`;
+      const img = `<img src="${src}" alt="${escapeHtml(token.text)}"${titleAttribute(token.title)}>`;
+      return `<span class="${HELP_FIGURE_CLASS}" tabindex="0">${img}</span>`;
     },
     // A code block scrolls on its own, so it takes keyboard focus to be scrollable without a mouse.
     code(this: Renderer, token: Tokens.Code): string {

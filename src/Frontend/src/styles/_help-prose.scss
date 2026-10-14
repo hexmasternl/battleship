@@ -141,6 +141,32 @@
     margin: var(--bs-space-4) 0;
   }
 
+  // An image sits in its own scroll container (added by the markdown renderer). Below md the
+  // diagrams, drawn about 1100 units wide, are shown 800px wide so their labels stay legible,
+  // and scroll sideways inside the container instead of shrinking to an unreadable size.
+  .help-prose__figure {
+    display: block;
+    overflow-x: auto;
+    margin: var(--bs-space-4) 0;
+    border-radius: var(--bs-radius-md);
+
+    img {
+      margin: 0;
+    }
+
+    &:focus-visible {
+      outline: var(--bs-focus-width) solid var(--bs-color-focus-ring);
+      outline-offset: var(--bs-focus-offset);
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .help-prose__figure img {
+      max-width: none;
+      width: calc(var(--bs-container) * 2 / 3);
+    }
+  }
+
   hr {
     margin: var(--bs-space-8) 0;
     border: 0;

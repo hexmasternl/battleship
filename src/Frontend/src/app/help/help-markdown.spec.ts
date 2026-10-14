@@ -103,6 +103,13 @@ describe('renderHelpMarkdown', () => {
     expect(image?.getAttribute('title')).toBe('Graph');
   });
 
+  it('puts every image in its own focusable scroll container', () => {
+    const image = render('![The resources](assets/help-resource-graph.svg)').querySelector('img');
+    const figure = image?.parentElement;
+    expect(figure?.classList.contains('help-prose__figure')).toBe(true);
+    expect(figure?.getAttribute('tabindex')).toBe('0');
+  });
+
   it('escapes quotes in link destinations and alt text', () => {
     const host = render('![a "quoted" alt](assets/x.svg)\n\n[x](https://example.com/?q="y")');
     expect(host.querySelector('img')?.getAttribute('alt')).toBe('a "quoted" alt');
