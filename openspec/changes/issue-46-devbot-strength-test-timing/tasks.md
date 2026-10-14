@@ -6,4 +6,4 @@
 
 ## 2. Integration check
 
-- [ ] 2.1 Run `dotnet test src/DevTools/HexMaster.Battleship.DevBot.Tests --collect:"XPlat Code Coverage"` three times and `dotnet test src/Battleship.slnx --collect:"XPlat Code Coverage"` twice, the runs that failed before. Verify every run passes, and record the elapsed times reported by the test in the pull request.
+- [x] 2.1 Run `dotnet test src/DevTools/HexMaster.Battleship.DevBot.Tests --collect:"XPlat Code Coverage"` three times and `dotnet test src/Battleship.slnx --collect:"XPlat Code Coverage"` twice, the runs that failed before. Verify every run passes, and record the elapsed times reported by the test in the pull request.
