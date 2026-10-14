@@ -126,7 +126,7 @@ Extend it with the per-topic content assertions below.
   - the live `devbot.*` properties and the command-flow diagram
 
   Source: `DevBot/BotCommands.cs` and `BotStateMirror.cs`. Verify with the content assertions.
-- [ ] 5.7 In `README.md`, link the help documents from the matching sections, keeping the README's own summaries short. Verify that the links resolve on GitHub's preview of the branch.
+- [x] 5.7 In `README.md`, link the help documents from the matching sections, keeping the README's own summaries short. Verify that the links resolve on GitHub's preview of the branch.
 
 ## 6. Landing page help tiles
 
