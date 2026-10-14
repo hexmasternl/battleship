@@ -27,7 +27,7 @@
 
 ## 5. Versioning
 
-- [ ] 5.1 Add `GitVersion.yml` (`main` in ContinuousDeployment with patch increments, and conventional-commit bump messages for minor and major). Verify that running GitVersion locally (`dotnet-gitversion`) prints a `SemVer` higher than the latest existing tag.
+- [x] 5.1 Add `GitVersion.yml` (`main` in ContinuousDeployment with patch increments, and conventional-commit bump messages for minor and major). Verify that running GitVersion locally (`dotnet-gitversion`) prints a `SemVer` higher than the latest existing tag.
 
 ## 6. Deployment workflow
 
