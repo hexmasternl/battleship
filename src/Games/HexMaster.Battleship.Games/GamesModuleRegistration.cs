@@ -38,6 +38,7 @@ public static class GamesModuleRegistration
         services.AddCommandHandler<PlaceShipCommand, GameView?, PlaceShipCommandHandler>();
         services.AddCommandHandler<MarkReadyCommand, GameView?, MarkReadyCommandHandler>();
         services.AddCommandHandler<FireShotCommand, FireShotResult, FireShotCommandHandler>();
+        services.AddCommandHandler<CleanUpInactiveGamesCommand, CleanUpInactiveGamesResult, CleanUpInactiveGamesCommandHandler>();
 
         return services;
     }
