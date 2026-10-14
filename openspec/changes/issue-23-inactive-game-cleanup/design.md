@@ -65,7 +65,7 @@
   - `game.retention.removed`
   - `game.retention.skipped`
 - `GamesMetrics` gains the counter `games.removed` (`{game}`).
-- `GamesLog` gains event 4009 "Removed {Removed} inactive games (skipped {Skipped}) older than {Cutoff}". Codes are not logged per game, to avoid noise.
+- `GamesLog` gains event 4012 "Removed {Removed} inactive games (skipped {Skipped}) older than {Cutoff}". Codes are not logged per game, to avoid noise.
 
 ## Risks / Trade-offs
 

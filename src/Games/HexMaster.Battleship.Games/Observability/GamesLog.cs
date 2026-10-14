@@ -40,4 +40,8 @@ internal static partial class GamesLog
 
     [LoggerMessage(EventId = 4011, Level = LogLevel.Information, Message = "Game {GameId} with code {GameCode} completed; player {WinnerId} won")]
     public static partial void GameCompleted(ILogger logger, Guid gameId, string gameCode, Guid winnerId);
+
+    // One line per cleanup run; the removed codes are not logged, to keep a large run quiet.
+    [LoggerMessage(EventId = 4012, Level = LogLevel.Information, Message = "Removed {Removed} inactive games (skipped {Skipped}) older than {Cutoff}")]
+    public static partial void InactiveGamesRemoved(ILogger logger, int removed, int skipped, DateTimeOffset cutoff);
 }
