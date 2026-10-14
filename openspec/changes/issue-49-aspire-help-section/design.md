@@ -63,25 +63,47 @@ GitHub resolves both, and the app rewrites them (decision 4).
 
 Each document starts with one `# Title` heading. The page uses that heading as its level-one heading, so the page has exactly one.
 
-### 2. Publish only the help files with an `angular.json` assets entry
-Two asset entries with input `../../docs` and output `docs` publish the help files:
+### 2. Publish only the help files through a script-created link to `docs/`
+Angular only accepts an asset input inside the workspace root, which is `src/Frontend`. An entry with input `../../docs` fails the build with "asset path must be within the workspace root", and the check has no option to turn it off.
+
+So `scripts/link-docs.mjs` creates `src/Frontend/docs-link`, a directory link to the repository's `docs/`:
+- It is a junction on Windows and a directory symlink elsewhere.
+- It leaves a correct link alone and replaces a wrong or broken one.
+- It fails with a clear message when `docs/` is missing, and never deletes a real folder in the link's place.
+- It runs from the npm `prestart`, `prestart:aspire`, `prebuild`, `prewatch` and `pretest` hooks. The Aspire AppHost and CI both go through these npm scripts.
+- `docs-link` is gitignored.
+
+Two asset entries with input `docs-link` and output `docs` publish the help files:
 - one with glob `{prerequisites,resources,resource-relations,dapr,custom-integration,resource-commands}.md`
 - one with glob `assets/help-*.svg`, plus `assets/architecture.svg` if it is reused
 
 The documents are then served at `/docs/<slug>.md` by both `ng serve` (including the Aspire `start:aspire` run) and the production build.
 
-A unit test checks two things:
+A unit test checks three things:
 - every registry entry has a file under `docs/`
+- the `docs-link` asset entries publish exactly the registry documents and `assets/help-*.svg`
 - every image a document references exists
+
+Alternative considered: input `../../docs`. It is refused by Angular's workspace-root check.
+
+Alternative considered: a committed symlink. It was rejected because git does not create symlinks on every Windows checkout, where it becomes a plain text file.
 
 Alternative considered: publishing all of `docs/**`. It was rejected because it would ship `design-system.html` (around 100 kB), `suggestions.md` and the PNG banners for nothing.
 
-Alternative considered: copying the files into `public/` with a script. It was rejected because it creates a second copy that can drift from the first.
+Alternative considered: copying the files into `public/` or another folder with a script. It was rejected because it creates a second copy that can drift from the first, and an edited document would not show under a running `ng serve`.
+
+Alternative considered: moving the help documents under `src/Frontend`. It was rejected because the content belongs in `docs/`, where it reads on GitHub next to the other documentation.
 
 ### 3. Render at runtime with `marked`, sanitised by Angular
-A `HelpDocumentStore`, a local immutable store following the frontend convention, fetches `/docs/<file>` with `HttpClient` as text. It holds `{ status: 'loading' | 'loaded' | 'error', html }`, and its `retry()` re-fetches.
+A `HelpDocumentStore`, a local immutable store following the frontend convention, fetches `/docs/<file>` as text:
+- The component hands it the file input once with `connect(file)`.
+- The store fetches through `httpResource.text`, keyed by that signal.
+- It exposes a `status` slice (`'loading' | 'loaded' | 'error'`) and an `html` slice, both `computed` from the resource.
+- Its `retry()` reloads the resource.
 
 `marked` parses the markdown to HTML with GFM enabled, so tables work. The HTML is bound through `[innerHTML]`, so Angular's built-in sanitiser strips scripts and event handlers. No `bypassSecurityTrust*` is used.
+
+The sanitiser keeps only allow-listed attributes. `class`, `target`, `rel`, `title`, `alt` and `tabindex` survive. `id`, `data-*` and `loading` do not, which shapes decision 4.
 
 `marked` is imported only from the help feature, so the bundler keeps it in the help lazy chunk. Its version is pinned exactly in `package.json`.
 
@@ -91,13 +113,14 @@ Alternative considered: converting markdown to templates at build time. It was r
 
 ### 4. Rewrite links and images with a `marked` renderer extension
 A custom renderer rewrites links and images while the markdown is parsed:
-- **Images.** A relative `src` such as `assets/x.svg` becomes `/docs/assets/x.svg`. Images get `loading="lazy"`.
-- **Links between topics.** A relative link to `<slug>.md`, optionally with `#fragment`, becomes `href="/help/<slug>"` and is marked with a `data-help-link` attribute.
+- **Images.** A relative `src` such as `assets/x.svg` becomes `/docs/assets/x.svg`. Images get no `loading="lazy"`: the sanitiser would strip it, and setting it after render is too late to defer the fetch.
+- **Links between topics.** A relative link to `<slug>.md`, optionally with `#fragment`, becomes `href="/help/<slug>"` and is marked with the class `help-link`. A class is used rather than a `data-help-link` attribute because the sanitiser strips `data-*`.
 - **Other links.** An absolute `http(s)` link gets `target="_blank"` and `rel="noopener"`. Links in `docs/` that are not help documents point to the file on GitHub.
+- **Code blocks and tables.** A code block renders as `<pre tabindex="0">`. A table is wrapped in `<div class="help-prose__table" tabindex="0">`. Both scroll on their own, so they take keyboard focus to stay scrollable without a mouse.
 
-The `HelpDocument` component listens for clicks on its host. A plain left-click on an `a[data-help-link]` calls `preventDefault()` and `router.navigateByUrl`, so the navigation stays inside the app. Clicks with a modifier key keep the browser's default behaviour.
+The `HelpDocument` component listens for clicks on its host. A plain left-click on an `a.help-link` calls `preventDefault()` and `router.navigateByUrl`, so the navigation stays inside the app. Clicks with a modifier key keep the browser's default behaviour.
 
-A heading renderer adds slug `id`s, so `#fragment` deep links work.
+Heading `id`s cannot pass the sanitiser, so they are applied after render. `helpHeadingIds()` in `help-markdown.ts` builds GitHub style slugs and numbers repeats. `HelpDocument` sets them on the rendered headings in an `afterRenderEffect`, so `#fragment` deep links work.
 
 ### 5. Components
 Every topic route renders the same `HelpTopicPage`. It resolves the topic from the slug in route data, so there is no per-topic component. It shows `HelpLayout` around `HelpDocument`. The components are:
@@ -107,11 +130,12 @@ Every topic route renders the same `HelpTopicPage`. It resolves the topic from t
   - It holds a breadcrumb back to `/` and `/help`, and a footer with previous and next links.
   - The previous and next links are `computed` from the slug input against the registry.
 - **`HelpDocument`.**
-  - It uses `HelpDocumentStore` and renders the loading, error-with-retry and content states.
+  - It provides `HelpDocumentStore`, connects its `file` input to it, and renders the loading, error-with-retry and content states.
+  - It routes clicks on `a.help-link` and applies heading ids after render (decision 4).
   - It scopes a `.help-prose` stylesheet over the rendered HTML: headings in Quantico, body text in Courier Prime, and code blocks that scroll on their own with `overflow-x: auto`.
   - Tables sit in a scroll wrapper, and images use `max-width: 100%`.
   - Every value comes from `--bs-` tokens, following the centralized styling rule.
-  - Because the rendered HTML is not part of the template, the styles use `:host ::ng-deep .help-prose` scoped to the component, or a global partial `src/styles/_help-prose.scss`. The global partial is preferred, because the project already keeps global partials there.
+  - Because the rendered HTML is not part of the template, the styles live in the global partial `src/styles/_help-prose.scss`, scoped by the `.help-prose` class. The project already keeps global partials there, and `::ng-deep` is avoided.
 - **`HelpOverview`.** It shows the overview page from the registry; it is not a document.
 
 The topic list reaches the landing tiles through the registry (see decision 7).
