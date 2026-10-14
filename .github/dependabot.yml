@@ -1,0 +1,35 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directories: ["/src/**/*"]
+    target-branch: development
+    schedule:
+      interval: weekly
+    groups:
+      aspire:
+        patterns: ["Aspire.*", "CommunityToolkit.Aspire.*"]
+      dapr:
+        patterns: ["Dapr.*"]
+      test:
+        patterns: ["xunit*", "Moq", "Bogus", "coverlet.*", "Microsoft.NET.Test.Sdk"]
+    commit-message:
+      prefix: chore(deps)
+
+  - package-ecosystem: npm
+    directory: /src/Frontend
+    target-branch: development
+    schedule:
+      interval: weekly
+    groups:
+      angular:
+        patterns: ["@angular/*", "@angular-devkit/*"]
+    commit-message:
+      prefix: chore(deps)
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: development
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
