@@ -27,7 +27,7 @@ All frontend work is done by the `angular-frontend` agent in `src/Frontend`. Run
 
 ## 2. Markdown rendering
 
-- [ ] 2.1 Add `marked` to `dependencies` with an exact version, and record the reason in the commit message. Implement `help-markdown.ts`: a `marked` instance with GFM and a custom renderer that:
+- [x] 2.1 Add `marked` to `dependencies` with an exact version, and record the reason in the commit message. Implement `help-markdown.ts`: a `marked` instance with GFM and a custom renderer that:
   - rewrites relative image `src` to `/docs/assets/...` and adds `loading="lazy"`
   - rewrites `<slug>.md[#frag]` links to `/help/<slug>[#frag]` with `data-help-link`
   - gives external `http(s)` links `target="_blank"` and `rel="noopener"`
