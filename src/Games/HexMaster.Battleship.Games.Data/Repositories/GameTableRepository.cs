@@ -74,11 +74,12 @@ public sealed class GameTableRepository(TableServiceClient service)
         var table = await GetTableAsync(cancellationToken);
 
         // Filtered server-side on the activity column and selecting the keys only: the ETag comes
-        // back with every row, so the document is never transferred, let alone deserialized.
-        var filter = TableClient.CreateQueryFilter(
-            $"RowKey eq {GameEntity.GameRowKey} and LastActivityOn lt {cutoff.ToUniversalTime()}");
+        // back with every row, so the document is never transferred, let alone deserialized. The
+        // filter is built from the entity's properties, so the column names follow GameEntity.
+        var filter = TableClient.CreateQueryFilter<GameEntity>(
+            game => game.RowKey == GameEntity.GameRowKey && game.LastActivityOn < cutoff);
         var rows = table.QueryAsync<TableEntity>(
-            filter, select: [nameof(ITableEntity.PartitionKey), nameof(ITableEntity.RowKey)], cancellationToken: cancellationToken);
+            filter, select: [nameof(GameEntity.PartitionKey), nameof(GameEntity.RowKey)], cancellationToken: cancellationToken);
         await foreach (var row in rows)
         {
             yield return new InactiveGame(row.PartitionKey, row.ETag.ToString());
