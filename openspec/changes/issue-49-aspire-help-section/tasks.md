@@ -144,7 +144,7 @@ Extend it with the per-topic content assertions below.
 
 ## 7. Integration checks
 
-- [ ] 7.1 Run the full frontend unit test suite and the production build. Verify:
+- [x] 7.1 Run the full frontend unit test suite and the production build. Verify:
   - all tests pass
   - there are no build or budget errors
   - `marked` and the help pages are in lazy chunks, absent from the initial bundle
