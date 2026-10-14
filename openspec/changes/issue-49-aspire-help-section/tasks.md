@@ -132,7 +132,7 @@ Extend it with the per-topic content assertions below.
 
 - [x] 6.1 Build `HelpTilesSection` in `src/app/welcome/`, rendered after `InfoSection` in `WelcomePage`. It has:
   - a heading
-  - six tiles from the registry, each a single `routerLink` anchor with icon, title and summary
+  - six tiles from the registry, each with icon, title and summary; the title is the tile's single `routerLink`, stretched over the whole tile (design decision 7)
   - a "Browse all help" link to `/help`
 
   The tiles are styled distinctly from `bs-card`, use tokens only, and have a responsive grid (one column at 360px, two or more from 768px). Hover and focus motion sits only under `prefers-reduced-motion: no-preference`. Verify with unit tests:

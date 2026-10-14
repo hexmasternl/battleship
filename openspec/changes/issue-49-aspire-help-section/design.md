@@ -172,7 +172,14 @@ A test reads each `help-*.svg` and checks that every `fill` and `stroke` colour 
 ### 7. Landing tiles as a new `HelpTilesSection`
 `src/app/welcome/help-tiles-section.ts` is placed after `InfoSection` in `WelcomePage`. It renders one tile per registry topic, plus a "Browse all help" link to `/help`.
 
-Each tile is a single `<a routerLink>`. It shows a large Material Symbol, the title and the summary, on a raised surface. An accent border-glow and lift animate on hover and focus, under `prefers-reduced-motion: no-preference` only. The tiles use their own class, so they look distinct from the `bs-card` rule panels.
+Each tile shows a large Material Symbol, the title and the summary, on a raised surface. The tile uses the stretched-link pattern:
+- The title is the tile's only `<a routerLink>`, so the link's accessible name is exactly the title.
+- The link's `::after` covers the whole tile, so a click anywhere on it navigates, and the focus ring surrounds the whole tile.
+- The summary sits outside the link and is attached with `aria-describedby`.
+
+Alternative considered: one anchor wrapping the icon, title and summary, named with `aria-labelledby`. It was rejected because it fails axe's `label-content-name-mismatch` (WCAG 2.5.3) in a real browser: the visible text includes the summary but the name does not. Hiding the summary with `aria-hidden` does not help.
+
+An accent border-glow and lift animate on hover and focus, under `prefers-reduced-motion: no-preference` only. The tiles use their own class, so they look distinct from the `bs-card` rule panels.
 
 The tiles import only the registry, which holds metadata and no `marked`. Importing it keeps the initial bundle unaffected.
 
