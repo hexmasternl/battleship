@@ -159,4 +159,37 @@ describe('help document content', () => {
       expect(imageFiles(parsed)).toContain('assets/help-resource-graph.svg');
     });
   });
+
+  describe('resource relations', () => {
+    const parsed = doc('resource-relations');
+
+    it('explains references and WaitFor with this app’s examples', () => {
+      expect(parsed.markdown).toContain('WithReference(tables)');
+      expect(parsed.markdown).toMatch(/\.WaitFor\((messaging|tables|gateway)\)/);
+      expect(parsed.markdown).toContain('BACKEND_GATEWAY_URL');
+    });
+
+    it('states the request and event flow as an ordered list', () => {
+      const flow = ofType<Tokens.List>(parsed, 'list').find((list) => list.ordered);
+      expect(flow).toBeDefined();
+      const steps = flow?.items.map((item) => item.text) ?? [];
+      expect(steps.length).toBeGreaterThanOrEqual(4);
+      expect(steps[0]).toMatch(/browser to gateway/i);
+      expect(steps[1]).toMatch(/users-api/);
+      expect(steps[1]).toMatch(/games-api/);
+      expect(steps.some((step) => /pub\/sub/i.test(step) && /integration-events/.test(step))).toBe(
+        true,
+      );
+      expect(steps.at(-1)).toMatch(/server-sent events/i);
+    });
+
+    it('shows the flow diagram and the start-up diagram', () => {
+      expect(imageFiles(parsed)).toEqual(
+        expect.arrayContaining([
+          'assets/help-request-event-flow.svg',
+          'assets/help-startup-order.svg',
+        ]),
+      );
+    });
+  });
 });
