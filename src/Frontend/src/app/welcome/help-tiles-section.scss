@@ -1,7 +1,6 @@
+// Background and text colour come from the landing page host.
 :host {
   display: block;
-  background: var(--bs-color-bg);
-  color: var(--bs-color-text);
   font-family: var(--bs-font-body);
   line-height: var(--bs-leading-body);
 }
@@ -57,7 +56,6 @@
   gap: var(--bs-space-3);
   height: 100%;
   padding: var(--bs-space-6);
-  color: var(--bs-color-text);
   background:
     radial-gradient(
       circle at 100% 0,
@@ -113,7 +111,6 @@
 
 .help-tile__head {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
 }
 

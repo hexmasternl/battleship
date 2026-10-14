@@ -149,7 +149,7 @@ Extend it with the per-topic content assertions below.
   - there are no build or budget errors
   - `marked` and the help pages are in lazy chunks, absent from the initial bundle
   - only the help documents and `help-*` images are emitted under `docs/`
-- [ ] 7.2 Serve the app and open these routes at 360px and 1280px widths:
+- [x] 7.2 Serve the app and open these routes at 360px and 1280px widths:
   - `/`, then a tile
   - `/help`
   - every `/help/<slug>`
