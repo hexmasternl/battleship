@@ -19,3 +19,11 @@ export function readRepoDoc(path: string): string {
 export function listRepoDocs(folder = ''): string[] {
   return readdirSync(folder === '' ? REPO_DOCS_DIR : `${REPO_DOCS_DIR}/${folder}`);
 }
+
+/** The help diagrams: the `help-*.svg` files in `docs/assets/`, as paths relative to `docs/`. */
+export function listHelpDiagrams(): string[] {
+  return listRepoDocs('assets')
+    .filter((name) => /^help-.+\.svg$/.test(name))
+    .sort()
+    .map((name) => `assets/${name}`);
+}
