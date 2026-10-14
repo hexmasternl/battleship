@@ -131,7 +131,7 @@ Key Vault was considered but adds a resource, an access policy and a reference i
 
 ### D10. CORS and the frontend runtime config
 
-- **CORS:** Bicep sets `Gateway__AllowedOrigins` on Games and Users, and `Events__AllowedOrigins__0` on Events, to `https://<staticWebApp.defaultHostname>`. The hostname is known within the same deployment, so a first deployment works without a second pass.
+- **CORS:** the gateway Container App's ingress `corsPolicy` allows only `https://<staticWebApp.defaultHostname>`. The module APIs' own gateway CORS (`GatewayCorsExtensions`) is enabled only in Development, so setting `Gateway__AllowedOrigins` in production would have no effect. Answering CORS at the single public entry point keeps the APIs unchanged. Bicep sets `Events__AllowedOrigins__0` on Events, whose CORS policy is active in every environment. The hostname is known within the same deployment, so a first deployment works without a second pass.
 - **`config.json`:** gains `eventsBaseUrl`.
   - The backend config loader reads both values.
   - `EVENTS_API_URL` is provided from the loaded config instead of a literal.
@@ -152,7 +152,7 @@ Key Vault was considered but adds a resource, an access policy and a reference i
 - **`USERS_SIGNING_KEY` is missing.** It does not exist in the `production` environment yet. → The deploy job fails fast with a clear message when it is empty. The README states how to generate one: 48+ characters with no special characters, the same rule as the AppHost.
 - **SSE through Container Apps ingress.** Envoy idle timeouts can drop long-lived streams. → The Events API already sends heartbeats and the client reconnects with `Last-Event-ID`. Verify on the deployed app that streams survive minutes of idle play.
 - **Dapr entity management needs Data Owner.** That is broader than send and listen. → Accepted for a single-app namespace. Pre-creating subscriptions and dropping to Sender/Receiver is a follow-up.
-- **Cost.** Service Bus Standard is needed for topics and is the main fixed cost. → Container Apps consumption with scale-to-zero on Games and Users (`minReplicas: 0`); Events stays at 1.
+- **Cost.** Service Bus Standard is needed for topics and is the main fixed cost. → Container Apps consumption with scale-to-zero on Users (`minReplicas: 0`). Games stays at one replica because the `game-cleanup` cron binding runs in its sidecar, and Events stays at exactly one.
 - **YARP nightly image.** It can change under a floating tag. → Pin an explicit tag in Bicep.
 - **Out of scope here.** OpenAPI and Scalar are not exposed in production because the module APIs are internal.
 
