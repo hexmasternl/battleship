@@ -127,3 +127,68 @@ jobs:
 
       - name: Test scripts
         run: npm run test:scripts
+
+  publish-api:
+    name: Publish ${{ matrix.service }}-api image
+    needs: [version, verify-backend, verify-frontend]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - service: games
+            project: src/Games/HexMaster.Battleship.Games.Api/HexMaster.Battleship.Games.Api.csproj
+          - service: users
+            project: src/Users/HexMaster.Battleship.Users.Api/HexMaster.Battleship.Users.Api.csproj
+          - service: events
+            project: src/Events/HexMaster.Battleship.Events.Api/HexMaster.Battleship.Events.Api.csproj
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_LOGIN_USERNAME }}
+          password: ${{ secrets.ACR_LOGIN_PASSWORD }}
+
+      # The repository name (battleship/<service>-api) is set in each API project.
+      - name: Publish container image
+        run: >-
+          dotnet publish ${{ matrix.project }} --configuration Release
+          -t:PublishContainer
+          -p:ContainerRegistry=${{ secrets.ACR_LOGIN_SERVER }}
+          -p:ContainerImageTag=${{ needs.version.outputs.semver }}
+
+  build-frontend:
+    name: Build frontend
+    needs: [version, verify-backend, verify-frontend]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/Frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # The npm script runs prebuild, which links the help documents into the build.
+      # config.json is not part of the build; the deploy job writes it for the deployed backend.
+      - name: Build
+        run: npm run build -- --configuration production
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: frontend
+          path: src/Frontend/dist/battleship/browser
+          if-no-files-found: error
