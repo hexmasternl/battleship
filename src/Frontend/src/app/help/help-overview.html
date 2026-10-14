@@ -1,0 +1,21 @@
+<battle-help-layout>
+  <h1 class="help-overview__title">Help</h1>
+  <p class="help-overview__lead">
+    How this demo's .NET Aspire environment is put together: what you need to run it, its resources
+    and how they relate, Dapr, and the custom dev bot integration.
+  </p>
+
+  <ul class="help-overview__topics">
+    @for (topic of topics; track topic.slug) {
+      <li>
+        <a class="help-overview__topic" [routerLink]="['/help', topic.slug]">
+          <mat-icon class="help-overview__icon" aria-hidden="true">{{ topic.icon }}</mat-icon>
+          <span class="help-overview__text">
+            <span class="help-overview__name">{{ topic.title }}&#32;</span>
+            <span class="help-overview__summary">{{ topic.summary }}</span>
+          </span>
+        </a>
+      </li>
+    }
+  </ul>
+</battle-help-layout>

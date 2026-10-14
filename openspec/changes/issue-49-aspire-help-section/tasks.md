@@ -58,7 +58,7 @@ All frontend work is done by the `angular-frontend` agent in `src/Frontend`. Run
   - previous and next links computed from the slug input against the registry, hidden at the ends
 
   Verify with unit tests on the first, a middle and the last topic, and with an axe check.
-- [ ] 3.2 Build `HelpTopicPage`, which resolves the topic from the route-data slug and renders `HelpLayout` around `HelpDocument`. Build `HelpOverview`, with one level-one heading, a link to `/`, and the six topic links in registry order, each with its title, summary and icon. Verify with unit tests:
+- [x] 3.2 Build `HelpTopicPage`, which resolves the topic from the route-data slug and renders `HelpLayout` around `HelpDocument`. Build `HelpOverview`, with one level-one heading, a link to `/`, and the six topic links in registry order, each with its title, summary and icon. Verify with unit tests:
   - the overview's link order and hrefs
   - a topic page renders exactly one `h1`, which comes from the document
   - axe passes on both pages
