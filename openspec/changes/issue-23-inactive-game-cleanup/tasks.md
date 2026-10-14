@@ -44,7 +44,7 @@
   - Reference it from the games-api sidecar.
 
   Verify the AppHost builds and `GatewayRoutesTests` and the other Aspire tests pass.
-- [ ] 4.3 Run the AppHost with the schedule set to `@every 1m` and a game whose `LastActivityOn` was edited in Azurite to 100 days ago. Verify that within a minute:
+- [x] 4.3 Run the AppHost with the schedule set to `@every 1m` and a game whose `LastActivityOn` was edited in Azurite to 100 days ago. Verify that within a minute:
   - the game row is gone;
   - the dashboard shows the cleanup use-case span under the sidecar's binding span, and `games.removed` increases;
   - `POST <gateway>/maintenance/game-cleanup` answers `404`.

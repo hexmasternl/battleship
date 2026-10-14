@@ -56,9 +56,10 @@ var pubsub = builder.AddDaprComponent(AspireConstants.PubSubName, "pubsub.rabbit
 
 // The daily cleanup of games without activity for longer than the retention period. A cron input
 // binding on the Games API sidecar posts to the API's internal /maintenance/game-cleanup route,
-// which the gateway never routes. Set the game-cleanup-schedule parameter to, for example,
-// "@every 1m" to watch it run locally.
-var gameCleanupSchedule = builder.AddParameter("game-cleanup-schedule", "@daily");
+// which the gateway never routes. The schedule defaults to "@daily" in appsettings.json; override
+// Parameters:game-cleanup-schedule (user secret, environment or `-- --Parameters:game-cleanup-schedule=...`)
+// with, for example, "@every 1m" to watch it run locally.
+var gameCleanupSchedule = builder.AddParameter("game-cleanup-schedule");
 var gameCleanup = builder.AddDaprComponent("game-cleanup", "bindings.cron")
     .WithMetadata("schedule", gameCleanupSchedule.Resource)
     .WithMetadata("route", "/maintenance/game-cleanup")
