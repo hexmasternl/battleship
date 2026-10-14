@@ -37,7 +37,7 @@
 
 ## 4. Aspire: reserved prefix and daily trigger
 
-- [ ] 4.1 Load the `yarp-gateway-routes` skill and get approval to reserve `maintenance`. Add it to `GatewayRoutes.ReservedPrefixes`. Verify with a `GatewayRoutesTests` case where declaring `maintenance` for a module throws and names the module and the prefix.
+- [x] 4.1 Load the `yarp-gateway-routes` skill and get approval to reserve `maintenance`. Add it to `GatewayRoutes.ReservedPrefixes`. Verify with a `GatewayRoutesTests` case where declaring `maintenance` for a module throws and names the module and the prefix.
 - [ ] 4.2 In `AppHost.cs`:
   - Add the AppHost parameter `game-cleanup-schedule` (default `@daily`).
   - Add a `bindings.cron` Dapr component `game-cleanup` with metadata `schedule` (from the parameter), `route` `/maintenance/game-cleanup` and `direction` `input`.
