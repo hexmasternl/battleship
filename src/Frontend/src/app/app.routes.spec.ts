@@ -2,9 +2,11 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
-import { provideRouter, Route, withComponentInputBinding } from '@angular/router';
+import { provideRouter, Route, Router, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from './app.routes';
+import { helpRoutes } from './help/help-routes';
+import { HELP_TOPICS } from './help/help-topics';
 import { UserSession } from './core/session/user-session';
 import { userGuard } from './core/session/user.guard';
 import { EVENT_SOURCE_FACTORY, EVENTS_API_URL } from './events/events.tokens';
@@ -39,8 +41,41 @@ describe('routes', () => {
     expect(wildcard?.redirectTo).toBe('');
   });
 
-  it('declares exactly two feature routes plus the wildcard', () => {
-    expect(routes.map((candidate) => candidate.path)).toEqual(['', 'games/:gameCode', '**']);
+  it('lazy loads the help section without a guard', () => {
+    const help = route('help');
+    expect(typeof help.loadChildren).toBe('function');
+    expect(help.canActivate).toBeUndefined();
+    expect(help.canMatch).toBeUndefined();
+    expect(help.canActivateChild).toBeUndefined();
+  });
+
+  it('declares exactly three feature routes plus the wildcard', () => {
+    expect(routes.map((candidate) => candidate.path)).toEqual([
+      '',
+      'games/:gameCode',
+      'help',
+      '**',
+    ]);
+  });
+});
+
+describe('help routes', () => {
+  it('declares the overview, one route per topic and a wildcard, none of them guarded', () => {
+    expect(helpRoutes.map((candidate) => candidate.path)).toEqual([
+      '',
+      ...HELP_TOPICS.map((topic) => topic.slug),
+      '**',
+    ]);
+    for (const candidate of helpRoutes) {
+      expect(candidate.canActivate).toBeUndefined();
+      expect(candidate.canMatch).toBeUndefined();
+    }
+  });
+
+  it('carries the slug in the route data and names the topic in the title', () => {
+    const dapr = helpRoutes.find((candidate) => candidate.path === 'dapr');
+    expect(dapr?.data).toEqual({ slug: 'dapr' });
+    expect(dapr?.title).toBe('Dapr | Help | Battleship');
   });
 });
 
@@ -97,6 +132,33 @@ describe('routes (navigation)', () => {
       expect(element.querySelector('h1')?.textContent?.trim()).toBe('Welcome aboard, Captain');
     },
   );
+
+  it('renders the help overview at /help without a session', async () => {
+    const ensureUser = vi.spyOn(TestBed.inject(UserSession), 'ensureUser');
+    const harness = await RouterTestingHarness.create('/help');
+    const element = harness.routeNativeElement as HTMLElement;
+    expect(element.tagName.toLowerCase()).toBe('battle-help-overview');
+    expect(TestBed.inject(Title).getTitle()).toBe('Help | Battleship');
+    expect(ensureUser).not.toHaveBeenCalled();
+    TestBed.inject(HttpTestingController).expectNone((req) => req.url.startsWith('/api/'));
+  });
+
+  it('renders the topic page with its title at /help/dapr without a session', async () => {
+    const ensureUser = vi.spyOn(TestBed.inject(UserSession), 'ensureUser');
+    const harness = await RouterTestingHarness.create('/help/dapr');
+    const element = harness.routeNativeElement as HTMLElement;
+    expect(element.tagName.toLowerCase()).toBe('battle-help-topic-page');
+    expect(TestBed.inject(Title).getTitle()).toBe('Dapr | Help | Battleship');
+    expect(ensureUser).not.toHaveBeenCalled();
+    TestBed.inject(HttpTestingController).expectNone((req) => req.url.startsWith('/api/'));
+  });
+
+  it('redirects an unknown help topic to the help overview', async () => {
+    const harness = await RouterTestingHarness.create('/help/not-a-topic');
+    const element = harness.routeNativeElement as HTMLElement;
+    expect(element.tagName.toLowerCase()).toBe('battle-help-overview');
+    expect(TestBed.inject(Router).url).toBe('/help');
+  });
 
   it('sends unknown paths back to the landing page', async () => {
     const harness = await RouterTestingHarness.create('/no/such/page');
