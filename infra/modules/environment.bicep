@@ -109,6 +109,15 @@ var tablesEnv = [
   }
 ]
 
+// The Users and Games APIs answer the browser's CORS requests themselves (GatewayCorsExtensions in
+// ServiceDefaults), for the frontend origin only.
+var gatewayCorsEnv = [
+  {
+    name: 'Gateway__AllowedOrigins'
+    value: frontendOrigin
+  }
+]
+
 var signingKeyEnv = [
   {
     name: 'Users__Tokens__SigningKey'
@@ -141,7 +150,7 @@ module gamesApi 'containerapp.bicep' = {
     identityId: identity.outputs.id
     registryServer: acrLoginServer
     registryUsername: acrUsername
-    env: concat(apiEnv, tablesEnv)
+    env: concat(apiEnv, tablesEnv, gatewayCorsEnv)
     secrets: apiSecrets
     secretEnv: signingKeyEnv
   }
@@ -163,7 +172,7 @@ module usersApi 'containerapp.bicep' = {
     identityId: identity.outputs.id
     registryServer: acrLoginServer
     registryUsername: acrUsername
-    env: concat(apiEnv, tablesEnv)
+    env: concat(apiEnv, tablesEnv, gatewayCorsEnv)
     secrets: apiSecrets
     secretEnv: signingKeyEnv
   }

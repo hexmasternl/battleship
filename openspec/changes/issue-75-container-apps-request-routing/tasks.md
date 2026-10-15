@@ -19,7 +19,7 @@
 
 - [x] 3.1 Change `GatewayCorsExtensions` so `AddGatewayCors` registers the policy whenever `Gateway:AllowedOrigins` has at least one origin, in every environment, and `UseGatewayCors` applies it whenever the policy is registered; update the class comment; verify the solution builds
 - [x] 3.2 Update `GatewayCorsExtensionsTests`: configured origins are allowed in Production, no origins in Production registers no policy, preflight from the allowed origin is answered in Production, and the Development cases keep passing; verify `dotnet test --project src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests` passes
-- [ ] 3.3 In `infra/modules/environment.bicep` add `Gateway__AllowedOrigins = frontendOrigin` to the `users-api` and `games-api` environment lists; verify the built template shows the variable on both apps and on no other app
+- [x] 3.3 In `infra/modules/environment.bicep` add `Gateway__AllowedOrigins = frontendOrigin` to the `users-api` and `games-api` environment lists; verify the built template shows the variable on both apps and on no other app
 
 ## 4. Deploy workflow
 
