@@ -22,4 +22,8 @@ The Angular app under `src/Frontend/` (Angular 22, Angular Material 22.2.2, zone
 
 ## Gateway routes are owned by a skill
 
-The YARP `gateway` in the Aspire AppHost is the single backend endpoint the frontend calls. Its route table (`GatewayRoutes.cs` in the AppHost) is owned by the `yarp-gateway-routes` skill (`.claude/skills/yarp-gateway-routes/SKILL.md`). Load it when a backend module or `*.Api` project is added, when an API maps an endpoint under a new first path segment, or when the route table changes. Every new, renamed or removed prefix is proposed and approved before it is added.
+The YARP `gateway` in the Aspire AppHost is the single backend endpoint the frontend calls locally; it routes each module prefix, the event stream included, to the module API. Its route table (`GatewayRoutes.cs` in the AppHost) is owned by the `yarp-gateway-routes` skill (`.claude/skills/yarp-gateway-routes/SKILL.md`). Load it when a backend module or `*.Api` project is added, when an API maps an endpoint under a new first path segment, or when the route table changes. Every new, renamed or removed prefix is proposed and approved before it is added.
+
+## Azure routing is kept in sync by a skill
+
+In Azure the same prefixes are routed by an HTTP route configuration on the Container Apps environment, generated from `infra/gateway-routes.json` by `infra/modules/routing.bicep`. The `container-apps-route-sync` skill (`.claude/skills/container-apps-route-sync/SKILL.md`) owns those two files: it regenerates the file from `GatewayRoutes`, and compares table, file and the live environment. Load it after the route table changes, when `GatewayRoutesFileTests` fails, or when asked whether the deployed routing matches local development.

@@ -183,7 +183,7 @@ jobs:
         run: npm ci
 
       # The npm script runs prebuild, which links the help documents into the build.
-      # config.json is not part of the build; the deploy job writes it for the deployed backend.
+      # config.json is not part of the build; the deploy job writes it with the deployed backend address.
       - name: Build
         run: npm run build -- --configuration production
 
@@ -243,11 +243,23 @@ jobs:
             --query properties.outputs --output json)
           {
             echo "resource-group=$(jq -r .resourceGroupName.value <<< "$outputs")"
-            echo "gateway-url=$(jq -r .gatewayUrl.value <<< "$outputs")"
-            echo "events-api-url=$(jq -r .eventsApiUrl.value <<< "$outputs")"
+            echo "backend-url=$(jq -r .backendUrl.value <<< "$outputs")"
             echo "static-web-app=$(jq -r .staticWebAppName.value <<< "$outputs")"
             echo "static-web-app-hostname=$(jq -r .staticWebAppHostname.value <<< "$outputs")"
           } >> "$GITHUB_OUTPUT"
+
+      # The environment's route configuration replaced the gateway Container App. ARM deployments are
+      # incremental, so a gateway app left by an earlier release is removed here.
+      - name: Remove the retired gateway Container App
+        env:
+          RESOURCE_GROUP: ${{ steps.infra.outputs.resource-group }}
+        run: |
+          if az containerapp show --name gateway --resource-group "$RESOURCE_GROUP" --only-show-errors > /dev/null 2>&1; then
+            echo "Deleting the gateway Container App of an earlier release."
+            az containerapp delete --name gateway --resource-group "$RESOURCE_GROUP" --yes --only-show-errors
+          else
+            echo "No gateway Container App to remove."
+          fi
 
       - uses: actions/download-artifact@v8
         with:
@@ -255,13 +267,13 @@ jobs:
           path: frontend
 
       # The same bundle runs everywhere; only this runtime file points it at the deployed backend.
+      # The event stream is routed by the same backend address (/events), so both settings carry it.
       - name: Write runtime configuration
         env:
-          GATEWAY_URL: ${{ steps.infra.outputs.gateway-url }}
-          EVENTS_API_URL: ${{ steps.infra.outputs.events-api-url }}
+          BACKEND_URL: ${{ steps.infra.outputs.backend-url }}
         run: |
-          jq -n --arg backend "$GATEWAY_URL" --arg events "$EVENTS_API_URL" \
-            '{ backendBaseUrl: $backend, eventsBaseUrl: $events }' > frontend/config.json
+          jq -n --arg backend "$BACKEND_URL" \
+            '{ backendBaseUrl: $backend, eventsBaseUrl: $backend }' > frontend/config.json
           cat frontend/config.json
 
       - name: Get Static Web App deployment token
@@ -298,13 +310,11 @@ jobs:
 
       - name: Summary
         env:
-          HOSTNAME: ${{ steps.infra.outputs.static-web-app-hostname }}
-          GATEWAY_URL: ${{ steps.infra.outputs.gateway-url }}
-          EVENTS_API_URL: ${{ steps.infra.outputs.events-api-url }}
+          BACKEND_URL: ${{ steps.infra.outputs.backend-url }}
+          DEFAULT_HOSTNAME: ${{ steps.infra.outputs.static-web-app-hostname }}
         run: |
           {
             echo "### Deployed $VERSION"
-            echo "- App: https://$HOSTNAME"
-            echo "- Gateway: $GATEWAY_URL"
-            echo "- Events API: $EVENTS_API_URL"
+            echo "- App: https://battleship.hexmaster.nl (Static Web App default hostname: $DEFAULT_HOSTNAME)"
+            echo "- Backend (API and event stream): $BACKEND_URL"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -16,7 +16,8 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: appInsightsName
 }
 
-resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+// The API version is the one that carries the httpRouteConfigs child resource of routing.bicep.
+resource environment 'Microsoft.App/managedEnvironments@2024-10-02-preview' = {
   name: 'cae-battleship-${suffix}'
   location: location
   properties: {
@@ -34,7 +35,7 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 
 // Same name and topic as AspireConstants.PubSubName / IntegrationEventsTopic. Scoped to the APIs that
 // publish or subscribe; each sidecar authenticates with the shared managed identity.
-resource pubsub 'Microsoft.App/managedEnvironments/daprComponents@2024-03-01' = {
+resource pubsub 'Microsoft.App/managedEnvironments/daprComponents@2024-10-02-preview' = {
   parent: environment
   name: 'pubsub'
   properties: {
@@ -59,8 +60,8 @@ resource pubsub 'Microsoft.App/managedEnvironments/daprComponents@2024-03-01' = 
 }
 
 // The daily cleanup of inactive games: posts to the Games API's internal maintenance route, which the
-// gateway never routes.
-resource gameCleanup 'Microsoft.App/managedEnvironments/daprComponents@2024-03-01' = {
+// environment's route configuration never routes.
+resource gameCleanup 'Microsoft.App/managedEnvironments/daprComponents@2024-10-02-preview' = {
   parent: environment
   name: 'game-cleanup'
   properties: {
@@ -87,3 +88,4 @@ resource gameCleanup 'Microsoft.App/managedEnvironments/daprComponents@2024-03-0
 }
 
 output id string = environment.id
+output name string = environment.name

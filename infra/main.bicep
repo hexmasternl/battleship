@@ -11,6 +11,9 @@ param location string = 'westeurope'
 @description('Region of the Static Web App, which is only offered in a few regions.')
 param staticWebAppLocation string = 'westeurope'
 
+@description('Custom hostname of the frontend. Its CNAME record must point at the Static Web App before the deployment validates it; the APIs allow browsers from this origin only.')
+param frontendHostname string = 'battleship.hexmaster.nl'
+
 @description('Semantic version of the release; the tag of every API image.')
 param version string
 
@@ -47,6 +50,7 @@ module environment 'modules/environment.bicep' = {
   params: {
     location: location
     staticWebAppLocation: staticWebAppLocation
+    frontendHostname: frontendHostname
     version: version
     acrLoginServer: acrLoginServer
     acrUsername: acrUsername
@@ -58,7 +62,6 @@ module environment 'modules/environment.bicep' = {
 }
 
 output resourceGroupName string = resourceGroup.name
-output gatewayUrl string = environment.outputs.gatewayUrl
-output eventsApiUrl string = environment.outputs.eventsApiUrl
+output backendUrl string = environment.outputs.backendUrl
 output staticWebAppName string = environment.outputs.staticWebAppName
 output staticWebAppHostname string = environment.outputs.staticWebAppHostname

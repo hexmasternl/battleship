@@ -163,16 +163,17 @@ messages are logged to the console as a warning.
 ### Pointing the app at the Events API
 
 The base URL comes from the `EVENTS_API_URL` injection token, which `src/app/app.config.ts`
-provides from `eventsBaseUrl` in the runtime `public/config.json`. The Aspire AppHost passes the
-Events API endpoint to the frontend as `EVENTS_API_URL`, and `scripts/aspire-start.mjs` writes it
-to the file; in Azure the deploy job writes the deployed URL. It is the base URL only, the service
-appends `/events`. When `eventsBaseUrl` is missing, `connect` logs an error naming it and opens no
-stream.
+provides from `eventsBaseUrl` in the runtime `public/config.json`. The stream goes through the
+same proxy as every other backend call: the gateway routes `/events` to the Events API. The Aspire
+AppHost therefore passes the gateway endpoint to the frontend as `EVENTS_API_URL`, and
+`scripts/aspire-start.mjs` writes it to the file; in Azure the deploy job writes the backend route
+URL. It is the base URL only, the service appends `/events`. When `eventsBaseUrl` is missing,
+`connect` logs an error naming it and opens no stream.
 
 The Events API accepts cross-origin requests only from the origins in `Events:AllowedOrigins`
-(default `http://localhost:4200`). Serve the app with plain `ng serve` on port 4200, or add your
-dev-server origin to that setting, otherwise the browser blocks the stream and the service ends in
-`disconnected` with a CORS error in the console.
+(default `http://localhost:4200`); the proxy forwards the browser's origin unchanged. Serve the app
+with plain `ng serve` on port 4200, or add your dev-server origin to that setting, otherwise the
+browser blocks the stream and the service ends in `disconnected` with a CORS error in the console.
 
 ### Confirming that events arrive
 

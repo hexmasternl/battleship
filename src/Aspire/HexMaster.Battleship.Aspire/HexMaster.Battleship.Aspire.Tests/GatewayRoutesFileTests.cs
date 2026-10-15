@@ -56,6 +56,40 @@ public sealed class GatewayRoutesFileTests
         GatewayRoutes.Validate(asModules);
     }
 
+    // The environment's route configuration is generated from the routes file by routing.bicep. These
+    // guards fail when that Bicep stops reading the file, matches prefixes loosely, or rewrites the
+    // path, since each of those would let production routing drift from the local gateway.
+
+    [Fact]
+    public void RoutingBicep_LoadsTheRoutesFile()
+    {
+        Assert.Contains("loadJsonContent('../gateway-routes.json')", ReadRoutingBicep(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RoutingBicep_MatchesWholePathSegments()
+    {
+        var bicep = ReadRoutingBicep();
+
+        Assert.Contains("pathSeparatedPrefix: '/${prefix}'", bicep, StringComparison.Ordinal);
+        Assert.DoesNotContain("match: {\n          prefix:", bicep.ReplaceLineEndings("\n"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RoutingBicep_PassesThePathThroughUnchanged()
+    {
+        Assert.DoesNotContain("prefixRewrite", ReadRoutingBicep(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RoutingBicep_TargetsTheContainerAppOfEachModule()
+    {
+        Assert.Contains("containerApp: module.app", ReadRoutingBicep(), StringComparison.Ordinal);
+    }
+
+    private static string ReadRoutingBicep() =>
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "routing.bicep"));
+
     private static IReadOnlyList<RoutesFileModule> ReadRoutesFile()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "gateway-routes.json");

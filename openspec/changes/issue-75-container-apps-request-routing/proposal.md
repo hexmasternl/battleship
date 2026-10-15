@@ -15,8 +15,9 @@ Production runs an extra YARP Container App only to fan requests out to the User
 - **The backend endpoint reaches the frontend from the deployment.** The route configuration FQDN is a Bicep output that the deploy job writes into the frontend's runtime `config.json` as `backendBaseUrl`, in the same run. Static Web App application settings were considered and rejected: Azure exposes them only to the Static Web App's API backend, not to static content, so the Angular app cannot read them (see design).
 - **A new skill keeps local and deployed routing in sync.** `container-apps-route-sync` (Claude Code and Copilot copies) owns `infra/gateway-routes.json` and the Bicep that turns it into environment routes, and verifies that modules, prefixes and target apps match `GatewayRoutes` in the AppHost, including a check against the live route configuration. The `yarp-gateway-routes` skill keeps owning `GatewayRoutes.cs` and hands the deployment copy to the new skill. `CLAUDE.md` and `.github/copilot-instructions.md` name both.
 - **Workflow and docs.** `deploy.yml` reads the route configuration FQDN instead of the gateway URL and prints `https://battleship.hexmaster.nl` as the app URL; `infra/README.md` describes the new resource list, the DNS record and the hostname parameter.
+- **The event stream goes through the proxies too** (added during implementation, route approved on 2026-10-15). The route table gains the `events` module with prefix `/events`, so the local YARP gateway and the environment route configuration forward the server-sent event stream to the Events API. The stream's 15-second heartbeat keeps it below both proxies' idle timeouts. The frontend's `eventsBaseUrl` points at the gateway locally and at the backend route in Azure, where the Events app loses its public address. Dapr's `/integration-events` stays unrouted.
 
-Local development is unchanged: the AppHost keeps running its YARP `gateway` from `GatewayRoutes`, and the APIs keep allowing the frontend origin of the run.
+Local development keeps its YARP `gateway` from `GatewayRoutes`, now routing three modules, and the APIs keep allowing the frontend origin of the run.
 
 ## Capabilities
 
@@ -37,4 +38,5 @@ None.
 - `.github/workflows/deploy.yml`: new output names, `config.json` content, summary.
 - `.claude/skills/container-apps-route-sync/`, `.github/skills/container-apps-route-sync/`, both `yarp-gateway-routes` copies, `CLAUDE.md`, `.github/copilot-instructions.md`.
 - Azure: the `gateway` Container App is deleted on the first deployment; the environment may have to be recreated if rule-based routing requires a workload-profiles environment (see design, Risks). The DNS zone `hexmaster.nl` needs a CNAME for `battleship` before that deployment.
-- Not affected: the frontend code (it keeps reading `config.json`), the local AppHost, the module APIs' endpoints, the Events API's direct stream.
+- `src/Aspire/.../AppHost/GatewayRoutes.cs` and `AppHost.cs`: the `events` module and its `/events` prefix; the frontend's Events URL becomes the gateway endpoint. `FrontendResourceTests` and `GatewayRoutesTests` follow.
+- Not affected: the frontend code (it keeps reading `config.json` and appending `/events`), the module APIs' endpoints.

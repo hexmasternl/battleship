@@ -14,6 +14,7 @@ public sealed class GatewayRoutesTests
     [Theory]
     [InlineData("users", GatewayRoutes.UsersApi)]
     [InlineData("games", GatewayRoutes.GamesApi)]
+    [InlineData("events", GatewayRoutes.EventsApi)]
     public void Modules_RoutesPrefixToItsApi(string prefix, string apiResourceName)
     {
         var owner = Assert.Single(GatewayRoutes.Modules, m => m.Prefixes.Contains(prefix));
@@ -26,7 +27,7 @@ public sealed class GatewayRoutesTests
     {
         var prefixes = GatewayRoutes.Modules.SelectMany(m => m.Prefixes).Order().ToArray();
 
-        Assert.Equal(["games", "users"], prefixes);
+        Assert.Equal(["events", "games", "users"], prefixes);
     }
 
     [Fact]

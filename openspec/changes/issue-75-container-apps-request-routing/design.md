@@ -57,6 +57,9 @@ The `yarp-gateway-routes` skill (both copies) keeps the proposal and approval fl
 - `GatewayCorsExtensionsTests`: the "outside Development registers no policy" test becomes "outside Development with configured origins allows them" plus "outside Development without origins registers no policy"; the preflight test runs in Production.
 - Bicep: `az bicep build --file infra/main.bicep` in the worktree, and `az deployment sub what-if` by the user before merging (the workflow does not run what-if).
 
+### D9. The event stream goes through the proxies (added during implementation)
+The route table gains `events` with prefix `/events`, so the YARP gateway and the environment route configuration forward `GET /events?userId=...` to the Events API. Server-sent events survive both proxies: YARP streams response bodies without buffering and its activity timeout (100 s) and the Container Apps ingress idle timeout (240 s) are both longer than the stream's 15-second heartbeat. The Events API keeps one replica, so no affinity is needed, and keeps its own stream CORS policy (the origin is still the frontend). The frontend builds `<eventsBaseUrl>/events`, so `eventsBaseUrl` simply becomes the gateway endpoint locally and the backend route URL in Azure; no frontend code changes. In Azure `events-api` switches to internal ingress and the `eventsApiUrl` output goes away. `/integration-events` stays reserved and unrouted. Alternative: keep the direct public address (rejected, it would leave one API outside the single backend entry point and its CORS surface).
+
 ## Risks / Trade-offs
 
 - [Rule-based routing is in preview and may require a workload-profiles environment] → D3: probe with what-if first; if recreation is needed, do it in a maintenance window, documented in the README's deployment notes. Data is outside the environment.
