@@ -75,7 +75,7 @@ In Claude Code ask with `AskUserQuestion` (approve / change / reject). In other 
 1. Edit `GatewayRoutes.cs`: add or update the `ModuleRoute` entry with exactly the approved prefixes, in the order they were proposed. Make the same edit in `infra/gateway-routes.json`. A new module there also needs its Container App in `infra/main.bicep`, so the deployed gateway has a destination.
 2. If the module API is new to the AppHost, make sure its resource builder is the one `GatewayRoutes` resolves by resource name, and that the gateway `WaitFor`s it (the AppHost loop does this for every entry).
 3. Move or create the module's public endpoints under the approved prefixes if the proposal said so.
-4. Run the route-table tests: `dotnet test src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests`. Add a test case for each new prefix.
+4. Run the route-table tests: `dotnet test --project src/Aspire/HexMaster.Battleship.Aspire/HexMaster.Battleship.Aspire.Tests`. Add a test case for each new prefix.
 5. Record the routes in the change you are working on: a task line in its `tasks.md` and, when the change has specs, a scenario that a request under the new prefix reaches the module.
 
 A rejected or changed proposal goes back to the Route proposal step. Never add a prefix that was not approved, even if it would make a build or a test pass.

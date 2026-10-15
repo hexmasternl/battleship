@@ -10,9 +10,9 @@ public sealed class IntegrationEventEndpointsTests : IAsyncLifetime
 {
     private readonly DevBotApplicationFactory factory = new();
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public async Task DisposeAsync() => await factory.DisposeAsync();
+    public async ValueTask DisposeAsync() => await factory.DisposeAsync();
 
     [Fact]
     public async Task DaprSubscribe_ListsTheIntegrationEventsTopic()

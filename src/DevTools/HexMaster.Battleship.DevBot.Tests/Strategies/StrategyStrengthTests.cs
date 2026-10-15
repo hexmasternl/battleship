@@ -2,7 +2,6 @@ using System.Diagnostics;
 using HexMaster.Battleship.DevBot.Placement;
 using HexMaster.Battleship.DevBot.Strategies;
 using HexMaster.Battleship.Games.Abstractions.DataTransferObjects;
-using Xunit.Abstractions;
 
 namespace HexMaster.Battleship.DevBot.Tests.Strategies;
 

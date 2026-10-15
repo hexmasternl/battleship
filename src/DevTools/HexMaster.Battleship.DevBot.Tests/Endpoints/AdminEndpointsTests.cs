@@ -21,9 +21,9 @@ public sealed class AdminEndpointsTests : IAsyncLifetime
     private readonly DevBotApplicationFactory factory = new();
     private readonly string code = GameViewFactory.Code();
 
-    public Task InitializeAsync() => Task.CompletedTask;
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    public async Task DisposeAsync() => await factory.DisposeAsync();
+    public async ValueTask DisposeAsync() => await factory.DisposeAsync();
 
     [Fact]
     public async Task GetState_AtStart_ShowsTheDefaults()

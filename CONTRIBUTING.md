@@ -86,9 +86,9 @@ factories, and keeps coverage at 80% or more. The frontend uses Vitest with axe 
 checks.
 
 ```shell
-dotnet test src/Battleship.slnx --filter "Category!=Integration"   # fast backend tests
-dotnet test src/Battleship.slnx                                     # also the end-to-end tests (Docker + Dapr)
-cd src/Frontend && npm test -- --watch=false                        # frontend
+dotnet test --solution src/Battleship.slnx --filter-not-trait "Category=Integration"   # fast backend tests
+dotnet test --solution src/Battleship.slnx                                              # also the end-to-end tests (Docker + Dapr)
+cd src/Frontend && npm test -- --watch=false                                                 # frontend
 ```
 
 Table storage tests use Azurite on its default ports, or the connection string in

@@ -53,9 +53,9 @@ jobs:
       # The Integration category starts the whole AppHost with Docker and Dapr; it runs locally.
       - name: Test
         run: >-
-          dotnet test src/Battleship.slnx --no-build --configuration Release
-          --filter "Category!=Integration"
-          --logger "trx" --results-directory TestResults
+          dotnet test --solution src/Battleship.slnx --no-build --configuration Release
+          --filter-not-trait "Category=Integration"
+          --report-trx --results-directory ${{ github.workspace }}/TestResults
 
       - name: Upload test results
         if: always()
