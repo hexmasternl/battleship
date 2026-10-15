@@ -156,7 +156,8 @@ module gamesApi 'containerapp.bicep' = {
   }
 }
 
-// Internal: reached only through the environment's route configuration. Scales to zero when idle.
+// Internal: reached only through the environment's route configuration. Keeps one warm replica, so the
+// first player after a quiet period does not wait for a cold start.
 module usersApi 'containerapp.bicep' = {
   name: 'users-api'
   params: {
@@ -166,7 +167,7 @@ module usersApi 'containerapp.bicep' = {
     image: '${acrLoginServer}/battleship/users-api:${version}'
     targetPort: 8080
     external: false
-    minReplicas: 0
+    minReplicas: 1
     maxReplicas: 3
     daprAppId: 'users-api'
     identityId: identity.outputs.id
