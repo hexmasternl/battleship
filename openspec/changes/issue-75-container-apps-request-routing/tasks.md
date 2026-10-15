@@ -23,7 +23,7 @@
 
 ## 4. Deploy workflow
 
-- [ ] 4.1 In `.github/workflows/deploy.yml` read `backendUrl` instead of `gatewayUrl`, write it as `backendBaseUrl` into `frontend/config.json`, delete the `gateway` Container App when it still exists (`az containerapp delete --yes` guarded by `az containerapp show`), and print the app as `https://battleship.hexmaster.nl`, the backend URL and the Events API URL in the summary; verify with `actionlint` or `gh workflow view` that the workflow parses and that no step references `gateway-url`
+- [x] 4.1 In `.github/workflows/deploy.yml` read `backendUrl` instead of `gatewayUrl`, write it as `backendBaseUrl` into `frontend/config.json`, delete the `gateway` Container App when it still exists (`az containerapp delete --yes` guarded by `az containerapp show`), and print the app as `https://battleship.hexmaster.nl`, the backend URL and the Events API URL in the summary; verify with `actionlint` or `gh workflow view` that the workflow parses and that no step references `gateway-url`
 
 ## 5. Route sync skill
 
