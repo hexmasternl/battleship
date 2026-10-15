@@ -195,14 +195,12 @@ module eventsApi 'containerapp.bicep' = {
   }
 }
 
-// The frontend's only backend URL. The module APIs allow CORS only in Development, so the gateway's
-// ingress answers the browser's CORS requests for the frontend origin.
-module gateway 'gateway.bicep' = {
-  name: 'gateway'
+// The frontend's only backend URL: the environment routes each prefix of gateway-routes.json to the
+// module's internal Container App. The apps must exist before the rules can target them.
+module routing 'routing.bicep' = {
+  name: 'routing'
   params: {
-    location: location
-    environmentId: containerAppsEnvironment.outputs.id
-    frontendOrigin: frontendOrigin
+    environmentName: containerAppsEnvironment.outputs.name
   }
   dependsOn: [
     gamesApi
@@ -210,7 +208,7 @@ module gateway 'gateway.bicep' = {
   ]
 }
 
-output gatewayUrl string = gateway.outputs.url
+output backendUrl string = routing.outputs.backendUrl
 output eventsApiUrl string = 'https://${eventsApi.outputs.fqdn}'
 output staticWebAppName string = staticWebApp.outputs.name
 output staticWebAppHostname string = staticWebApp.outputs.defaultHostname

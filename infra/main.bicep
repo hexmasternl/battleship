@@ -62,7 +62,7 @@ module environment 'modules/environment.bicep' = {
 }
 
 output resourceGroupName string = resourceGroup.name
-output gatewayUrl string = environment.outputs.gatewayUrl
+output backendUrl string = environment.outputs.backendUrl
 output eventsApiUrl string = environment.outputs.eventsApiUrl
 output staticWebAppName string = environment.outputs.staticWebAppName
 output staticWebAppHostname string = environment.outputs.staticWebAppHostname
