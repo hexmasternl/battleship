@@ -15,7 +15,7 @@ resource environment 'Microsoft.App/managedEnvironments@2024-10-02-preview' exis
 }
 
 // One rule per module, one route per prefix. pathSeparatedPrefix matches whole segments only, so
-// /usersx never reaches users-api, and no prefixRewrite keeps the path as the API expects it.
+// /usersx never reaches users-api. No rewrite action: the path arrives as the API expects it.
 // Prefixes are single, unique segments (GatewayRoutes.Validate), so rule order cannot shadow a rule.
 resource routeConfig 'Microsoft.App/managedEnvironments/httpRouteConfigs@2024-10-02-preview' = {
   parent: environment

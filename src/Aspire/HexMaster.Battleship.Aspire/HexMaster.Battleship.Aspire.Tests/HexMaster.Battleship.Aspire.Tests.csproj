@@ -32,9 +32,11 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
-  <!-- The deployed gateway's route file, checked against GatewayRoutes by GatewayRoutesFileTests. -->
+  <!-- The deployment's route file and the Bicep that turns it into the environment's route configuration,
+       checked against GatewayRoutes by GatewayRoutesFileTests. -->
   <ItemGroup>
     <None Include="..\..\..\..\infra\gateway-routes.json" Link="gateway-routes.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\infra\modules\routing.bicep" Link="routing.bicep" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
