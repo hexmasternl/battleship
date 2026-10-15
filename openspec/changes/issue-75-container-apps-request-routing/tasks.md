@@ -3,7 +3,7 @@
 ## 1. Frontend custom hostname
 
 - [x] 1.1 Add `frontendHostname` (default `battleship.hexmaster.nl`) to `infra/main.bicep` and `infra/main.bicepparam`, pass it to `modules/environment.bicep`, and derive `frontendOrigin` from it instead of the Static Web App output; verify `az bicep build --file infra/main.bicep` succeeds and the Events API still receives `Events__AllowedOrigins__0 = https://battleship.hexmaster.nl` in the built template
-- [ ] 1.2 Declare the custom domain in `infra/modules/staticwebapp.bicep` (`Microsoft.Web/staticSites/customDomains`, `validationMethod: cname-delegation`) and keep `defaultHostname` as an output; verify `az bicep build` succeeds and the custom domain depends on the site
+- [x] 1.2 Declare the custom domain in `infra/modules/staticwebapp.bicep` (`Microsoft.Web/staticSites/customDomains`, `validationMethod: cname-delegation`) and keep `defaultHostname` as an output; verify `az bicep build` succeeds and the custom domain depends on the site
 - [ ] 1.3 Document the DNS record in `infra/README.md` (Azure setup: CNAME `battleship` to the Static Web App default hostname, created before the first deployment, how to read the default hostname from the deployment outputs) and add the parameter to the parameters table; verify the README reads correctly as rendered Markdown
 
 ## 2. Environment request routing

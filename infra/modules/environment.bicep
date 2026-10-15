@@ -67,6 +67,7 @@ module staticWebApp 'staticwebapp.bicep' = {
   params: {
     location: staticWebAppLocation
     suffix: suffix
+    hostname: frontendHostname
   }
 }
 
