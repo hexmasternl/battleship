@@ -178,8 +178,9 @@ module usersApi 'containerapp.bicep' = {
   }
 }
 
-// Public: the browser opens the event stream on it directly. Exactly one replica, because the
-// routing state of open streams lives in memory.
+// Internal: the browser opens the event stream through the environment's route configuration
+// (/events), which forwards the frontend origin unchanged, so the stream's own CORS policy allows it.
+// Exactly one replica, because the routing state of open streams lives in memory.
 module eventsApi 'containerapp.bicep' = {
   name: 'events-api'
   params: {
@@ -188,7 +189,7 @@ module eventsApi 'containerapp.bicep' = {
     environmentId: containerAppsEnvironment.outputs.id
     image: '${acrLoginServer}/battleship/events-api:${version}'
     targetPort: 8080
-    external: true
+    external: false
     minReplicas: 1
     maxReplicas: 1
     daprAppId: 'events-api'
@@ -215,10 +216,10 @@ module routing 'routing.bicep' = {
   dependsOn: [
     gamesApi
     usersApi
+    eventsApi
   ]
 }
 
 output backendUrl string = routing.outputs.backendUrl
-output eventsApiUrl string = 'https://${eventsApi.outputs.fqdn}'
 output staticWebAppName string = staticWebApp.outputs.name
 output staticWebAppHostname string = staticWebApp.outputs.defaultHostname

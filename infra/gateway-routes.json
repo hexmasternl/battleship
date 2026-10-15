@@ -10,6 +10,11 @@
       "module": "games",
       "app": "games-api",
       "prefixes": [ "games" ]
+    },
+    {
+      "module": "events",
+      "app": "events-api",
+      "prefixes": [ "events" ]
     }
   ]
 }
