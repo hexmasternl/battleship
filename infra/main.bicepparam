@@ -5,6 +5,7 @@ using 'main.bicep'
 param resourceGroupName = 'battleship-production'
 param location = 'westeurope'
 param staticWebAppLocation = 'westeurope'
+param frontendHostname = 'battleship.hexmaster.nl'
 param topics = [
   'integration-events'
 ]

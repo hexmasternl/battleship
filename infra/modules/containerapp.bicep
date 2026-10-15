@@ -1,5 +1,5 @@
-// One Container App. Used for the APIs (registry image, Dapr sidecar, managed identity) and for the
-// gateway (public image, no sidecar); the optional parts are left out when their parameters are empty.
+// One Container App for an API: registry image, Dapr sidecar and managed identity. The optional parts
+// are left out when their parameters are empty.
 param name string
 param location string
 param environmentId string
@@ -31,9 +31,6 @@ param secrets object = {}
 
 @description('Environment variables read from secrets, as { name, secretRef } items.')
 param secretEnv array = []
-
-@description('Origins the ingress answers CORS requests for; empty leaves CORS to the app.')
-param corsAllowedOrigins array = []
 
 var registryPasswordSecretName = 'registry-password'
 
@@ -68,16 +65,6 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
         targetPort: targetPort
         transport: 'http'
         allowInsecure: !external
-        corsPolicy: empty(corsAllowedOrigins) ? null : {
-          allowedOrigins: corsAllowedOrigins
-          allowedMethods: [
-            '*'
-          ]
-          allowedHeaders: [
-            '*'
-          ]
-          maxAge: 600
-        }
       }
       dapr: empty(daprAppId) ? null : {
         enabled: true

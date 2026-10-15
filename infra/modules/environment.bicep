@@ -1,7 +1,12 @@
-// Everything inside the resource group: shared resources, the Container Apps environment, the APIs,
-// the gateway and the Static Web App. Container App names equal their Dapr app ids, as locally.
+// Everything inside the resource group: shared resources, the Container Apps environment with its
+// route configuration, the APIs and the Static Web App. Container App names equal their Dapr app ids,
+// as locally.
 param location string
 param staticWebAppLocation string
+
+@description('Custom hostname the frontend is served on; the only origin the APIs allow browsers from.')
+param frontendHostname string
+
 param version string
 param acrLoginServer string
 param acrUsername string
@@ -63,6 +68,7 @@ module staticWebApp 'staticwebapp.bicep' = {
   params: {
     location: staticWebAppLocation
     suffix: suffix
+    hostname: frontendHostname
   }
 }
 
@@ -80,8 +86,8 @@ module containerAppsEnvironment 'containerapps-env.bicep' = {
 }
 
 
-// The browser loads the app from here; the gateway ingress and the Events API allow only this origin.
-var frontendOrigin = 'https://${staticWebApp.outputs.defaultHostname}'
+// The browser loads the app from here; the APIs allow cross-origin requests from this origin only.
+var frontendOrigin = 'https://${frontendHostname}'
 
 // Settings every API shares: the managed identity for the Azure SDK and the telemetry destination.
 var apiEnv = [
@@ -103,6 +109,15 @@ var tablesEnv = [
   }
 ]
 
+// The Users and Games APIs answer the browser's CORS requests themselves (GatewayCorsExtensions in
+// ServiceDefaults), for the frontend origin only.
+var gatewayCorsEnv = [
+  {
+    name: 'Gateway__AllowedOrigins'
+    value: frontendOrigin
+  }
+]
+
 var signingKeyEnv = [
   {
     name: 'Users__Tokens__SigningKey'
@@ -118,8 +133,8 @@ var apiSecrets = union(registrySecrets, {
   'users-signing-key': signingKey
 })
 
-// Internal: reached only through the gateway. Stays at one replica, because the game-cleanup cron
-// binding lives in its sidecar.
+// Internal: reached only through the environment's route configuration. Stays at one replica, because
+// the game-cleanup cron binding lives in its sidecar.
 module gamesApi 'containerapp.bicep' = {
   name: 'games-api'
   params: {
@@ -135,13 +150,13 @@ module gamesApi 'containerapp.bicep' = {
     identityId: identity.outputs.id
     registryServer: acrLoginServer
     registryUsername: acrUsername
-    env: concat(apiEnv, tablesEnv)
+    env: concat(apiEnv, tablesEnv, gatewayCorsEnv)
     secrets: apiSecrets
     secretEnv: signingKeyEnv
   }
 }
 
-// Internal: reached only through the gateway. Scales to zero when idle.
+// Internal: reached only through the environment's route configuration. Scales to zero when idle.
 module usersApi 'containerapp.bicep' = {
   name: 'users-api'
   params: {
@@ -157,14 +172,15 @@ module usersApi 'containerapp.bicep' = {
     identityId: identity.outputs.id
     registryServer: acrLoginServer
     registryUsername: acrUsername
-    env: concat(apiEnv, tablesEnv)
+    env: concat(apiEnv, tablesEnv, gatewayCorsEnv)
     secrets: apiSecrets
     secretEnv: signingKeyEnv
   }
 }
 
-// Public: the browser opens the event stream on it directly. Exactly one replica, because the
-// routing state of open streams lives in memory.
+// Internal: the browser opens the event stream through the environment's route configuration
+// (/events), which forwards the frontend origin unchanged, so the stream's own CORS policy allows it.
+// Exactly one replica, because the routing state of open streams lives in memory.
 module eventsApi 'containerapp.bicep' = {
   name: 'events-api'
   params: {
@@ -173,7 +189,7 @@ module eventsApi 'containerapp.bicep' = {
     environmentId: containerAppsEnvironment.outputs.id
     image: '${acrLoginServer}/battleship/events-api:${version}'
     targetPort: 8080
-    external: true
+    external: false
     minReplicas: 1
     maxReplicas: 1
     daprAppId: 'events-api'
@@ -190,22 +206,20 @@ module eventsApi 'containerapp.bicep' = {
   }
 }
 
-// The frontend's only backend URL. The module APIs allow CORS only in Development, so the gateway's
-// ingress answers the browser's CORS requests for the frontend origin.
-module gateway 'gateway.bicep' = {
-  name: 'gateway'
+// The frontend's only backend URL: the environment routes each prefix of gateway-routes.json to the
+// module's internal Container App. The apps must exist before the rules can target them.
+module routing 'routing.bicep' = {
+  name: 'routing'
   params: {
-    location: location
-    environmentId: containerAppsEnvironment.outputs.id
-    frontendOrigin: frontendOrigin
+    environmentName: containerAppsEnvironment.outputs.name
   }
   dependsOn: [
     gamesApi
     usersApi
+    eventsApi
   ]
 }
 
-output gatewayUrl string = gateway.outputs.url
-output eventsApiUrl string = 'https://${eventsApi.outputs.fqdn}'
+output backendUrl string = routing.outputs.backendUrl
 output staticWebAppName string = staticWebApp.outputs.name
 output staticWebAppHostname string = staticWebApp.outputs.defaultHostname

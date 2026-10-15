@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 75
+url: https://github.com/hexmasternl/battleship/issues/75
+title: "Serve the frontend on battleship.hexmaster.nl, replace the gateway Container App with Container Apps request routing and backend CORS"
+linked: 2026-10-15

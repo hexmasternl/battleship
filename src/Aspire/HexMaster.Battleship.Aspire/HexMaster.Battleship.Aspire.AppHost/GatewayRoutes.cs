@@ -16,6 +16,7 @@ internal static class GatewayRoutes
 {
     public const string UsersApi = "hexmaster-battleship-users-api";
     public const string GamesApi = "hexmaster-battleship-games-api";
+    public const string EventsApi = "hexmaster-battleship-events-api";
 
     // First path segments the module APIs use for platform, diagnostics and scheduled maintenance
     // endpoints (the Games cleanup a Dapr cron binding posts to /maintenance). They stay
@@ -37,6 +38,8 @@ internal static class GatewayRoutes
     [
         new("users", UsersApi, ["users"]),
         new("games", GamesApi, ["games"]),
+        // The server-sent event stream. Its heartbeat keeps the connection below proxy idle timeouts.
+        new("events", EventsApi, ["events"]),
     ];
 
     /// <summary>The YARP route path for a prefix.</summary>
