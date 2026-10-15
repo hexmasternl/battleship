@@ -2,6 +2,10 @@
 // the gateway and the Static Web App. Container App names equal their Dapr app ids, as locally.
 param location string
 param staticWebAppLocation string
+
+@description('Custom hostname the frontend is served on; the only origin the APIs allow browsers from.')
+param frontendHostname string
+
 param version string
 param acrLoginServer string
 param acrUsername string
@@ -80,8 +84,8 @@ module containerAppsEnvironment 'containerapps-env.bicep' = {
 }
 
 
-// The browser loads the app from here; the gateway ingress and the Events API allow only this origin.
-var frontendOrigin = 'https://${staticWebApp.outputs.defaultHostname}'
+// The browser loads the app from here; the APIs allow cross-origin requests from this origin only.
+var frontendOrigin = 'https://${frontendHostname}'
 
 // Settings every API shares: the managed identity for the Azure SDK and the telemetry destination.
 var apiEnv = [
