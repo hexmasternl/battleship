@@ -569,8 +569,8 @@ readouts, and **Bitcount Single** for mission text. Every colour, size and effec
 ## Testing
 
 ```shell
-dotnet test src/Battleship.slnx      # every backend test project
-cd src/Frontend && npm test           # Vitest + axe accessibility checks
+dotnet test --solution src/Battleship.slnx   # every backend test project
+cd src/Frontend && npm test                   # Vitest + axe accessibility checks
 ```
 
 > [!NOTE]

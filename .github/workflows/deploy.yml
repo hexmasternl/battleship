@@ -92,9 +92,9 @@ jobs:
       # The Integration category starts the whole AppHost with Docker and Dapr; it runs locally.
       - name: Build and test
         run: >-
-          dotnet test ${{ matrix.tests }} --configuration Release
-          --filter "Category!=Integration"
-          --logger "trx" --results-directory TestResults
+          dotnet test --project ${{ matrix.tests }} --configuration Release
+          --filter-not-trait "Category=Integration"
+          --report-trx --results-directory ${{ github.workspace }}/TestResults
 
       - name: Upload test results
         if: always()
