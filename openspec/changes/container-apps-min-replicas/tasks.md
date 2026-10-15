@@ -7,4 +7,4 @@
 
 ## 2. Integration
 
-- [ ] 2.1 Run `az deployment sub what-if` against `battleship-production`; verify the only scale change it reports is `users-api` `minReplicas` 0 to 1
+- [x] 2.1 Run `az deployment sub what-if` against `battleship-production`; verify the only scale change it reports is `users-api` `minReplicas` 0 to 1
