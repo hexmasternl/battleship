@@ -27,7 +27,7 @@
 
 ## 5. Route sync skill
 
-- [ ] 5.1 Write `.claude/skills/container-apps-route-sync/SKILL.md` (owns `infra/gateway-routes.json` and `infra/modules/routing.bicep`; regenerate from `GatewayRoutes.Modules`; verify with the Aspire tests and, when signed in, `az containerapp env http-route-config show` compared per module and prefix; triggers and report format) and copy it verbatim to `.github/skills/container-apps-route-sync/SKILL.md`; verify the `sync-agent-config` check reports no drift
+- [x] 5.1 Write `.claude/skills/container-apps-route-sync/SKILL.md` (owns `infra/gateway-routes.json` and `infra/modules/routing.bicep`; regenerate from `GatewayRoutes.Modules`; verify with the Aspire tests and, when signed in, `az containerapp env http-route-config show` compared per module and prefix; triggers and report format) and copy it verbatim to `.github/skills/container-apps-route-sync/SKILL.md`; verify the `sync-agent-config` check reports no drift
 - [ ] 5.2 Update both copies of `yarp-gateway-routes/SKILL.md`: the deployment copy is owned by `container-apps-route-sync`, "After approval" delegates to it, and the description no longer names `gateway-routes.json` as its own; verify both copies are identical and the `sync-agent-config` check passes
 - [ ] 5.3 Add a paragraph for the new skill to `CLAUDE.md` and `.github/copilot-instructions.md` next to the gateway routes paragraph, and reword the gateway paragraph so it describes the local gateway and the environment routes; verify both files name both skills with the correct paths
 
