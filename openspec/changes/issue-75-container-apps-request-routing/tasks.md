@@ -39,5 +39,5 @@
 
 ## 6. Integration
 
-- [ ] 6.1 Build and test the solution from the worktree (`dotnet build src/Battleship.slnx`, `dotnet test` per test project as in `ci.yml`) and `az bicep build --file infra/main.bicep`; verify all green
+- [x] 6.1 Build and test the solution from the worktree (`dotnet build src/Battleship.slnx`, `dotnet test` per test project as in `ci.yml`) and `az bicep build --file infra/main.bicep`; verify all green
 - [ ] 6.2 After the pull request is merged and deployed, verify in the browser that `https://battleship.hexmaster.nl` loads over HTTPS, a game can be created and joined (Users and Games calls through `backend.<env>` succeed with their preflights), the event stream connects, and the `gateway` Container App no longer exists in the resource group; record the result on the issue
