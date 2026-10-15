@@ -1,7 +1,8 @@
 // Starts the dev server the way the Aspire AppHost expects (npm script `start:aspire`).
-// Aspire passes the YARP gateway URL in BACKEND_GATEWAY_URL, the Events API URL in EVENTS_API_URL
-// and the port to serve on in PORT. Both URLs are written to public/config.json, which the app
-// loads at runtime, so the changing ports never end up in the bundle or in a committed file.
+// Aspire passes the YARP gateway URL in BACKEND_GATEWAY_URL, the base URL of the event stream in
+// EVENTS_API_URL (the gateway's as well, since it routes /events) and the port to serve on in PORT.
+// Both URLs are written to public/config.json, which the app loads at runtime, so the changing
+// ports never end up in the bundle or in a committed file.
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -54,7 +55,7 @@ function main() {
     console.warn(
       'aspire-start: the environment variable EVENTS_API_URL is not set, so config.json gets no ' +
         'eventsBaseUrl and the app opens no event stream. The Aspire AppHost sets it to the ' +
-        'Events API endpoint.',
+        'gateway endpoint, which routes the stream.',
     );
   }
 

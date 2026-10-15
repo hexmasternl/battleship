@@ -16,10 +16,10 @@ All resources live in the resource group `battleship-production` in `westeurope`
 | Storage account | `stbattleship<unique>` | Tables of the Users and Games APIs. Shared-key access is disabled |
 | Service Bus namespace (Standard) | `sb-battleship-<unique>` | Topic `integration-events` behind the Dapr `pubsub` component |
 | Container Apps environment | `cae-battleship-production` | Holds the Dapr components `pubsub` (Service Bus topics) and `game-cleanup` (cron, daily) |
-| HTTP route configuration | `backend` on the environment | The backend address of the frontend (`https://backend.<environment domain>`). Routes each prefix of `gateway-routes.json` to its module's Container App with the path unchanged, exactly as the local YARP gateway does. No other address reaches the Users and Games APIs |
+| HTTP route configuration | `backend` on the environment | The backend address of the frontend (`https://backend.<environment domain>`). Routes each prefix of `gateway-routes.json` (`/users`, `/games`, `/events`) to its module's Container App with the path unchanged, exactly as the local YARP gateway does. No other address reaches the APIs |
 | Container App `games-api` | internal | `battleship/games-api:<version>`. One replica minimum, because the cleanup binding runs in its sidecar. Allows browsers from the frontend origin |
 | Container App `users-api` | internal | `battleship/users-api:<version>`. Scales to zero. Allows browsers from the frontend origin |
-| Container App `events-api` | public | `battleship/events-api:<version>`. Exactly one replica: stream routing state is in memory. Allows the event stream from the frontend origin |
+| Container App `events-api` | internal | `battleship/events-api:<version>`. Exactly one replica: stream routing state is in memory. Serves the server-sent event stream through the route configuration; its 15-second heartbeat keeps the stream below the ingress idle timeout. Allows the stream from the frontend origin |
 | Static Web App (Free) | `stapp-battleship-production` | Serves the Angular frontend on `battleship.hexmaster.nl` (custom domain with a managed certificate) |
 
 There is no gateway Container App. Earlier releases ran one; the deploy workflow deletes it when it still exists.

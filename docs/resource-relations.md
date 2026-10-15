@@ -49,10 +49,10 @@ The references above make one round trip possible: a player fires a shot, and bo
 The same flow, step by step:
 
 1. **Browser to gateway.** The Angular app calls a relative URL such as `/api/games/K7Q2M9XA/shots`. An interceptor sends it to the gateway URL the AppHost gave the `frontend`.
-2. **Gateway to the APIs.** YARP routes each first path segment to the API that owns it: `/users` to `hexmaster-battleship-users-api` and `/games` to `hexmaster-battleship-games-api`.
+2. **Gateway to the APIs.** YARP routes each first path segment to the API that owns it: `/users` to `hexmaster-battleship-users-api`, `/games` to `hexmaster-battleship-games-api` and `/events` to `hexmaster-battleship-events-api`.
 3. **API to pub/sub.** The Games API records the shot and publishes an integration event, such as `game.shot-fired.v1`, through its Dapr sidecar to the topic `integration-events` on the `pubsub` component, which runs on RabbitMQ. Today the Games API is the only publisher. The Users API has a sidecar with the same component, but publishes no events yet.
 4. **Pub/sub to the Events API.** The sidecar of `hexmaster-battleship-events-api` receives the event from its subscription to `integration-events` and hands it to the Events API.
-5. **Events API to the browser.** The Events API pushes the event over server-sent events to the browsers it targets. The browser opens this stream at `GET /events` directly on the Events API, not through the gateway.
+5. **Events API to the browser.** The Events API pushes the event over server-sent events to the browsers it targets. The browser opens this stream at `GET /events` through the gateway, like every other backend call; the stream's heartbeat keeps the connection alive across the proxy.
 
 ## WaitFor: start-up order
 
@@ -65,7 +65,7 @@ var usersApi = builder.AddProject<Projects.HexMaster_Battleship_Users_Api>(Gatew
     .WaitFor(tables);
 ```
 
-![The start-up order: tables and messaging start first; users-api and games-api wait for both, events-api waits for messaging; the gateway waits for users-api and games-api; the frontend and the devbot wait for the gateway.](assets/help-startup-order.svg)
+![The start-up order: tables and messaging start first; users-api and games-api wait for both, events-api waits for messaging; the gateway waits for users-api, games-api and events-api; the frontend and the devbot wait for the gateway.](assets/help-startup-order.svg)
 
 These are all the `WaitFor` relations in `AppHost.cs`:
 
@@ -74,10 +74,10 @@ These are all the `WaitFor` relations in `AppHost.cs`:
 | `hexmaster-battleship-users-api` | `messaging`, `tables` |
 | `hexmaster-battleship-games-api` | `messaging`, `tables` |
 | `hexmaster-battleship-events-api` | `messaging` |
-| `gateway` | `hexmaster-battleship-users-api`, `hexmaster-battleship-games-api` |
+| `gateway` | `hexmaster-battleship-users-api`, `hexmaster-battleship-games-api`, `hexmaster-battleship-events-api` |
 | `frontend` | `gateway` |
 | `devbot` | `gateway` |
 
 The result is a start-up in four stages: the containers, then the APIs, then the gateway, then the frontend and the dev bot. Without `WaitFor`, an API and its sidecar could start while RabbitMQ or the table storage emulator is still starting, and fail their first connections.
 
-A reference and `WaitFor` are separate decisions. The APIs wait for `messaging` without referencing it, and the Events API is not behind the gateway, so the gateway does not wait for it.
+A reference and `WaitFor` are separate decisions. The APIs wait for `messaging` without referencing it, and the gateway waits for every API it routes to, including the Events API, so the frontend never opens a stream before the Events API is up.

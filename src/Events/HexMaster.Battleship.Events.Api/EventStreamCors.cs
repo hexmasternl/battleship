@@ -1,7 +1,8 @@
 namespace HexMaster.Battleship.Events.Api;
 
-// The browser connects to GET /events directly (a dev-server proxy would buffer the stream),
-// so the stream allows the frontend origins listed under Events:AllowedOrigins.
+// The browser opens GET /events through the gateway, which forwards the browser's origin unchanged
+// (the Angular dev-server proxy is not used: it would buffer the stream), so the stream allows the
+// frontend origins listed under Events:AllowedOrigins.
 public static class EventStreamCors
 {
     public const string PolicyName = "event-stream";

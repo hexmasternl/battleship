@@ -35,7 +35,7 @@
 
 - [x] 7.1 Add the `events` module (`hexmaster-battleship-events-api`, prefix `events`) to `GatewayRoutes`, register the Events API in the AppHost's module map so the YARP gateway routes `/events/{**catch-all}` and waits for it, and pass the gateway endpoint to the frontend as `EVENTS_API_URL`; update `GatewayRoutesTests` and `FrontendResourceTests`; verify the Aspire tests pass
 - [x] 7.2 Add the `events` module to `infra/gateway-routes.json`, switch `events-api` to internal ingress in `environment.bicep`, drop the `eventsApiUrl` outputs, and have `deploy.yml` write the backend URL as `eventsBaseUrl`; verify `az bicep build` succeeds, the Aspire tests pass and `actionlint` is clean
-- [ ] 7.3 Update the AppHost comments, `src/Frontend/README.md` (events section) and `infra/README.md` (events-api row, route table description) so they describe the stream going through the gateway and the backend route; verify no document still says the browser opens the stream on the Events API directly
+- [x] 7.3 Update the AppHost comments, `src/Frontend/README.md` (events section) and `infra/README.md` (events-api row, route table description) so they describe the stream going through the gateway and the backend route; verify no document still says the browser opens the stream on the Events API directly
 
 ## 6. Integration
 
