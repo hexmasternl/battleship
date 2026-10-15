@@ -8,10 +8,9 @@ namespace HexMaster.Battleship.Aspire.Tests;
 [Collection(AppHostModelCollection.Name)]
 public sealed class FrontendResourceTests
 {
-    private const string EventsApiResourceName = "hexmaster-battleship-events-api";
-
+    // The event stream goes through the gateway too, so both URLs the frontend receives are the gateway's.
     [Fact]
-    public async Task Frontend_ReceivesTheGatewayAndEventsApiEndpoints()
+    public async Task Frontend_ReceivesTheGatewayEndpointForBackendAndEvents()
     {
         await using var builder = await DistributedApplicationTestingBuilder.CreateAsync(typeof(GatewayRoutes), [], (_, _) => { });
         var frontend = Assert.Single(builder.Resources, r => r.Name == "frontend");
@@ -21,12 +20,12 @@ public sealed class FrontendResourceTests
         var gateway = Assert.IsType<EndpointReference>(environment["BACKEND_GATEWAY_URL"]);
         Assert.Equal("gateway", gateway.Resource.Name);
         var events = Assert.IsType<EndpointReference>(environment["EVENTS_API_URL"]);
-        Assert.Equal(EventsApiResourceName, events.Resource.Name);
+        Assert.Equal("gateway", events.Resource.Name);
         Assert.Equal("http", events.EndpointName);
     }
 
     [Fact]
-    public async Task Frontend_WaitsForTheGatewayAndTheEventsApi()
+    public async Task Frontend_WaitsForTheGateway()
     {
         await using var builder = await DistributedApplicationTestingBuilder.CreateAsync(typeof(GatewayRoutes), [], (_, _) => { });
         var frontend = Assert.Single(builder.Resources, r => r.Name == "frontend");
@@ -34,7 +33,20 @@ public sealed class FrontendResourceTests
         var waits = frontend.Annotations.OfType<WaitAnnotation>().Select(w => w.Resource.Name).ToArray();
 
         Assert.Contains("gateway", waits);
-        Assert.Contains(EventsApiResourceName, waits);
+    }
+
+    [Fact]
+    public async Task Gateway_WaitsForEveryModuleApi()
+    {
+        await using var builder = await DistributedApplicationTestingBuilder.CreateAsync(typeof(GatewayRoutes), [], (_, _) => { });
+        var gateway = Assert.Single(builder.Resources, r => r.Name == "gateway");
+
+        var waits = gateway.Annotations.OfType<WaitAnnotation>().Select(w => w.Resource.Name).ToArray();
+
+        foreach (var module in GatewayRoutes.Modules)
+        {
+            Assert.Contains(module.ApiResourceName, waits);
+        }
     }
 
     // Runs the environment callbacks that set values without a running application; the others are skipped.

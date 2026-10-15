@@ -107,7 +107,7 @@ var usersApi = builder.AddProject<Projects.HexMaster_Battleship_Users_Api>(Gatew
 
 // Pushes integration events to browsers over server-sent events. Routing state lives in the
 // process, so the service runs as a single instance.
-var eventsApi = builder.AddProject<Projects.HexMaster_Battleship_Events_Api>("hexmaster-battleship-events-api")
+var eventsApi = builder.AddProject<Projects.HexMaster_Battleship_Events_Api>(GatewayRoutes.EventsApi)
     .WithDaprSidecar(sidecar => sidecar
         .WithOptions(new DaprSidecarOptions { AppId = "events-api", Config = daprConfig })
         .WithReference(pubsub))
@@ -121,6 +121,7 @@ Dictionary<string, IResourceBuilder<ProjectResource>> moduleApis = new()
 {
     [GatewayRoutes.GamesApi] = gamesApi,
     [GatewayRoutes.UsersApi] = usersApi,
+    [GatewayRoutes.EventsApi] = eventsApi,
 };
 
 GatewayRoutes.Validate(GatewayRoutes.Modules);
@@ -148,14 +149,13 @@ foreach (var api in moduleApis.Values)
 }
 
 // The Angular app. `start:aspire` writes the gateway URL into the runtime config.json the app
-// loads at start-up (ng serve cannot read environment variables) and serves on PORT. The Events API
-// URL travels the same way, because the browser opens the event stream on it directly.
+// loads at start-up (ng serve cannot read environment variables) and serves on PORT. The event
+// stream travels through the gateway as well (GET /events), so both URLs are the gateway's.
 var frontend = builder.AddJavaScriptApp("frontend", "../../../Frontend", "start:aspire")
     .WithHttpEndpoint(env: "PORT")
     .WithEnvironment("BACKEND_GATEWAY_URL", gateway.GetEndpoint("http"))
-    .WithEnvironment("EVENTS_API_URL", eventsApi.GetEndpoint("http"))
-    .WaitFor(gateway)
-    .WaitFor(eventsApi);
+    .WithEnvironment("EVENTS_API_URL", gateway.GetEndpoint("http"))
+    .WaitFor(gateway);
 
 // The browser calls the gateway from the frontend's origin, so each API allows exactly that
 // origin for this run (see GatewayCorsExtensions in ServiceDefaults).
@@ -164,8 +164,9 @@ foreach (var api in moduleApis.Values)
     api.WithEnvironment("Gateway__AllowedOrigins", frontend.GetEndpoint("http"));
 }
 
-// The Events API is not behind the gateway yet: the browser opens its stream directly, so its
-// own CORS policy must allow the frontend origin of this run (and plain ng serve on 4200).
+// The event stream has its own CORS policy (GET plus the EventSource headers), which must allow
+// the frontend origin of this run (and plain ng serve on 4200) because the gateway forwards the
+// browser's origin unchanged.
 eventsApi
     .WithEnvironment("Events__AllowedOrigins__0", frontend.GetEndpoint("http"))
     .WithEnvironment("Events__AllowedOrigins__1", "http://localhost:4200");

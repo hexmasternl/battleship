@@ -31,6 +31,12 @@
 - [ ] 5.2 Update both copies of `yarp-gateway-routes/SKILL.md`: the deployment copy is owned by `container-apps-route-sync`, "After approval" delegates to it, and the description no longer names `gateway-routes.json` as its own; verify both copies are identical and the `sync-agent-config` check passes
 - [ ] 5.3 Add a paragraph for the new skill to `CLAUDE.md` and `.github/copilot-instructions.md` next to the gateway routes paragraph, and reword the gateway paragraph so it describes the local gateway and the environment routes; verify both files name both skills with the correct paths
 
+## 7. Event stream through the proxies (route approved 2026-10-15)
+
+- [x] 7.1 Add the `events` module (`hexmaster-battleship-events-api`, prefix `events`) to `GatewayRoutes`, register the Events API in the AppHost's module map so the YARP gateway routes `/events/{**catch-all}` and waits for it, and pass the gateway endpoint to the frontend as `EVENTS_API_URL`; update `GatewayRoutesTests` and `FrontendResourceTests`; verify the Aspire tests pass
+- [ ] 7.2 Add the `events` module to `infra/gateway-routes.json`, switch `events-api` to internal ingress in `environment.bicep`, drop the `eventsApiUrl` outputs, and have `deploy.yml` write the backend URL as `eventsBaseUrl`; verify `az bicep build` succeeds, the Aspire tests pass and `actionlint` is clean
+- [ ] 7.3 Update the AppHost comments, `src/Frontend/README.md` (events section) and `infra/README.md` (events-api row, route table description) so they describe the stream going through the gateway and the backend route; verify no document still says the browser opens the stream on the Events API directly
+
 ## 6. Integration
 
 - [ ] 6.1 Build and test the solution from the worktree (`dotnet build src/Battleship.slnx`, `dotnet test` per test project as in `ci.yml`) and `az bicep build --file infra/main.bicep`; verify all green

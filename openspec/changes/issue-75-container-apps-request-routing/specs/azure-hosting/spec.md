@@ -3,15 +3,19 @@
 ## MODIFIED Requirements
 
 ### Requirement: The APIs and gateway run as Container Apps
-The Games, Users and Events APIs SHALL each run as a Container App in one Container Apps environment. The APIs SHALL pull their images from the existing registry with its credentials. Only the Events API SHALL accept traffic on its own address from the internet; the Games and Users APIs SHALL be reachable only inside the environment and through the environment's route configuration. No gateway Container App SHALL run in the environment.
+The Games, Users and Events APIs SHALL each run as a Container App in one Container Apps environment. The APIs SHALL pull their images from the existing registry with its credentials. No API SHALL accept traffic on its own address from the internet; all three SHALL be reachable only inside the environment and through the environment's route configuration. No gateway Container App SHALL run in the environment.
 
 #### Scenario: Module APIs are not public on their own address
-- **WHEN** someone on the internet calls the Games or Users API on the app's own address
+- **WHEN** someone on the internet calls the Games, Users or Events API on the app's own address
 - **THEN** the request does not reach the API
 
 #### Scenario: Environment routes to the modules
-- **WHEN** the frontend calls `<backend>/users/...` or `<backend>/games/...` on the environment's route configuration address
-- **THEN** the environment forwards it to the Users or Games API with the path unchanged
+- **WHEN** the frontend calls `<backend>/users/...`, `<backend>/games/...` or `<backend>/events?...` on the environment's route configuration address
+- **THEN** the environment forwards it to the Users, Games or Events API with the path unchanged
+
+#### Scenario: Event stream stays open through the route
+- **WHEN** the frontend opens the server-sent event stream at `<backend>/events?userId=<id>`
+- **THEN** the stream stays open across idle periods, because the heartbeat arrives before the proxy's idle timeout, and events reach the browser
 
 #### Scenario: No gateway app
 - **WHEN** the templates are deployed
