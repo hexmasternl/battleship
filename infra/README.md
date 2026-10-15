@@ -36,6 +36,7 @@ All resources live in the resource group `battleship-production` in `westeurope`
 | `resourceGroupName` | `main.bicepparam` | Default `battleship-production` |
 | `location` | `main.bicepparam` | Default `westeurope` |
 | `staticWebAppLocation` | `main.bicepparam` | Default `westeurope`. Static Web Apps exist only in a few regions |
+| `frontendHostname` | `main.bicepparam` | Default `battleship.hexmaster.nl`. The custom hostname of the Static Web App and the only origin the APIs allow browsers from. Its CNAME record must exist before the deployment (see Azure setup) |
 | `topics` | `main.bicepparam` | Default `integration-events`. Add a topic here together with the code that publishes to it |
 | `gameCleanupSchedule` | `main.bicepparam` | Default `@daily` |
 | `version` | workflow | The release version computed by GitVersion; the tag of every image |
@@ -73,6 +74,10 @@ Before the first deployment:
    - **Owner**
    - **Contributor** plus **Role Based Access Control Administrator**
 3. **Register the resource providers:** `Microsoft.App`, `Microsoft.ServiceBus`, `Microsoft.Storage`, `Microsoft.Web`, `Microsoft.OperationalInsights`, `Microsoft.Insights` and `Microsoft.ManagedIdentity`. Registration is a one-time step per subscription, for example `az provider register --namespace Microsoft.App`.
+4. **Create the DNS record for the frontend hostname.** The deployment binds `frontendHostname` (`battleship.hexmaster.nl`) to the Static Web App and validates it through a CNAME, so the record must exist first:
+   - In the `hexmaster.nl` zone, add `CNAME battleship -> <default hostname of the Static Web App>`.
+   - The default hostname (`stapp-battleship-production.<hash>.azurestaticapps.net`) is the `staticWebAppHostname` output of every deployment. On a fresh subscription it does not exist yet: run the deployment once, let it fail on the custom domain, read the output from the resource group's deployment history (or `az staticwebapp show --name stapp-battleship-production --resource-group battleship-production --query defaultHostname`), create the record and run the deployment again.
+   - Azure issues the certificate after validation; it can take a few minutes before `https://battleship.hexmaster.nl` serves without a warning.
 
 ## Running it by hand
 
