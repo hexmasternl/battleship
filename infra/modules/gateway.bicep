@@ -32,8 +32,10 @@ var clusterEnv = map(routes.modules, module => {
   value: 'http://${module.app}'
 })
 
+// The deployment name must differ from the outer 'gateway' module in environment.bicep: ARM rejects a
+// nested deployment that reuses its parent's name with DeploymentActive.
 module gateway 'containerapp.bicep' = {
-  name: 'gateway'
+  name: 'gateway-containerapp'
   params: {
     name: 'gateway'
     location: location
