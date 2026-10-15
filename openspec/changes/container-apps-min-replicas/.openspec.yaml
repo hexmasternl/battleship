@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-15
+skip_specs: true
+goal: Keep at least one replica of every Container App running
+affected_areas:
+  - aspire
