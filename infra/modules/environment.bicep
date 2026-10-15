@@ -1,5 +1,6 @@
-// Everything inside the resource group: shared resources, the Container Apps environment, the APIs,
-// the gateway and the Static Web App. Container App names equal their Dapr app ids, as locally.
+// Everything inside the resource group: shared resources, the Container Apps environment with its
+// route configuration, the APIs and the Static Web App. Container App names equal their Dapr app ids,
+// as locally.
 param location string
 param staticWebAppLocation string
 
@@ -123,8 +124,8 @@ var apiSecrets = union(registrySecrets, {
   'users-signing-key': signingKey
 })
 
-// Internal: reached only through the gateway. Stays at one replica, because the game-cleanup cron
-// binding lives in its sidecar.
+// Internal: reached only through the environment's route configuration. Stays at one replica, because
+// the game-cleanup cron binding lives in its sidecar.
 module gamesApi 'containerapp.bicep' = {
   name: 'games-api'
   params: {
@@ -146,7 +147,7 @@ module gamesApi 'containerapp.bicep' = {
   }
 }
 
-// Internal: reached only through the gateway. Scales to zero when idle.
+// Internal: reached only through the environment's route configuration. Scales to zero when idle.
 module usersApi 'containerapp.bicep' = {
   name: 'users-api'
   params: {
