@@ -103,6 +103,7 @@ jobs:
           name: test-results-${{ matrix.module }}
           path: TestResults
           if-no-files-found: ignore
+          retention-days: 7
 
   verify-frontend:
     name: Verify frontend
@@ -192,6 +193,7 @@ jobs:
           name: frontend
           path: src/Frontend/dist/battleship/browser
           if-no-files-found: error
+          retention-days: 7
 
   deploy:
     name: Deploy to production
