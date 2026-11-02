@@ -64,6 +64,7 @@ jobs:
           name: backend-test-results
           path: TestResults
           if-no-files-found: ignore
+          retention-days: 7
 
   frontend:
     name: Frontend build and tests
