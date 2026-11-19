@@ -31,6 +31,6 @@
 
 ## 6. Documentation
 
-- [ ] 6.1 Rewrite the README Quick start into "Option A: dev container (recommended)" and "Option B: install the tools", keeping the existing prerequisites table, `dapr init` and the launch command (local-messaging delta); verify the README still lists Docker, the Dapr CLI, `dapr init` and `aspire run`, and that its links resolve
+- [x] 6.1 Rewrite the README Quick start into "Option A: dev container (recommended)" and "Option B: install the tools", keeping the existing prerequisites table, `dapr init` and the launch command (local-messaging delta); verify the README still lists Docker, the Dapr CLI, `dapr init` and `aspire run`, and that its links resolve
 - [ ] 6.2 Add a "Use the dev container" section to `docs/prerequisites.md` covering host requirements, what the container provides with Dapr initialised, first-run time, the certificate warning, port forwarding with the same-port caveat, the worktree caveat, and the test Azurite command (help-section delta); extend `src/Frontend/src/app/help/help-docs-content.spec.ts` with an assertion for that section; verify with `ng test --include src/app/help/help-docs-content.spec.ts`
 - [ ] 6.3 Add a paragraph to `CONTRIBUTING.md` that points at the dev container as the recommended setup; verify the link to `docs/prerequisites.md` resolves
