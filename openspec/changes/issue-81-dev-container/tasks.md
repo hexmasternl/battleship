@@ -28,7 +28,7 @@
 
 ## 5. CI and dependency updates
 
-- [ ] 5.1 Add `.github/workflows/devcontainer.yml` (design 10), triggered on pull requests and pushes to `development` and `main` that touch `.devcontainer/**` or `.gitattributes`, and on `workflow_dispatch`; it builds with `devcontainers/ci` and runs `smoke-check.sh` without pushing an image; verify the workflow passes on the change's pull request
+- [x] 5.1 Add `.github/workflows/devcontainer.yml` (design 10), triggered on pull requests and pushes to `development` and `main` that touch `.devcontainer/**` or `.gitattributes`, and on `workflow_dispatch`; it builds with `devcontainers/ci` and runs `smoke-check.sh` without pushing an image; verify the workflow passes on the change's pull request
 - [x] 5.2 Add the `devcontainers` ecosystem to `.github/dependabot.yml` (weekly, `target-branch: development`, `chore(deps)` prefix); verify the file is valid YAML and matches the shape of the existing entries
 
 ## 6. Documentation
