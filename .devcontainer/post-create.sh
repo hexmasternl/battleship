@@ -36,14 +36,30 @@ container_exists() {
   docker container inspect "$1" >/dev/null 2>&1
 }
 
-step "Take ownership of the persisted volumes"
-# Docker creates volume mount points owned by root.
-for path in "$HOME/.microsoft" "$HOME/.dapr" "$HOME/.nuget" "$HOME/.npm" "$FRONTEND/node_modules" "$WORKTREES"; do
+take_ownership() {
+  # Docker creates a volume mount point, and every missing directory above it, owned by root.
+  local path="$1" stop="$2" dir
   sudo mkdir -p "$path"
   if [ "$(stat -c %U "$path")" != "$(id -un)" ]; then
     sudo chown -R "$(id -u):$(id -g)" "$path"
   fi
+  dir="$(dirname "$path")"
+  while [ "$dir" != "$stop" ] && [ "$dir" != "/" ]; do
+    if [ "$(stat -c %U "$dir")" != "$(id -un)" ]; then
+      sudo chown "$(id -u):$(id -g)" "$dir"
+    fi
+    dir="$(dirname "$dir")"
+  done
+}
+
+step "Take ownership of the persisted volumes"
+for path in "$HOME/.microsoft/usersecrets" "$HOME/.dotnet/corefx/cryptography/x509stores" \
+  "$HOME/.dapr" "$HOME/.nuget/packages" "$HOME/.npm"; do
+  take_ownership "$path" "$HOME"
 done
+# The folders above node_modules are part of the bind-mounted repository; leave them alone.
+take_ownership "$FRONTEND/node_modules" "$FRONTEND"
+take_ownership "$WORKTREES" "/workspaces"
 
 step "Mark the workspace as a safe git directory"
 # The bind-mounted repository can be owned by another UID than the container user.

@@ -35,12 +35,15 @@
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   },
 
-  // State that must survive "Rebuild Container". The Docker data (images, the persistent Azurite
-  // container with its users and games, the Dapr containers) is kept by the docker-in-docker
-  // feature's own volume on /var/lib/docker.
+  // State that must survive "Rebuild Container". The Docker data (images, the Dapr containers, and
+  // the volume with the Azurite users and games) is kept by the docker-in-docker feature's own
+  // volume on /var/lib/docker.
   "mounts": [
     // AppHost user secrets: the generated rabbitmq-password and users-signing-key.
     "source=battleship-usersecrets,target=/home/vscode/.microsoft/usersecrets,type=volume",
+    // The ASP.NET development certificate, so its thumbprint (and a browser exception for it)
+    // stays the same across rebuilds.
+    "source=battleship-devcerts,target=/home/vscode/.dotnet/corefx/cryptography/x509stores,type=volume",
     // The Dapr runtime that `dapr init` installs.
     "source=battleship-dapr,target=/home/vscode/.dapr,type=volume",
     "source=battleship-nuget,target=/home/vscode/.nuget/packages,type=volume",
