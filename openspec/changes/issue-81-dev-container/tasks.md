@@ -22,7 +22,7 @@
 - [ ] 4.2 From the host browser, open the dashboard through the printed login link and the frontend through its forwarded port, and play a game against the dev bot to the end; verify shots arrive in real time and no CORS errors appear in the browser console
 - [x] 4.3 Run the full `dotnet test --solution src/Battleship.slnx` (Integration category included, with the test Azurite from design 9 started) and `npm test -- --watch=false` in `src/Frontend` inside the container; verify both pass and the storage tests are not skipped
 - [ ] 4.4 Rebuild the container and start the AppHost again; verify the generated `rabbitmq-password` and `users-signing-key` are unchanged (`dotnet user-secrets list` in the AppHost folder), an earlier game is still listed, and no Docker image is pulled again
-- [ ] 4.5 Inside the container, create a throwaway worktree at `../battleship-worktrees/devcontainer-check` on a scratch branch, build from it, rebuild the container, and verify it still exists; then remove the worktree and the branch
+- [x] 4.5 Inside the container, create a throwaway worktree at `../battleship-worktrees/devcontainer-check` on a scratch branch, build from it, rebuild the container, and verify it still exists; then remove the worktree and the branch
 
 ## 5. CI and dependency updates
 
