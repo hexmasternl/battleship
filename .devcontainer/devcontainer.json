@@ -1,0 +1,46 @@
+// Dev container for Battleship: everything `aspire run` and the repository workflow need, so the
+// host only needs Docker and an editor with dev container support. Based on the official Aspire
+// dev container template (https://github.com/microsoft/aspire-devcontainer).
+// See docs/prerequisites.md, "Use the dev container".
+{
+  "name": "Battleship",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  // The repository is mounted at /workspaces/battleship, so the change worktrees of the openspec
+  // git flow (../battleship-worktrees/<change>) resolve to /workspaces/battleship-worktrees.
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/battleship,type=bind",
+  "workspaceFolder": "/workspaces/battleship",
+
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "10.0"
+    },
+    // Aspire CLI, the Aspire VS Code extension and its port-forwarding settings.
+    "ghcr.io/microsoft/aspire-devcontainer-feature/aspire:3": {},
+    // A Docker engine inside the container for RabbitMQ, Azurite, the Dapr containers and test
+    // containers, so their endpoints resolve on localhost as on a developer machine.
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true
+    },
+    "ghcr.io/dapr/cli/dapr-cli:0": {},
+    // Same major version as the CI workflows (actions/setup-node).
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "installBicep": true
+    },
+    "ghcr.io/devcontainers/features/powershell:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+
+  "remoteEnv": {
+    // Lets OpenSSL-based tools (curl, Node.js) trust the Aspire development certificate.
+    "SSL_CERT_DIR": "/usr/lib/ssl/certs:/home/vscode/.aspnet/dev-certs/trust",
+    "DOTNET_NOLOGO": "true",
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "true"
+  },
+
+  "remoteUser": "vscode"
+}
