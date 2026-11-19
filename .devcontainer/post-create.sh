@@ -29,6 +29,11 @@ wait_for_docker() {
     sleep 1
   done
   echo "The Docker engine inside the dev container did not start within 60 seconds." >&2
+  # The docker-in-docker feature logs the engine's start-up here.
+  if [ -f /tmp/dockerd.log ]; then
+    echo "Last lines of /tmp/dockerd.log:" >&2
+    tail -n 30 /tmp/dockerd.log >&2
+  fi
   return 1
 }
 
