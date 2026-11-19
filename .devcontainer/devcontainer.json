@@ -71,6 +71,10 @@
 
   "remoteUser": "vscode",
 
+  // Docker is not running yet during the image build, so all preparation happens after creation.
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+
   "customizations": {
     "vscode": {
       // Both agent setups of this repository (Claude Code and GitHub Copilot) work inside.

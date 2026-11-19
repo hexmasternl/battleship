@@ -13,7 +13,7 @@
 ## 3. Lifecycle scripts
 
 - [x] 3.1 Write `.devcontainer/post-create.sh` with `set -euo pipefail`, the `step` helper and the failure trap (design 7), and the steps from design 8: volume ownership, `safe.directory`, npm version from `packageManager`, the OpenSpec CLI, `dotnet restore`, lockfile-guarded `npm ci`, Playwright Chromium, wait for Docker, guarded `dapr init`, stop Redis and Zipkin; verify with `shellcheck` and by running the script twice in a built container, where the second run finishes without reinstalling
-- [ ] 3.2 Write `.devcontainer/post-start.sh`: wait for Docker, restart stopped `dapr_placement` and `dapr_scheduler`, `aspire certs trust --non-interactive`, print the next step; wire `postCreateCommand` and `postStartCommand` in `devcontainer.json`; verify with `shellcheck` and by stopping and starting the container, after which `docker ps` shows the Dapr containers running
+- [x] 3.2 Write `.devcontainer/post-start.sh`: wait for Docker, restart stopped `dapr_placement` and `dapr_scheduler`, `aspire certs trust --non-interactive`, print the next step; wire `postCreateCommand` and `postStartCommand` in `devcontainer.json`; verify with `shellcheck` and by stopping and starting the container, after which `docker ps` shows the Dapr containers running
 - [ ] 3.3 Write `.devcontainer/smoke-check.sh` (design 10): print the versions of `dotnet`, `aspire`, `dapr`, `docker`, `node`, `npm`, `gh`, `openspec`, `az bicep`, `pwsh`; fail if `~/.dapr/bin/daprd` is missing; Release build of `src/Battleship.slnx`; backend tests without the `Integration` category; verify it passes inside a freshly built container with `npx @devcontainers/cli up` and `exec`
 
 ## 4. End-to-end verification in the container
