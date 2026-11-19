@@ -69,5 +69,23 @@
     "DOTNET_CLI_TELEMETRY_OPTOUT": "true"
   },
 
-  "remoteUser": "vscode"
+  "remoteUser": "vscode",
+
+  "customizations": {
+    "vscode": {
+      // Both agent setups of this repository (Claude Code and GitHub Copilot) work inside.
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "microsoft-aspire.aspire-vscode",
+        "Angular.ng-template",
+        "ms-azuretools.vscode-dapr",
+        "ms-azuretools.vscode-bicep",
+        "ms-azuretools.vscode-containers",
+        "github.vscode-github-actions",
+        "GitHub.copilot-chat",
+        "anthropic.claude-code",
+        "EditorConfig.EditorConfig"
+      ]
+    }
+  }
 }
