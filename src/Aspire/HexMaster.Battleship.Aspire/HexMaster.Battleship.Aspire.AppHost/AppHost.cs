@@ -67,9 +67,13 @@ var gameCleanup = builder.AddDaprComponent("game-cleanup", "bindings.cron")
 
 // Table storage for the Users service (users, refresh tokens) and the Games service (games).
 // Locally this is the Azurite emulator, so no Azure subscription is needed; the persistent
-// lifetime keeps users and games across AppHost restarts.
+// lifetime keeps users and games across AppHost restarts, and the named data volume keeps them
+// when Aspire recreates the container after its configuration changed (a new dev certificate,
+// an Aspire update).
 var storage = builder.AddAzureStorage("storage")
-    .RunAsEmulator(emulator => emulator.WithLifetime(ContainerLifetime.Persistent));
+    .RunAsEmulator(emulator => emulator
+        .WithLifetime(ContainerLifetime.Persistent)
+        .WithDataVolume());
 var tables = storage.AddTables("tables");
 
 // The key the Users service signs access tokens with and every API validates them with. Generated

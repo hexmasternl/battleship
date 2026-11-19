@@ -10,7 +10,7 @@
 - [x] 2.2 Add the named volume mounts from design 4 (usersecrets, dapr, nuget, npm, node_modules, worktrees; Docker data comes from the docker-in-docker feature's own volume) and `portsAttributes` for the dashboard port; verify the merged `read-configuration` lists all seven mounts
 - [x] 2.3 Add `customizations.vscode.extensions` (C# Dev Kit, Aspire, Angular Language Service, Dapr, Bicep, Docker, GitHub Actions, GitHub Copilot Chat, Claude Code, EditorConfig); verify the extension ids exist in the marketplace
 - [x] 2.4 Add the `battleship-devcerts` volume on `~/.dotnet/corefx/cryptography/x509stores` (design 4) and let `post-create` take ownership of the directories Docker creates above a mount point; verify `shellcheck` passes and, after a rebuild, the certificate thumbprint is unchanged and `~/.dotnet` is owned by `vscode`
-- [ ] 2.5 Give the AppHost's Azurite emulator a named data volume (`WithDataVolume()`, design 4); verify the AppHost builds, the Aspire tests pass, and the storage container mounts a named volume on `/data`
+- [x] 2.5 Give the AppHost's Azurite emulator a named data volume (`WithDataVolume()`, design 4); verify the AppHost builds, the Aspire tests pass, and the storage container mounts a named volume on `/data`
 
 ## 3. Lifecycle scripts
 
