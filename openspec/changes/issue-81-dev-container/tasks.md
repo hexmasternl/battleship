@@ -2,7 +2,7 @@
 
 ## 1. Repository groundwork
 
-- [ ] 1.1 Add `.gitattributes` with `* text=auto` and `*.sh text eol=lf` (design 7); verify with `git ls-files --eol` that the existing files are not reported as changed and that a new `.sh` file is stored with LF
+- [x] 1.1 Add `.gitattributes` with `* text=auto` and `*.sh text eol=lf` (design 7); verify with `git ls-files --eol` that the existing files are not reported as changed and that a new `.sh` file is stored with LF
 
 ## 2. Dev container definition
 
