@@ -62,15 +62,18 @@ Every container (RabbitMQ, Azurite, Dapr placement and scheduler, test container
 
 | Volume | Mount target |
 |---|---|
-| `battleship-docker` | `/var/lib/docker` (images, the persistent Azurite container and its data, Dapr containers) |
+| `dind-var-lib-docker-${devcontainerId}` (declared by the docker-in-docker feature itself) | `/var/lib/docker` (images, the persistent Azurite container and its data, Dapr containers) |
 | `battleship-usersecrets` | `/home/vscode/.microsoft/usersecrets` |
+| `battleship-devcerts` | `/home/vscode/.dotnet/corefx/cryptography/x509stores` (the ASP.NET development certificate) |
 | `battleship-dapr` | `/home/vscode/.dapr` |
 | `battleship-nuget` | `/home/vscode/.nuget/packages` |
 | `battleship-npm` | `/home/vscode/.npm` |
 | `battleship-node-modules` | `${containerWorkspaceFolder}/src/Frontend/node_modules` |
 | `battleship-worktrees` | `/workspaces/battleship-worktrees` |
 
-Volume mounts are created root-owned, so `post-create` runs `sudo chown -R vscode:vscode` on each user-level target before it writes to them.
+The Docker data volume comes from the docker-in-docker feature, keyed on the dev container id, which stays stable across rebuilds of the same workspace folder. A second mount on `/var/lib/docker` would conflict with it, so the definition does not declare one. Volume mounts are created root-owned, so `post-create` runs `sudo chown -R vscode:vscode` on each user-level target, and fixes the owner of the directories Docker created above it, before it writes to them.
+
+Found during verification: the Docker data volume alone does not keep the Azurite data. The container gets a new ASP.NET development certificate on every rebuild, Aspire injects that certificate into its containers, so the persistent Azurite container's configuration changes and Aspire recreates it, and Azurite's `/data` was an anonymous volume that is removed with it. Two fixes: the AppHost gives the emulator a named data volume (`WithDataVolume()`), so the data survives any recreation, also on a developer machine after an Aspire update; and the `battleship-devcerts` volume keeps the certificate, so the host browser's certificate exception and the trusted thumbprint stay the same across rebuilds. Verification showed Aspire still recreates the Azurite container after a rebuild even with the same certificate, so the data volume is the fix that keeps the data.
 
 `node_modules` in a volume keeps Linux-native binaries (esbuild, the Angular compiler) away from the host's `node_modules`, and avoids slow bind-mount I/O on Windows and macOS.
 
@@ -102,7 +105,7 @@ Add `.gitattributes` with `*.sh text eol=lf`, plus `* text=auto`, so the scripts
 
 ### 10. CI smoke job and Dependabot
 
-A new workflow, `.github/workflows/devcontainer.yml`, triggers on pull requests and pushes to `development` and `main` that touch `.devcontainer/**` or `.gitattributes`, and on `workflow_dispatch`. It uses `devcontainers/ci` to build the container and run `.devcontainer/smoke-check.sh` inside it. The script prints every tool version, checks `~/.dapr/bin/daprd`, builds the solution in Release, and runs the backend tests without the `Integration` category. Frontend unit tests are not run there, because the regular CI job already covers them on the same Node major. The image is not pushed to a registry.
+A new workflow, `.github/workflows/devcontainer.yml`, triggers on pull requests and pushes to `development` and `main` that touch `.devcontainer/**` or `.gitattributes`, and on `workflow_dispatch`. It uses `devcontainers/ci` to build the container and run `.devcontainer/smoke-check.sh` inside it. The script prints every tool version, checks `~/.dapr/bin/daprd`, builds the solution in Release, and runs the backend tests without the `Integration` category. Frontend unit tests are not run there, because the regular CI job already covers them on the same Node major. The image is not pushed to a registry. Before the build, the job loads the `iptable_nat` and `ip6table_nat` modules on the runner: the docker-in-docker feature picks legacy iptables when `ip_tables` is loaded, and without the legacy NAT tables the inner engine fails to start (found on the first run).
 
 Dependabot gains `package-ecosystem: devcontainers` with `directory: /`, a weekly schedule, `target-branch: development` and the `chore(deps)` prefix, like the existing entries.
 
@@ -119,7 +122,7 @@ Dependabot gains `package-ecosystem: devcontainers` with `directory: /`, a weekl
 - [Host port taken, so VS Code forwards to another port and the browser origin breaks CORS and `config.json`] → Documented with the fix. Making the app origin-agnostic belongs to the Codespaces follow-up.
 - [The Aspire feature installs the latest stable CLI, which can run ahead of the SDK in the AppHost] → The CLI is backwards compatible with older AppHosts. The smoke check prints both versions, and Dependabot keeps the SDK moving.
 - [Worktree metadata mismatch between host and container] → Documented; the volume keeps container worktrees apart.
-- [First creation is slow (images, restore, Chromium, Dapr init)] → The volumes make every later rebuild fast. The docs state the expected first-run time.
+- [First creation is slow (images, restore, Chromium, Dapr init)] → The volumes keep images, packages and data, so a rebuild downloads no images again; it still takes about six minutes, five of them to reinstall Playwright's Chromium and its system packages (measured). The docs state both times.
 - [`ghcr.io/dapr/cli/dapr-cli` and the Claude Code feature are maintained outside Microsoft's dev container org] → Pinned by major version and updated through Dependabot; the smoke check fails if a tool is missing.
 
 ## Migration Plan

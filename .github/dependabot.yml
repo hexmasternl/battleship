@@ -26,6 +26,15 @@ updates:
     commit-message:
       prefix: chore(deps)
 
+  # Dev Container Features in .devcontainer/devcontainer.json.
+  - package-ecosystem: devcontainers
+    directory: /
+    target-branch: development
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore(deps)
+
   - package-ecosystem: github-actions
     directory: /
     target-branch: development

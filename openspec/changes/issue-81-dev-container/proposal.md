@@ -35,5 +35,6 @@ GitHub Codespaces is out of scope. There, the browser reaches the app on `*.app.
 - New: `.devcontainer/devcontainer.json`, `.devcontainer/post-create.sh`, `.devcontainer/post-start.sh`, `.gitattributes` (LF for `*.sh`, so a Windows checkout does not break the scripts).
 - `.github/workflows/`: a dev container build and smoke-check job. `.github/dependabot.yml`: the `devcontainers` ecosystem.
 - Docs: `README.md`, `docs/prerequisites.md`, `CONTRIBUTING.md`. `src/Frontend/src/app/help/help-docs-content.spec.ts` gains an assertion for the new prerequisites section.
-- No change to service code, the AppHost resource graph, `DaprPrerequisites.cs`, production images or `infra/`. The AppHost's Dapr check must pass inside the container unchanged.
+- AppHost: the Azurite emulator gets a named data volume (`WithDataVolume()`). Found during verification: Aspire recreates the persistent container after a rebuild, and its anonymous data volume was lost with it. This also protects local data on a developer machine.
+- No change to service code, `DaprPrerequisites.cs`, production images or `infra/`. The AppHost's Dapr check must pass inside the container unchanged.
 - Host requirement: Docker Desktop (WSL2 on Windows) or Docker Engine with enough memory for three APIs, three sidecars, RabbitMQ, Azurite, the Dapr containers and `ng serve`. Docker-in-Docker runs the container privileged.
