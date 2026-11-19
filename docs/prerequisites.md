@@ -46,7 +46,7 @@ docker run -d --name azurite-tests -p 10000-10002:10000-10002 mcr.microsoft.com/
 
 Or set `BATTLESHIP_TESTS_TABLES` to the connection string of the emulator a running `aspire run` started. The `Integration` tests start the whole AppHost and work in the container as they do on your machine.
 
-The setup scripts are `.devcontainer/post-create.sh` and `.devcontainer/post-start.sh`. Both can run again at any time, and when a step fails they print its name.
+The setup scripts are `.devcontainer/post-create.sh` and `.devcontainer/post-start.sh`. Both can run again at any time, and when a step fails they print its name. If the Docker engine inside the container does not start, the script prints the end of its log. On a Linux host, `iptables failed: iptables --wait -t nat -N DOCKER` means the host kernel has not loaded the legacy NAT tables: run `sudo modprobe -a iptable_nat ip6table_nat` on the host and rebuild the container.
 
 ## What to install
 

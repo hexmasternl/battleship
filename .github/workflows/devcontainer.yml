@@ -34,6 +34,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # The docker-in-docker feature switches the container to legacy iptables when the host has
+      # the ip_tables module loaded, but the runner does not load the legacy NAT tables, so the
+      # inner Docker engine fails with "iptables -t nat -N DOCKER". The container shares the
+      # runner's kernel, so loading the modules here is enough.
+      - name: Load the legacy iptables NAT modules
+        run: sudo modprobe -a iptable_nat ip6table_nat
+
       - name: Build the dev container and run the smoke check
         uses: devcontainers/ci@v0.3
         with:
