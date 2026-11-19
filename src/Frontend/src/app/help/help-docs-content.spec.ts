@@ -117,6 +117,18 @@ describe('help document content', () => {
       expect(parsed.markdown).toContain('Dapr prerequisite missing');
       expect(parsed.markdown).toMatch(/fail-fast/i);
     });
+
+    it('explains the dev container as the alternative to installing the tools', () => {
+      const headings = ofType<Tokens.Heading>(parsed, 'heading').map((h) => h.text);
+      expect(headings).toContain('Use the dev container');
+      const section = parsed.markdown.slice(parsed.markdown.indexOf('## Use the dev container'));
+      expect(section).toMatch(/Docker Desktop/);
+      expect(section).toMatch(/Dev Containers extension/);
+      expect(section).toContain('`dapr init` has run');
+      for (const tool of ['.NET 10 SDK', 'Aspire CLI', 'Dapr CLI', 'Node.js']) {
+        expect(section, tool).toContain(tool);
+      }
+    });
   });
 
   describe('resources', () => {

@@ -55,7 +55,29 @@ You don't need a cloud account, a `docker-compose.yml`, or any connection string
 
 ## ⚓ Quick start
 
-### 1. Install the prerequisites
+There are two ways to get a machine ready: the dev container, which brings every tool with it,
+or installing the tools yourself. Both end with the same `aspire run`.
+
+### Option A: dev container (recommended)
+
+You need [Docker Desktop](https://www.docker.com/products/docker-desktop/) (WSL 2 on Windows) or
+Docker Engine, and [VS Code](https://code.visualstudio.com/) with the
+[Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+extension.
+
+1. Open the repository folder in VS Code and run **Dev Containers: Reopen in Container**.
+2. Wait for the first build to finish (five to ten minutes; later starts take seconds). It installs
+   .NET 10, the Aspire CLI, Docker, the Dapr CLI, Node.js, the GitHub CLI, the OpenSpec CLI, the
+   Azure CLI with Bicep and Playwright, restores every package and runs `dapr init` for you.
+3. Continue with [Launch](#launch) in the container's terminal.
+
+Ports are forwarded to your machine automatically, so the dashboard and the game open in your own
+browser. What survives a rebuild, the certificate warning and the other details:
+[Use the dev container](docs/prerequisites.md#use-the-dev-container).
+
+### Option B: install the tools
+
+#### 1. Install the prerequisites
 
 | Prerequisite | Why | Check |
 |---|---|---|
@@ -67,7 +89,7 @@ You don't need a cloud account, a `docker-compose.yml`, or any connection string
 
 Step by step, with the Dapr check explained: [Prerequisites](docs/prerequisites.md).
 
-### 2. One-time setup
+#### 2. One-time setup
 
 ```shell
 dapr init                              # downloads daprd, starts the placement and scheduler containers
@@ -78,7 +100,7 @@ cd src/Frontend && npm install && cd -  # frontend packages
 > `dapr init` also starts Redis and Zipkin containers. This solution doesn't use them, and they
 > don't conflict with the containers the AppHost starts.
 
-### 3. Launch
+### Launch
 
 ```shell
 cd src/Aspire/HexMaster.Battleship.Aspire
