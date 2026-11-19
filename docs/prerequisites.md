@@ -34,7 +34,7 @@ aspire run
 
 **Certificate warning**: tools inside the container trust the Aspire development certificate. Your browser on the host does not, so it warns once on the dashboard's HTTPS address. Check that the address is `localhost` and continue.
 
-**What survives a rebuild**: named Docker volumes keep the AppHost user secrets (the generated RabbitMQ password and token signing key), the Docker data (images, and the Azurite container with your users and games), the Dapr runtime, the NuGet and npm caches, the frontend packages and the change worktrees. "Rebuild Container" therefore takes seconds and your games are still there. To start from scratch, delete the volumes whose names start with `battleship-` and `dind-var-lib-docker-`.
+**What survives a rebuild**: named Docker volumes keep the AppHost user secrets (the generated RabbitMQ password and token signing key), the ASP.NET development certificate, the Docker data (images, and the Azurite data volume with your users and games), the Dapr runtime, the NuGet and npm caches, the frontend packages and the change worktrees. "Rebuild Container" takes about six minutes, most of it to reinstall Playwright's Chromium and its system packages, but it downloads no images again and your games are still there. To start from scratch, delete the volumes whose names start with `battleship-` and `dind-var-lib-docker-`.
 
 **Change worktrees**: the change workflow creates worktrees in `../battleship-worktrees/<change>`. Inside the container that is a volume at `/workspaces/battleship-worktrees`. Git stores absolute paths for worktrees, so use a worktree only on the side that created it (host or container). Don't run `git worktree prune` on the other side: it would remove the metadata of worktrees it cannot see.
 
