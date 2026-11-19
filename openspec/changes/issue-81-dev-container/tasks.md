@@ -18,7 +18,7 @@
 
 ## 4. End-to-end verification in the container
 
-- [ ] 4.1 In a fresh container, run `aspire run` from `src/Aspire/HexMaster.Battleship.Aspire` and verify with `aspire describe` that every resource (frontend, gateway, three APIs, three sidecars, messaging, storage/tables, devbot) is running and the AppHost Dapr check passed
+- [x] 4.1 In a fresh container, run `aspire run` from `src/Aspire/HexMaster.Battleship.Aspire` and verify with `aspire describe` that every resource (frontend, gateway, three APIs, three sidecars, messaging, storage/tables, devbot) is running and the AppHost Dapr check passed
 - [ ] 4.2 From the host browser, open the dashboard through the printed login link and the frontend through its forwarded port, and play a game against the dev bot to the end; verify shots arrive in real time and no CORS errors appear in the browser console
 - [ ] 4.3 Run the full `dotnet test --solution src/Battleship.slnx` (Integration category included, with the test Azurite from design 9 started) and `npm test -- --watch=false` in `src/Frontend` inside the container; verify both pass and the storage tests are not skipped
 - [ ] 4.4 Rebuild the container and start the AppHost again; verify the generated `rabbitmq-password` and `users-signing-key` are unchanged (`dotnet user-secrets list` in the AppHost folder), an earlier game is still listed, and no Docker image is pulled again
