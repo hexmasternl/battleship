@@ -62,7 +62,7 @@ Every container (RabbitMQ, Azurite, Dapr placement and scheduler, test container
 
 | Volume | Mount target |
 |---|---|
-| `battleship-docker` | `/var/lib/docker` (images, the persistent Azurite container and its data, Dapr containers) |
+| `dind-var-lib-docker-${devcontainerId}` (declared by the docker-in-docker feature itself) | `/var/lib/docker` (images, the persistent Azurite container and its data, Dapr containers) |
 | `battleship-usersecrets` | `/home/vscode/.microsoft/usersecrets` |
 | `battleship-dapr` | `/home/vscode/.dapr` |
 | `battleship-nuget` | `/home/vscode/.nuget/packages` |
@@ -70,7 +70,7 @@ Every container (RabbitMQ, Azurite, Dapr placement and scheduler, test container
 | `battleship-node-modules` | `${containerWorkspaceFolder}/src/Frontend/node_modules` |
 | `battleship-worktrees` | `/workspaces/battleship-worktrees` |
 
-Volume mounts are created root-owned, so `post-create` runs `sudo chown -R vscode:vscode` on each user-level target before it writes to them.
+The Docker data volume comes from the docker-in-docker feature, keyed on the dev container id, which stays stable across rebuilds of the same workspace folder. A second mount on `/var/lib/docker` would conflict with it, so the definition does not declare one. Volume mounts are created root-owned, so `post-create` runs `sudo chown -R vscode:vscode` on each user-level target before it writes to them.
 
 `node_modules` in a volume keeps Linux-native binaries (esbuild, the Angular compiler) away from the host's `node_modules`, and avoids slow bind-mount I/O on Windows and macOS.
 

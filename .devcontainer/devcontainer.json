@@ -35,6 +35,33 @@
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   },
 
+  // State that must survive "Rebuild Container". The Docker data (images, the persistent Azurite
+  // container with its users and games, the Dapr containers) is kept by the docker-in-docker
+  // feature's own volume on /var/lib/docker.
+  "mounts": [
+    // AppHost user secrets: the generated rabbitmq-password and users-signing-key.
+    "source=battleship-usersecrets,target=/home/vscode/.microsoft/usersecrets,type=volume",
+    // The Dapr runtime that `dapr init` installs.
+    "source=battleship-dapr,target=/home/vscode/.dapr,type=volume",
+    "source=battleship-nuget,target=/home/vscode/.nuget/packages,type=volume",
+    "source=battleship-npm,target=/home/vscode/.npm,type=volume",
+    // Linux-native frontend packages, kept apart from a host node_modules and off the bind mount.
+    "source=battleship-node-modules,target=/workspaces/battleship/src/Frontend/node_modules,type=volume",
+    // Change worktrees created inside the container (../battleship-worktrees/<change>).
+    "source=battleship-worktrees,target=/workspaces/battleship-worktrees,type=volume"
+  ],
+
+  // Ports are forwarded automatically (the Aspire feature turns on hybrid auto-forwarding); VS Code
+  // keeps the same port number on the host when it is free, which the frontend config.json and
+  // the API CORS origins rely on.
+  "portsAttributes": {
+    // The dashboard port of the AppHost's https launch profile.
+    "17150": {
+      "label": "Aspire dashboard",
+      "protocol": "https"
+    }
+  },
+
   "remoteEnv": {
     // Lets OpenSSL-based tools (curl, Node.js) trust the Aspire development certificate.
     "SSL_CERT_DIR": "/usr/lib/ssl/certs:/home/vscode/.aspnet/dev-certs/trust",
