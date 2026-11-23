@@ -1,0 +1,48 @@
+name: Dev container
+
+# Builds the dev container whenever its definition changes and runs the smoke check inside it:
+# every tool on PATH, Dapr initialised, the solution builds and the backend unit tests pass.
+# The image is only built, never pushed. See .devcontainer/ and docs/prerequisites.md.
+
+on:
+  push:
+    branches: [main, development]
+    paths:
+      - .devcontainer/**
+      - .gitattributes
+      - .github/workflows/devcontainer.yml
+  pull_request:
+    branches: [main, development]
+    paths:
+      - .devcontainer/**
+      - .gitattributes
+      - .github/workflows/devcontainer.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcontainer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke-check:
+    name: Build and smoke-check the dev container
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      # The docker-in-docker feature switches the container to legacy iptables when the host has
+      # the ip_tables module loaded, but the runner does not load the legacy NAT tables, so the
+      # inner Docker engine fails with "iptables -t nat -N DOCKER". The container shares the
+      # runner's kernel, so loading the modules here is enough.
+      - name: Load the legacy iptables NAT modules
+        run: sudo modprobe -a iptable_nat ip6table_nat
+
+      - name: Build the dev container and run the smoke check
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          runCmd: bash .devcontainer/smoke-check.sh
