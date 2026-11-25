@@ -90,7 +90,7 @@ describe('help document content', () => {
     it('names each tool with an official install link', () => {
       const hrefs = links(parsed).map((link) => link.href);
       const tools: readonly [string, RegExp][] = [
-        ['.NET 10 SDK', /^https:\/\/dotnet\.microsoft\.com\/download\/dotnet\/10\.0/],
+        ['.NET 11 SDK', /^https:\/\/dotnet\.microsoft\.com\/download\/dotnet\/11\.0/],
         ['Docker', /^https:\/\/www\.docker\.com\//],
         ['Dapr CLI', /^https:\/\/docs\.dapr\.io\/getting-started\/install-dapr-cli\//],
         ['Node.js', /^https:\/\/nodejs\.org\//],
@@ -125,7 +125,7 @@ describe('help document content', () => {
       expect(section).toMatch(/Docker Desktop/);
       expect(section).toMatch(/Dev Containers extension/);
       expect(section).toContain('`dapr init` has run');
-      for (const tool of ['.NET 10 SDK', 'Aspire CLI', 'Dapr CLI', 'Node.js']) {
+      for (const tool of ['.NET 11 SDK', 'Aspire CLI', 'Dapr CLI', 'Node.js']) {
         expect(section, tool).toContain(tool);
       }
     });
