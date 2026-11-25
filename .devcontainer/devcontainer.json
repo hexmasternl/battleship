@@ -19,7 +19,7 @@
     "ghcr.io/microsoft/aspire-devcontainer-feature/aspire:3": {},
     // A Docker engine inside the container for RabbitMQ, Azurite, the Dapr containers and test
     // containers, so their endpoints resolve on localhost as on a developer machine.
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
       "moby": true
     },
     "ghcr.io/dapr/cli/dapr-cli:0": {},
