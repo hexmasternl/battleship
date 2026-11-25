@@ -65,6 +65,11 @@
     }
   },
 
+  "containerEnv": {
+    // Build output lives outside the bind mount, see src/Directory.Build.props.
+    "BATTLESHIP_BUILD_ROOT": "/home/vscode/.cache/battleship-build"
+  },
+
   "remoteEnv": {
     // Lets OpenSSL-based tools (curl, Node.js) trust the Aspire development certificate.
     "SSL_CERT_DIR": "/usr/lib/ssl/certs:/home/vscode/.aspnet/dev-certs/trust",

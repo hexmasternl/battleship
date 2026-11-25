@@ -1,0 +1,18 @@
+<Project>
+
+  <!--
+    In the dev container the repository is a bind mount of the host folder. On Windows and macOS
+    hosts that mount shows every file as owned by root, so the container user cannot set the
+    timestamps MSBuild keeps on files in bin/ and obj/ (error MSB3374) and the AppHost fails to
+    build. The container therefore builds into its own file system: BATTLESHIP_BUILD_ROOT is set
+    by .devcontainer/devcontainer.json and is empty everywhere else.
+  -->
+  <PropertyGroup Condition="'$(BATTLESHIP_BUILD_ROOT)' != ''">
+    <BaseIntermediateOutputPath>$(BATTLESHIP_BUILD_ROOT)/$(MSBuildProjectName)/obj/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(BATTLESHIP_BUILD_ROOT)/$(MSBuildProjectName)/bin/</BaseOutputPath>
+    <MSBuildProjectExtensionsPath>$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
+    <!-- The default exclusion follows BaseIntermediateOutputPath; keep leftovers in the tree out. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>
