@@ -52,7 +52,7 @@ The setup scripts are `.devcontainer/post-create.sh` and `.devcontainer/post-sta
 
 | Tool | Why this app needs it | Check that it works |
 |---|---|---|
-| [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | Builds and runs the AppHost and the C# services. | `dotnet --version` |
+| [.NET 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0) | Builds and runs the AppHost and the C# services. | `dotnet --version` |
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/), or another container runtime | Runs the RabbitMQ and Azurite containers. `dapr init` starts its own containers in it too. Keep it running. | `docker version` |
 | [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/) | Starts the Dapr sidecars next to the services. | `dapr --version` |
 | [Node.js](https://nodejs.org/en/download) with npm | Runs the Angular dev server for the frontend. npm comes with Node.js. | `node --version` |

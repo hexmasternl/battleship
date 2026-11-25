@@ -5,7 +5,7 @@
 <h3>A real-time, two-player Battleship game, and a working tour of <a href="https://aspire.dev">Aspire</a>.</h3>
 
 <p>
-<a href="https://dotnet.microsoft.com/download/dotnet/10.0"><img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-00c0ff?style=for-the-badge&labelColor=041e32&logo=dotnet&logoColor=e9eef3"></a>
+<a href="https://dotnet.microsoft.com/download/dotnet/11.0"><img alt=".NET 11" src="https://img.shields.io/badge/.NET-11-00c0ff?style=for-the-badge&labelColor=041e32&logo=dotnet&logoColor=e9eef3"></a>
 <a href="https://aspire.dev"><img alt="Aspire 13.6" src="https://img.shields.io/badge/Aspire-13.6-00c0ff?style=for-the-badge&labelColor=041e32"></a>
 <a href="https://dapr.io"><img alt="Dapr" src="https://img.shields.io/badge/Dapr-pub%2Fsub-2f87ff?style=for-the-badge&labelColor=041e32&logo=dapr&logoColor=e9eef3"></a>
 <a href="https://www.rabbitmq.com"><img alt="RabbitMQ" src="https://img.shields.io/badge/RabbitMQ-broker-2f87ff?style=for-the-badge&labelColor=041e32&logo=rabbitmq&logoColor=e9eef3"></a>
@@ -218,7 +218,7 @@ scratch, worktrees and the storage tests: [Use the dev container](docs/prerequis
 | Prerequisite | Why | Check |
 |---|---|---|
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) (running) | RabbitMQ and Azurite run as containers, and `dapr init` runs its own | `docker version` |
-| [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | Builds and runs the services | `dotnet --version` |
+| [.NET 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0) | Builds and runs the services | `dotnet --version` |
 | [Aspire CLI](https://aspire.dev/get-started/install-cli/) | Runs the AppHost and opens the dashboard | `aspire --version` |
 | [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/) | Starts the sidecars | `dapr --version` |
 | [Node.js](https://nodejs.org) with npm | Runs the Angular dev server | `node --version` |

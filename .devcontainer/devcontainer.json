@@ -13,7 +13,7 @@
 
   "features": {
     "ghcr.io/devcontainers/features/dotnet:2": {
-      "version": "10.0"
+      "version": "11.0"
     },
     // Aspire CLI, the Aspire VS Code extension and its port-forwarding settings.
     "ghcr.io/microsoft/aspire-devcontainer-feature/aspire:3": {},
