@@ -24,7 +24,7 @@
     },
     "ghcr.io/dapr/cli/dapr-cli:0": {},
     // Same major version as the CI workflows (actions/setup-node).
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:2": {
       "version": "24"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {},
