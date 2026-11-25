@@ -31,7 +31,7 @@
     "ghcr.io/devcontainers/features/azure-cli:1": {
       "installBicep": true
     },
-    "ghcr.io/devcontainers/features/powershell:1": {},
+    "ghcr.io/devcontainers/features/powershell:2": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   },
 
