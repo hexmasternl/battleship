@@ -1,0 +1,5 @@
+repo: hexmasternl/battleship
+issue: 81
+url: https://github.com/hexmasternl/battleship/issues/81
+title: Add a dev container with the full local toolchain (.NET 10, Aspire, Dapr, Docker, Node)
+linked: 2026-11-19

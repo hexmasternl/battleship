@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-11-19
+goal: Add a dev container with the full local toolchain (.NET 10, Aspire, Dapr, Docker, Node)
+affected_areas:
+  - aspire

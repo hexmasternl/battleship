@@ -50,7 +50,7 @@ tests/Company.Product.IntegrationTests/       optional
 - Create a new module for a distinct bounded context with its own data and rules; create an
   Abstractions project when another module needs the contract; give a module its own API when
   it must scale, deploy or release independently or talks to others via messaging.
-- A `Directory.Build.props` at the solution root pins `net10.0`, nullable, implicit usings and
+- A `Directory.Build.props` at the solution root pins `net11.0`, nullable, implicit usings and
   warnings-as-errors for every project.
 - Organise the solution file with folders mirroring `src/` and `tests/`.
 

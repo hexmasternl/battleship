@@ -80,7 +80,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
       # The AppHost checks for the Dapr CLI and runtime in run mode, and some AppHost tests build it that way.
       - name: Install Dapr
@@ -148,7 +148,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
       - uses: docker/login-action@v4
         with:

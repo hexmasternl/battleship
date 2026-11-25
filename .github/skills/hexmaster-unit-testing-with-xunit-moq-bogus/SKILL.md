@@ -11,7 +11,7 @@ metadata:
 
 ## Rules
 
-- Test framework is xUnit for every unit test project. Test projects target `net10.0` and
+- Test framework is xUnit for every unit test project. Test projects target `net11.0` and
   reference `xunit.v3`, `Microsoft.Testing.Extensions.CodeCoverage` and
   `Microsoft.Testing.Extensions.TrxReport`, plus `Microsoft.NET.Test.Sdk` and `xunit.runner.visualstudio`
   (PrivateAssets all) for test runners that still use VSTest. They set

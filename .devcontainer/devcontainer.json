@@ -1,0 +1,103 @@
+// Dev container for Battleship: everything `aspire run` and the repository workflow need, so the
+// host only needs Docker and an editor with dev container support. Based on the official Aspire
+// dev container template (https://github.com/microsoft/aspire-devcontainer).
+// See docs/prerequisites.md, "Use the dev container".
+{
+  "name": "Battleship",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  // The repository is mounted at /workspaces/battleship, so the change worktrees of the openspec
+  // git flow (../battleship-worktrees/<change>) resolve to /workspaces/battleship-worktrees.
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/battleship,type=bind",
+  "workspaceFolder": "/workspaces/battleship",
+
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "11.0"
+    },
+    // Aspire CLI, the Aspire VS Code extension and its port-forwarding settings.
+    "ghcr.io/microsoft/aspire-devcontainer-feature/aspire:3": {},
+    // A Docker engine inside the container for RabbitMQ, Azurite, the Dapr containers and test
+    // containers, so their endpoints resolve on localhost as on a developer machine.
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true
+    },
+    "ghcr.io/dapr/cli/dapr-cli:0": {},
+    // Same major version as the CI workflows (actions/setup-node).
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "installBicep": true
+    },
+    "ghcr.io/devcontainers/features/powershell:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+
+  // State that must survive "Rebuild Container". The Docker data (images, the Dapr containers, and
+  // the volume with the Azurite users and games) is kept by the docker-in-docker feature's own
+  // volume on /var/lib/docker.
+  "mounts": [
+    // AppHost user secrets: the generated rabbitmq-password and users-signing-key.
+    "source=battleship-usersecrets,target=/home/vscode/.microsoft/usersecrets,type=volume",
+    // The ASP.NET development certificate, so its thumbprint (and a browser exception for it)
+    // stays the same across rebuilds.
+    "source=battleship-devcerts,target=/home/vscode/.dotnet/corefx/cryptography/x509stores,type=volume",
+    // The Dapr runtime that `dapr init` installs.
+    "source=battleship-dapr,target=/home/vscode/.dapr,type=volume",
+    "source=battleship-nuget,target=/home/vscode/.nuget/packages,type=volume",
+    "source=battleship-npm,target=/home/vscode/.npm,type=volume",
+    // Linux-native frontend packages, kept apart from a host node_modules and off the bind mount.
+    "source=battleship-node-modules,target=/workspaces/battleship/src/Frontend/node_modules,type=volume",
+    // Change worktrees created inside the container (../battleship-worktrees/<change>).
+    "source=battleship-worktrees,target=/workspaces/battleship-worktrees,type=volume"
+  ],
+
+  // Ports are forwarded automatically (the Aspire feature turns on hybrid auto-forwarding); VS Code
+  // keeps the same port number on the host when it is free, which the frontend config.json and
+  // the API CORS origins rely on.
+  "portsAttributes": {
+    // The dashboard port of the AppHost's https launch profile.
+    "17150": {
+      "label": "Aspire dashboard",
+      "protocol": "https"
+    }
+  },
+
+  "containerEnv": {
+    // Build output lives outside the bind mount, see src/Directory.Build.props.
+    "BATTLESHIP_BUILD_ROOT": "/home/vscode/.cache/battleship-build"
+  },
+
+  "remoteEnv": {
+    // Lets OpenSSL-based tools (curl, Node.js) trust the Aspire development certificate.
+    "SSL_CERT_DIR": "/usr/lib/ssl/certs:/home/vscode/.aspnet/dev-certs/trust",
+    "DOTNET_NOLOGO": "true",
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "true"
+  },
+
+  "remoteUser": "vscode",
+
+  // Docker is not running yet during the image build, so all preparation happens after creation.
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+
+  "customizations": {
+    "vscode": {
+      // Both agent setups of this repository (Claude Code and GitHub Copilot) work inside.
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "microsoft-aspire.aspire-vscode",
+        "Angular.ng-template",
+        "ms-azuretools.vscode-dapr",
+        "ms-azuretools.vscode-bicep",
+        "ms-azuretools.vscode-containers",
+        "github.vscode-github-actions",
+        "GitHub.copilot-chat",
+        "anthropic.claude-code",
+        "EditorConfig.EditorConfig"
+      ]
+    }
+  }
+}

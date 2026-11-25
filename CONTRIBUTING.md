@@ -23,8 +23,14 @@ pull request.
 
 ## Set up your machine
 
-Follow the [Quick start](README.md#-quick-start) in the README. In short, you need Docker, the
-.NET 10 SDK, the Aspire CLI, the Dapr CLI (with `dapr init` run once) and Node.js with npm.
+The quickest route is the dev container: open the repository in VS Code, run **Dev Containers:
+Reopen in Container**, and every tool below is installed and `dapr init` is done for you. Your
+machine only needs Docker and VS Code with the Dev Containers extension. See
+[Use the dev container](docs/prerequisites.md#use-the-dev-container).
+
+To install the tools yourself instead, follow the [Quick start](README.md#-quick-start) in the
+README. In short, you need Docker, the .NET 10 SDK, the Aspire CLI, the Dapr CLI (with
+`dapr init` run once) and Node.js with npm.
 Then:
 
 ```shell

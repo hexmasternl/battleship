@@ -5,7 +5,7 @@
 <h3>A real-time, two-player Battleship game, and a working tour of <a href="https://aspire.dev">Aspire</a>.</h3>
 
 <p>
-<a href="https://dotnet.microsoft.com/download/dotnet/10.0"><img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-00c0ff?style=for-the-badge&labelColor=041e32&logo=dotnet&logoColor=e9eef3"></a>
+<a href="https://dotnet.microsoft.com/download/dotnet/11.0"><img alt=".NET 11" src="https://img.shields.io/badge/.NET-11-00c0ff?style=for-the-badge&labelColor=041e32&logo=dotnet&logoColor=e9eef3"></a>
 <a href="https://aspire.dev"><img alt="Aspire 13.6" src="https://img.shields.io/badge/Aspire-13.6-00c0ff?style=for-the-badge&labelColor=041e32"></a>
 <a href="https://dapr.io"><img alt="Dapr" src="https://img.shields.io/badge/Dapr-pub%2Fsub-2f87ff?style=for-the-badge&labelColor=041e32&logo=dapr&logoColor=e9eef3"></a>
 <a href="https://www.rabbitmq.com"><img alt="RabbitMQ" src="https://img.shields.io/badge/RabbitMQ-broker-2f87ff?style=for-the-badge&labelColor=041e32&logo=rabbitmq&logoColor=e9eef3"></a>
@@ -55,19 +55,177 @@ You don't need a cloud account, a `docker-compose.yml`, or any connection string
 
 ## ⚓ Quick start
 
-### 1. Install the prerequisites
+There are two ways to get a machine ready: the dev container, which brings every tool with it,
+or installing the tools yourself. Both end with the same `aspire run`.
+
+### Option A: dev container (recommended)
+
+The dev container in [`.devcontainer/`](.devcontainer/devcontainer.json) is a Linux container with
+every tool already in it: .NET 10, the Aspire CLI, its own Docker engine, the Dapr CLI with
+`dapr init` done, Node.js, the GitHub CLI, the OpenSpec CLI, the Azure CLI with Bicep, PowerShell
+and Playwright. Your machine only needs **Docker**, **VS Code** and **Git**. Nothing else is
+installed on it, not even .NET.
+
+#### 1. Prepare your machine
+
+Pick your operating system. Whatever it is, give Docker **at least 8 GB of memory** (16 GB is
+comfortable): the app runs three APIs, three Dapr sidecars, RabbitMQ, Azurite and the Angular dev
+server at the same time.
+
+<details open>
+<summary><b>🪟 Windows 10 (22H2) or Windows 11</b></summary>
+
+1. Install WSL 2 from an administrator terminal, then restart:
+
+   ```powershell
+   wsl --install
+   ```
+
+   This also installs Ubuntu. Open it once from the Start menu to create your Linux user.
+2. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/). In **Settings >
+   General**, keep **Use the WSL 2 based engine** on. In **Settings > Resources > WSL
+   integration**, turn on your Ubuntu distribution. Start Docker Desktop and leave it running.
+3. Docker's memory is the memory of WSL. To raise it, create `%UserProfile%\.wslconfig` with:
+
+   ```ini
+   [wsl2]
+   memory=12GB
+   ```
+
+   Then run `wsl --shutdown` and start Docker Desktop again.
+4. Install [VS Code](https://code.visualstudio.com/) and its
+   [Remote Development](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)
+   extension pack (it contains both Dev Containers and WSL).
+5. Clone the repository **inside WSL**, not on `C:\`. Files on the Windows drive work, but every
+   build and `npm` call is several times slower through that share. In the Ubuntu terminal:
+
+   ```bash
+   git clone https://github.com/hexmasternl/battleship.git ~/src/battleship
+   cd ~/src/battleship
+   code .
+   ```
+
+   `code .` opens VS Code on Windows, connected to WSL.
+
+</details>
+
+<details>
+<summary><b>🍎 macOS (Apple silicon or Intel)</b></summary>
+
+1. Install [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/), the build
+   for your chip (Apple silicon or Intel). Start it and leave it running.
+2. In **Settings > Resources**, set **Memory** to at least 8 GB. Keep the default file sharing
+   (VirtioFS) under **Settings > General**.
+3. Install [VS Code](https://code.visualstudio.com/) and its
+   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+   extension. Run **Shell Command: Install 'code' command in PATH** from the Command Palette
+   (`Cmd+Shift+P`) so `code .` works in Terminal.
+4. Clone the repository anywhere under your home folder (Docker Desktop shares it by default):
+
+   ```bash
+   git clone https://github.com/hexmasternl/battleship.git ~/src/battleship
+   cd ~/src/battleship
+   code .
+   ```
+
+On Apple silicon the container and every image in it run natively as `arm64`; there is nothing to
+configure.
+
+</details>
+
+<details>
+<summary><b>🐧 Linux</b></summary>
+
+1. Install [Docker Engine](https://docs.docker.com/engine/install/) for your distribution (or
+   Docker Desktop for Linux) and let your user run it without `sudo`:
+
+   ```bash
+   sudo usermod -aG docker "$USER"   # then log out and back in
+   docker run --rm hello-world       # check: works without sudo
+   ```
+
+   Docker Engine uses the machine's memory directly, so there is no limit to raise.
+2. Load the kernel's legacy NAT modules. The Docker engine *inside* the container needs them, and
+   several distributions (recent Ubuntu and Fedora among them) don't load them by default. Load
+   them now and at every boot:
+
+   ```bash
+   sudo modprobe -a iptable_nat ip6table_nat
+   printf 'iptable_nat\nip6table_nat\n' | sudo tee /etc/modules-load.d/battleship-dind.conf
+   ```
+
+   Without them, the container build stops with
+   `iptables failed: iptables --wait -t nat -N DOCKER`.
+3. Install [VS Code](https://code.visualstudio.com/) and its
+   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+   extension.
+4. Clone the repository and open it:
+
+   ```bash
+   git clone https://github.com/hexmasternl/battleship.git ~/src/battleship
+   cd ~/src/battleship
+   code .
+   ```
+
+</details>
+
+#### 2. Open the repository in the container
+
+The same on every operating system:
+
+1. VS Code shows *"Folder contains a Dev Container configuration file"*. Click **Reopen in
+   Container**. No notification? Press `F1` (`Cmd+Shift+P` on macOS) and run **Dev Containers:
+   Reopen in Container**.
+2. Wait for the first build: **five to ten minutes**. Click **Show log** in the notification to
+   follow it. It downloads the image and the tools, restores the NuGet and npm packages, installs
+   Chromium for Playwright and runs `dapr init`. Later starts take seconds.
+3. The build is done when the setup terminal prints *"Start the app with: ... aspire run"* and the
+   bottom-left corner of VS Code reads **Dev Container: Battleship**. Open a new terminal (`` Ctrl+` ``): you
+   are now in `/workspaces/battleship`, inside the container.
+4. Optional, but a good first check: run the smoke check. It prints every tool version, checks the
+   Dapr runtime, builds the solution and runs the unit tests (a few minutes).
+
+   ```bash
+   bash .devcontainer/smoke-check.sh
+   ```
+
+5. Sign in where you need to. Git commits use your own Git identity, and `git push` uses your
+   machine's credentials through VS Code. The GitHub CLI and the agents need their own sign-in in
+   the container: `gh auth login`, and `claude` for Claude Code.
+
+Then continue with [Launch](#launch) in the container's terminal.
+
+#### 3. Open the app in your own browser
+
+VS Code forwards the ports of the run to your machine, so the dashboard link that `aspire run`
+prints and the `frontend` endpoint open in the browser on your machine, not in the container.
+
+- **The ports must keep their number.** The frontend's configuration and the APIs' allowed origins
+  use the port numbers from inside the container. VS Code keeps the number when it is free on your
+  machine. If the game loads but every call fails with a CORS error, a port was moved: free it on
+  your machine, or forward it by hand to the same number in the **Ports** view.
+- **Your browser warns once about the certificate** on the dashboard's HTTPS address. The tools in
+  the container trust it, your browser doesn't. Check that the address is `localhost` and continue.
+
+Your games, the generated secrets, the Docker images and the installed packages live in named
+Docker volumes, so **Rebuild Container** keeps them. What exactly survives, how to start from
+scratch, worktrees and the storage tests: [Use the dev container](docs/prerequisites.md#use-the-dev-container).
+
+### Option B: install the tools
+
+#### 1. Install the prerequisites
 
 | Prerequisite | Why | Check |
 |---|---|---|
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) (running) | RabbitMQ and Azurite run as containers, and `dapr init` runs its own | `docker version` |
-| [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | Builds and runs the services | `dotnet --version` |
+| [.NET 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0) | Builds and runs the services | `dotnet --version` |
 | [Aspire CLI](https://aspire.dev/get-started/install-cli/) | Runs the AppHost and opens the dashboard | `aspire --version` |
 | [Dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/) | Starts the sidecars | `dapr --version` |
 | [Node.js](https://nodejs.org) with npm | Runs the Angular dev server | `node --version` |
 
 Step by step, with the Dapr check explained: [Prerequisites](docs/prerequisites.md).
 
-### 2. One-time setup
+#### 2. One-time setup
 
 ```shell
 dapr init                              # downloads daprd, starts the placement and scheduler containers
@@ -78,7 +236,7 @@ cd src/Frontend && npm install && cd -  # frontend packages
 > `dapr init` also starts Redis and Zipkin containers. This solution doesn't use them, and they
 > don't conflict with the containers the AppHost starts.
 
-### 3. Launch
+### Launch
 
 ```shell
 cd src/Aspire/HexMaster.Battleship.Aspire
@@ -627,6 +785,11 @@ privately, as described in [`SECURITY.md`](SECURITY.md).
 | Every `/api/` call fails in the browser | You started `ng serve` on its own. Start through `aspire run`, so `public/config.json` points at the gateway. |
 | Old users are still there | Azurite is persistent on purpose. Remove its container to reset (see [Users](#users-anonymous-identity)). |
 | An API refuses to start over the signing key | `Users:Tokens:SigningKey` is missing or shorter than 32 bytes. Under Aspire, check the `users-signing-key` parameter. |
+| Dev container: *"Docker is not running"* or the build can't start | Start Docker Desktop (Windows, macOS) or the Docker service (Linux: `sudo systemctl start docker`), then **Dev Containers: Rebuild Container**. |
+| Dev container build fails on `iptables --wait -t nat -N DOCKER` (Linux) | Load the NAT modules on the host, see the Linux steps in [Option A](#option-a-dev-container-recommended), and rebuild. |
+| Dev container: a setup step failed | The log names the failed step. Run `bash .devcontainer/post-create.sh` again in the container terminal; it skips what is already done. |
+| Dev container: the game loads but every call fails with a CORS error | A forwarded port got a different number on your machine. Free the port on your machine, or forward it to the same number in the **Ports** view. |
+| Dev container is very slow on Windows | The repository is on a Windows drive. Clone it inside WSL instead, see the Windows steps in [Option A](#option-a-dev-container-recommended). |
 
 ---
 

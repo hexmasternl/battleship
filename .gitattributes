@@ -1,0 +1,6 @@
+# Normalise line endings in the repository; let each checkout use its platform's endings.
+* text=auto
+
+# Shell scripts run inside the Linux dev container and CI, so they always keep LF, also in a
+# Windows checkout with core.autocrlf=true.
+*.sh text eol=lf

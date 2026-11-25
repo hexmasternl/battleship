@@ -427,3 +427,6 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# Personal Claude Code settings; also ignored inside the dev container, where global ignores do not apply
+.claude/settings.local.json
